@@ -1,0 +1,4 @@
+@import "@kyob/design-system/styles";
+
+@source "./src/**/*.{svelte,js,ts}";
+@source "../../../packages/design-system/src/components/**/*.{svelte,js,ts}";

@@ -1,0 +1,73 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+package types;
+option go_package = "github.com/okzmo/nyo/proto";
+
+message WSMessage {
+  string type = 1;
+  oneof content {
+    ChangeStatus user_change_status = 2;
+    NewChatMessage new_chat_message = 3;
+    EditChatMessage edit_chat_message = 4;
+    DeleteChatMessage delete_chat_message = 5;
+    StartChannel start_channel = 6;
+    KillChannel kill_channel = 7;
+  }
+}
+
+message ChangeStatus {
+	string id = 1;
+	string channel_id = 2;
+	string server_id = 3;
+	string status = 4;
+}
+
+message NewChatMessage {
+  Message message = 1;
+}
+
+message EditChatMessage {
+  Message message = 1;
+}
+
+message DeleteChatMessage {
+  Message message = 1;
+}
+
+message StartChannel {
+	Channel channel = 1;
+}
+
+message KillChannel {
+	Channel channel = 1;
+}
+
+message Message {
+	string id = 1;
+	string author_id = 2;
+	string server_id = 3;
+	string channel_id = 4;
+	bytes content = 5;
+	bool everyone = 6;
+	repeated string mentions_users= 7;
+	repeated string mentions_channels = 8;
+	bytes attachments = 9;
+	google.protobuf.Timestamp created_at = 10;
+	google.protobuf.Timestamp updated_at = 11;
+}
+
+message Channel {
+	string id = 1;
+	string server_id = 2;
+	string name = 3;
+	string description = 4;
+	string type = 5;
+	bool e2ee = 6;
+	repeated string users = 7;
+	repeated string roles = 8;
+	bool active = 9;
+}
+
+message GetServerUsers {
+  repeated string user_ids = 1;
+}

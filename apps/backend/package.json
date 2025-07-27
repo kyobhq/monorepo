@@ -1,0 +1,18 @@
+{
+  "name": "@kyob/backend",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "air",
+    "build": "go build -o main cmd/api/main.go",
+    "test": "go test ./... -v",
+    "itest": "go test ./internal/database -v",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "generate:schemas": "sqlc generate",
+    "migration:up": "dbmate -d ./db/migrations up",
+    "migration:down": "dbmate -d ./db/migrations down",
+    "migration:new": "dbmate -d ./db/migrations new"
+  }
+}

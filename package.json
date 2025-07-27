@@ -1,0 +1,26 @@
+{
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "generate:types": "pnpm --filter @kyob/protobufs generate:types",
+    "migration:up": "pnpm --filter @kyob/backend migration:up",
+    "migration:down": "pnpm --filter @kyob/backend migration:down",
+    "db:up": "pnpm --filter=@kyob/backend db:up",
+    "db:down": "pnpm --filter=@kyob/backend db:down",
+    "lint": "eslint .",
+    "format": "prettier .",
+    "typecheck": "yarn workspaces foreach -p -A run typecheck"
+  },
+  "devDependencies": {
+    "eslint": "^9.28.0",
+    "prettier": "^3.5.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "esbuild"
+    ]
+  }
+}
