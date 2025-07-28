@@ -27,9 +27,8 @@ type Service interface {
 	// It returns an error if the connection cannot be closed.
 	Close()
 
-	CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error)
 	GetUser(ctx context.Context, input string) (db.User, error)
-	SaveAuthToken(ctx context.Context, token, userID string) (db.Token, error)
+	CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error)
 }
 
 type service struct {
@@ -86,20 +85,6 @@ func (s *service) GetUser(ctx context.Context, input string) (db.User, error) {
 		Email:    input,
 		Username: input,
 	})
-}
-
-func (s *service) SaveAuthToken(ctx context.Context, token, userID string) (db.Token, error) {
-	return s.queries.CreateToken(ctx, db.CreateTokenParams{
-		ID:       cuid2.Generate(),
-		UserID:   userID,
-		Token:    token,
-		ExpireAt: time.Now().Add(30 * (24 * time.Hour)),
-		Type:     "REMEMBER_ME_TOKEN",
-	})
-}
-
-func (s *service) VerifyAuthToken(token string) (db.User, error) {
-	return s.queries.VerifyToken(context.TODO(), token)
 }
 
 // Health checks the health of the database connection by pinging the database.

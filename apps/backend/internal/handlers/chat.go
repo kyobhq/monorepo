@@ -19,6 +19,9 @@ func NewChatHandlers(chatService domains.ChatService) *chatHandler {
 	}
 }
 
+func (h *chatHandler) GetMessages(c *gin.Context) {
+}
+
 func (h *chatHandler) CreateMessage(c *gin.Context) {
 	var body types.ChatMessage
 
@@ -46,4 +49,10 @@ func (h *chatHandler) CreateMessage(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+func (h *chatHandler) EditMessage(c *gin.Context) {
+}
+
+func (h *chatHandler) DeleteMessage(c *gin.Context) {
 }

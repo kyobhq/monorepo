@@ -22,8 +22,13 @@ type Server struct {
 	broker broker.Service
 	actors actors.Service
 
-	chat domains.ChatService
-	auth domains.AuthService
+	authSvc    domains.AuthService
+	chatSvc    domains.ChatService
+	userSvc    domains.UserService
+	channelSvc domains.ChannelService
+	roleSvc    domains.RoleService
+	friendSvc  domains.FriendService
+	serverSvc  domains.ServerService
 }
 
 func NewServer() *http.Server {
@@ -34,8 +39,13 @@ func NewServer() *http.Server {
 	brokerService := broker.New()
 	actorsService := actors.New()
 
-	chatService := domains.NewChatService(actorsService, databaseService)
 	authService := domains.NewAuthService(databaseService, brokerService)
+	chatService := domains.NewChatService(actorsService, databaseService)
+	userService := domains.NewUserService(databaseService)
+	channelService := domains.NewChannelService(databaseService)
+	friendService := domains.NewFriendService(databaseService)
+	roleService := domains.NewRoleService(databaseService)
+	serverService := domains.NewServerService(databaseService)
 
 	NewServer := &Server{
 		port: port,
@@ -44,8 +54,13 @@ func NewServer() *http.Server {
 		broker: brokerService,
 		actors: actorsService,
 
-		chat: chatService,
-		auth: authService,
+		authSvc:    authService,
+		chatSvc:    chatService,
+		userSvc:    userService,
+		channelSvc: channelService,
+		roleSvc:    roleService,
+		friendSvc:  friendService,
+		serverSvc:  serverService,
 	}
 
 	// Declare Server config
