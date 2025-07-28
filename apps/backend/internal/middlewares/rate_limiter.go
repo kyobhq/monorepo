@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -12,7 +11,6 @@ import (
 type LimiterConfig struct {
 	MaxRequests uint
 	Window      time.Duration
-	IPFunc      func(*gin.Context) string
 }
 
 type ipLimiter struct {
@@ -25,12 +23,7 @@ type bucket struct {
 	exp   time.Time
 }
 
-func NewRateLimiter(cfg LimiterConfig) gin.HandlerFunc {
-	cfg.IPFunc = func(c *gin.Context) string {
-		host, _, _ := net.SplitHostPort(c.Request.Host)
-		return host
-	}
-
+func RateLimiter(cfg LimiterConfig) gin.HandlerFunc {
 	l := &ipLimiter{
 		buckets: make(map[string]*bucket),
 	}
@@ -43,7 +36,7 @@ func NewRateLimiter(cfg LimiterConfig) gin.HandlerFunc {
 	}()
 
 	return func(c *gin.Context) {
-		key := cfg.IPFunc(c)
+		key := c.RemoteIP()
 		allowed := l.hit(key, cfg.MaxRequests, cfg.Window)
 
 		if !allowed {
@@ -72,6 +65,7 @@ func (l *ipLimiter) hit(key string, max uint, window time.Duration) bool {
 			count: 1,
 			exp:   now.Add(window),
 		}
+		return true
 	}
 
 	if b.count > max {

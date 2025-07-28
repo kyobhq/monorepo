@@ -19,7 +19,7 @@ func NewChatHandlers(chatService domains.ChatService) *chatHandler {
 	}
 }
 
-func (ch *chatHandler) CreateMessage(c *gin.Context) {
+func (h *chatHandler) CreateMessage(c *gin.Context) {
 	var body types.ChatMessage
 
 	maxFormSize := int64(1<<30) + (1 << 20)                           // 1gb + 20mb
@@ -40,7 +40,7 @@ func (ch *chatHandler) CreateMessage(c *gin.Context) {
 		return
 	}
 
-	if derr := ch.domain.CreateMessage(&body); derr != nil {
+	if derr := h.domain.CreateMessage(c, &body); derr != nil {
 		derr.Respond(c)
 		return
 	}

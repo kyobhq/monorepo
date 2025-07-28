@@ -23,6 +23,7 @@ type Server struct {
 	actors actors.Service
 
 	chat domains.ChatService
+	auth domains.AuthService
 }
 
 func NewServer() *http.Server {
@@ -34,6 +35,7 @@ func NewServer() *http.Server {
 	actorsService := actors.New()
 
 	chatService := domains.NewChatService(actorsService, databaseService)
+	authService := domains.NewAuthService(databaseService, brokerService)
 
 	NewServer := &Server{
 		port: port,
@@ -43,6 +45,7 @@ func NewServer() *http.Server {
 		actors: actorsService,
 
 		chat: chatService,
+		auth: authService,
 	}
 
 	// Declare Server config

@@ -20,7 +20,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		AllowCredentials: true, // Enable cookies/auth
 	}))
 
-	r.Use(middlewares.NewRateLimiter(middlewares.LimiterConfig{
+	r.Use(middlewares.RateLimiter(middlewares.LimiterConfig{
 		MaxRequests: 100,
 		Window:      30 * time.Second,
 	}))
@@ -31,20 +31,32 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.GET("/health", s.healthHandler)
 
 	api := r.Group("/api")
-	auth := api.Group("/auth")
+	protected := api.Group("/auth")
+	protected.Use(middlewares.Auth(s.broker))
+
+	auth := handlers.NewAuthHandlers(s.auth)
+	api.POST("/signin", auth.SignIn)
+	api.POST("/signup", auth.SignUp)
+	api.POST("/logout", auth.Logout)
 
 	ws := handlers.NewWSHandlers(s.actors)
-	auth.GET("/ws/:user_id", ws.Setup)
+	protected.GET("/ws/:user_id", ws.Setup)
 
 	chat := handlers.NewChatHandlers(s.chat)
-	auth.POST("/:user_id/chat", chat.CreateMessage)
+	protected.POST("/:user_id/chat", chat.CreateMessage)
+	protected.GET("/hello", s.HelloWorldHandler)
 
 	return r
 }
 
 func (s *Server) HelloWorldHandler(c *gin.Context) {
-	resp := make(map[string]string)
-	resp["message"] = "Hello World"
+	resp := make(map[string]any)
+	user, exists := c.Get("user")
+	if exists {
+		resp["message"] = user
+	} else {
+		resp["message"] = "Hello world"
+	}
 
 	c.JSON(http.StatusOK, resp)
 }

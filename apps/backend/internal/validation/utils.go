@@ -15,7 +15,7 @@ import (
 var Validator *validator.Validate
 
 func New() {
-	Validator := validator.New()
+	Validator = validator.New()
 	Validator.RegisterValidation("emoji_shortcode", validateEmojiShortcode)
 }
 

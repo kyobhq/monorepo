@@ -4,10 +4,12 @@ import (
 	"backend/internal/actors"
 	"backend/internal/database"
 	"backend/internal/types"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ChatService interface {
-	CreateMessage(message *types.ChatMessage) *types.APIError
+	CreateMessage(ctx *gin.Context, message *types.ChatMessage) *types.APIError
 }
 
 type chatService struct {
@@ -22,7 +24,7 @@ func NewChatService(actors actors.Service, db database.Service) *chatService {
 	}
 }
 
-func (s *chatService) CreateMessage(message *types.ChatMessage) *types.APIError {
+func (s *chatService) CreateMessage(ctx *gin.Context, message *types.ChatMessage) *types.APIError {
 	//TODO: send to channel actor
 	// protoMessage := &proto.NewChatMessage{
 	// 	Message: &proto.ChatMessage{

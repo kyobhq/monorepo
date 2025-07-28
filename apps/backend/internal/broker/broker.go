@@ -1,12 +1,13 @@
 package broker
 
 import (
+	db "backend/db/gen_queries"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/anthdm/hollywood/actor"
@@ -34,14 +35,9 @@ type Service interface {
 	// Channels follows this pattern: actor:channel (e.g. server:123, channel:123).
 	SubcribeTo(channels ...string) *redis.PubSub
 
-	// GetUsers is used to access connected users.
-	GetUsers(userIDs []string) []*PresenceInfo
-
-	SetUserPresence(userID string, userPID *actor.PID, status string)
-
-	GetUserPresence(userID string) (*PresenceInfo, error)
-
-	RemoveUserPresence(userID string)
+	CacheUser(ctx context.Context, token string, user db.User) error
+	GetCachedUser(ctx context.Context, token string) (*db.User, error)
+	RemoveCachedUser(ctx context.Context, token string) error
 }
 
 type service struct {
@@ -86,49 +82,44 @@ func (s *service) PublishTo(channel string, message []byte) error {
 	return s.db.Publish(context.TODO(), channel, message).Err()
 }
 
-func (s *service) SetUserPresence(userID string, userPID *actor.PID, status string) {
-	key := "user:" + userID
-	s.db.HSet(context.TODO(), key, map[string]any{
-		"pid":       userPID.String(),
-		"status":    status,
-		"timestamp": time.Now().Unix(),
-	})
+func (s *service) CacheUser(ctx context.Context, token string, user db.User) error {
+	user.Password = ""
+	user.Email = ""
 
-	s.db.Publish(context.TODO(), "user.presence", fmt.Sprintf("%s|%s", userID, status))
-}
-
-func (s *service) RemoveUserPresence(userID string) {
-	s.db.Del(context.TODO(), userID)
-}
-
-func (s *service) GetUserPresence(userID string) (*PresenceInfo, error) {
-	result := s.db.HGetAll(context.TODO(), "user:"+userID)
-	data, err := result.Result()
-	if err != nil || len(data) == 0 {
-		return nil, fmt.Errorf("user not found")
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		return err
 	}
 
-	pidStr := strings.Split(data["pid"], "/")
-	pid := actor.NewPID(pidStr[0], strings.Join(pidStr[1:], "/"))
+	s.db.Set(ctx, "user:"+token, userJSON, 30*(24*time.Hour))
 
-	return &PresenceInfo{
-		PID:    pid,
-		Status: data["status"],
-	}, nil
+	return nil
 }
 
-func (s *service) GetUsers(userIDs []string) []*PresenceInfo {
-	var users []*PresenceInfo
-
-	for _, id := range userIDs {
-		user, err := s.GetUserPresence(id)
-		if err != nil {
-			continue
-		}
-		users = append(users, user)
+func (s *service) GetCachedUser(ctx context.Context, token string) (*db.User, error) {
+	res := s.db.Get(ctx, "user:"+token)
+	userJSON, err := res.Result()
+	if err != nil {
+		return nil, err
 	}
 
-	return users
+	var user db.User
+	err = json.Unmarshal([]byte(userJSON), &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (s *service) RemoveCachedUser(ctx context.Context, token string) error {
+	res := s.db.Del(ctx, "user:"+token)
+	_, err := res.Result()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Health checks the health of the broker connection by pinging the broker.

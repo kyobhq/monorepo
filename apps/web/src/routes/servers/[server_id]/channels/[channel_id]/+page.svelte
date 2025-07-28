@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { page } from '$app/state';
+	import ChannelHeader from 'ui/ChannelHeader/ChannelHeader.svelte';
+	import RichInput from 'ui/RichInput/RichInput.svelte';
 </script>
 
-<h1>{page.params.channel_id}</h1>
+<ChannelHeader name="dev stuff" description="this is a test" />
+<RichInput />

@@ -2,6 +2,7 @@ package database
 
 import (
 	db "backend/db/gen_queries"
+	"backend/internal/types"
 	"context"
 	"fmt"
 	"log"
@@ -9,9 +10,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/nrednav/cuid2"
 )
 
 // Service represents a service that interacts with a database.
@@ -23,6 +26,10 @@ type Service interface {
 	// Close terminates the database connection.
 	// It returns an error if the connection cannot be closed.
 	Close()
+
+	CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error)
+	GetUser(ctx context.Context, input string) (db.User, error)
+	SaveAuthToken(ctx context.Context, token, userID string) (db.Token, error)
 }
 
 type service struct {
@@ -58,6 +65,41 @@ func New() Service {
 	}
 
 	return dbInstance
+}
+
+func (s *service) CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error) {
+	avatarURL := pgtype.Text{String: "https://i.pinimg.com/1200x/ef/cf/e5/efcfe5321149cb491399bd159586a2ec.jpg", Valid: true}
+	mainColor := pgtype.Text{String: "12,14,14", Valid: true}
+	return s.queries.CreateUser(ctx, db.CreateUserParams{
+		ID:          cuid2.Generate(),
+		Email:       user.Email,
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		Password:    user.Password,
+		Avatar:      avatarURL,
+		MainColor:   mainColor,
+	})
+}
+
+func (s *service) GetUser(ctx context.Context, input string) (db.User, error) {
+	return s.queries.GetUser(ctx, db.GetUserParams{
+		Email:    input,
+		Username: input,
+	})
+}
+
+func (s *service) SaveAuthToken(ctx context.Context, token, userID string) (db.Token, error) {
+	return s.queries.CreateToken(ctx, db.CreateTokenParams{
+		ID:       cuid2.Generate(),
+		UserID:   userID,
+		Token:    token,
+		ExpireAt: time.Now().Add(30 * (24 * time.Hour)),
+		Type:     "REMEMBER_ME_TOKEN",
+	})
+}
+
+func (s *service) VerifyAuthToken(token string) (db.User, error) {
+	return s.queries.VerifyToken(context.TODO(), token)
 }
 
 // Health checks the health of the database connection by pinging the database.
