@@ -58,6 +58,16 @@ func (h *authHandler) SignUp(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
+func (h *authHandler) Check(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
 func (h *authHandler) Logout(c *gin.Context) {
 	if derr := h.domain.Logout(c); derr != nil {
 		derr.Respond(c)

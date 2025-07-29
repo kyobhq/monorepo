@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -28,7 +29,24 @@ type Service interface {
 	Close()
 
 	GetUser(ctx context.Context, input string) (db.User, error)
+	GetUserByID(ctx context.Context, userID string) (db.User, error)
 	CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error)
+	UpdateUserAvatarNBanner(ctx context.Context, userID string, body *types.UpdateAvatarParams) error
+	UpdateUserAccount(ctx context.Context, userID string, body *types.UpdateAccountParams) error
+	UpdateUserPassword(ctx context.Context, userID string, password string) error
+	UpdateUserProfile(ctx context.Context, userID string, body *types.UpdateProfileParams) error
+	GetUserServers(ctx context.Context, userID string) ([]db.GetServersFromUserRow, error)
+	CreateServer(ctx context.Context, ownerID string, body *types.CreateServerParams, avatarURL *string) (*db.Server, error)
+	CheckInvite(ctx context.Context, inviteCode string) (string, error)
+	CreateInvite(ctx context.Context, serverID string) (string, error)
+	JoinServer(ctx context.Context, serverID string, userID string) error
+	GetServer(ctx context.Context, serverID string) (db.Server, error)
+	UpdateServerAvatarNBanner(ctx context.Context, serverID string, body *types.UpdateServerAvatarParams) error
+	UpdateServerProfile(ctx context.Context, serverID string, body *types.UpdateServerProfileParams) error
+	LeaveServer(ctx context.Context, serverID string, userID string) error
+	DeleteServer(ctx context.Context, serverID string) (pgconn.CommandTag, error)
+	GetChannelsFromServers(ctx context.Context, serverIDs []string) ([]db.Channel, error)
+	GetRolesFromServers(ctx context.Context, serverIDs []string) ([]db.GetRolesFromServersRow, error)
 }
 
 type service struct {
@@ -85,6 +103,153 @@ func (s *service) GetUser(ctx context.Context, input string) (db.User, error) {
 		Email:    input,
 		Username: input,
 	})
+}
+
+func (s *service) GetUserByID(ctx context.Context, userID string) (db.User, error) {
+	return s.queries.GetUserById(ctx, userID)
+}
+
+func (s *service) UpdateUserAvatarNBanner(ctx context.Context, userID string, body *types.UpdateAvatarParams) error {
+	avatarURL := pgtype.Text{String: body.Avatar, Valid: true}
+	bannerURL := pgtype.Text{String: body.Banner, Valid: true}
+	mainColor := pgtype.Text{String: body.MainColor, Valid: true}
+
+	return s.queries.UpdateUserAvatarNBanner(ctx, db.UpdateUserAvatarNBannerParams{
+		ID:        userID,
+		Avatar:    avatarURL,
+		Banner:    bannerURL,
+		MainColor: mainColor,
+	})
+}
+
+func (s *service) GetUserServers(ctx context.Context, userID string) ([]db.GetServersFromUserRow, error) {
+	return s.queries.GetServersFromUser(ctx, userID)
+}
+
+func (s *service) UpdateUserAccount(ctx context.Context, userID string, body *types.UpdateAccountParams) error {
+	return s.queries.UpdateUserInformations(ctx, db.UpdateUserInformationsParams{
+		ID:       userID,
+		Email:    body.Email,
+		Username: body.Username,
+	})
+}
+
+func (s *service) UpdateUserPassword(ctx context.Context, userID string, password string) error {
+	return s.queries.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
+		ID:       userID,
+		Password: password,
+	})
+}
+
+func (s *service) UpdateUserProfile(ctx context.Context, userID string, body *types.UpdateProfileParams) error {
+	return s.queries.UpdateUserProfile(ctx, db.UpdateUserProfileParams{
+		ID:          userID,
+		DisplayName: body.DisplayName,
+		AboutMe:     body.About,
+		Facts:       body.Facts,
+		Links:       body.Links,
+	})
+}
+
+func (s *service) CreateServer(ctx context.Context, ownerID string, body *types.CreateServerParams, avatarURL *string) (*db.Server, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.queries.WithTx(tx)
+
+	server, err := qtx.CreateServer(ctx, db.CreateServerParams{
+		ID:          cuid2.Generate(),
+		Name:        body.Name,
+		Description: body.Description,
+		Avatar:      pgtype.Text{String: *avatarURL, Valid: true},
+		MainColor:   pgtype.Text{String: "12,14,14", Valid: true},
+		OwnerID:     ownerID,
+		Public:      body.Public,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = qtx.JoinServer(ctx, db.JoinServerParams{
+		ID:       cuid2.Generate(),
+		UserID:   ownerID,
+		ServerID: server.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &server, tx.Commit(ctx)
+}
+
+func (s *service) CheckInvite(ctx context.Context, inviteCode string) (string, error) {
+	return s.queries.CheckInvite(ctx, inviteCode)
+}
+
+func (s *service) CreateInvite(ctx context.Context, serverID string) (string, error) {
+	return s.queries.CreateInvite(ctx, db.CreateInviteParams{
+		ID:       cuid2.Generate(),
+		ServerID: serverID,
+		InviteID: cuid2.Generate(),
+		ExpireAt: time.Now().Add(time.Hour * 24),
+	})
+}
+
+func (s *service) JoinServer(ctx context.Context, serverID string, userID string) error {
+	return s.queries.JoinServer(ctx, db.JoinServerParams{
+		ID:       serverID,
+		UserID:   userID,
+		ServerID: serverID,
+	})
+}
+
+func (s *service) UpdateServerAvatarNBanner(ctx context.Context, serverID string, body *types.UpdateServerAvatarParams) error {
+	avatarURL := pgtype.Text{String: body.Avatar, Valid: true}
+	bannerURL := pgtype.Text{String: body.Banner, Valid: true}
+	mainColor := pgtype.Text{String: body.MainColor, Valid: true}
+
+	return s.queries.UpdateServerAvatarNBanner(ctx, db.UpdateServerAvatarNBannerParams{
+		ID:        serverID,
+		Avatar:    avatarURL,
+		Banner:    bannerURL,
+		MainColor: mainColor,
+	})
+}
+
+func (s *service) UpdateServerProfile(ctx context.Context, serverID string, body *types.UpdateServerProfileParams) error {
+	return s.queries.UpdateServerProfile(ctx, db.UpdateServerProfileParams{
+		ID:          serverID,
+		Name:        body.Name,
+		Description: body.Description,
+	})
+}
+
+func (s *service) GetServer(ctx context.Context, serverID string) (db.Server, error) {
+	return s.queries.GetServer(ctx, serverID)
+}
+
+func (s *service) LeaveServer(ctx context.Context, serverID string, userID string) error {
+	return s.queries.LeaveServer(ctx, db.LeaveServerParams{
+		ServerID: serverID,
+		UserID:   userID,
+	})
+}
+
+func (s *service) DeleteServer(ctx context.Context, serverID string) (pgconn.CommandTag, error) {
+	return s.queries.DeleteServer(ctx, db.DeleteServerParams{
+		ID: serverID,
+	})
+}
+
+func (s *service) GetChannelsFromServers(ctx context.Context, serverIDs []string) ([]db.Channel, error) {
+	return s.queries.GetChannelsFromServers(ctx, serverIDs)
+}
+
+func (s *service) GetRolesFromServers(ctx context.Context, serverIDs []string) ([]db.GetRolesFromServersRow, error) {
+	return s.queries.GetRolesFromServers(ctx, serverIDs)
 }
 
 // Health checks the health of the database connection by pinging the database.

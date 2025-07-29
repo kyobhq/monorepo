@@ -25,8 +25,8 @@ func (h *chatHandler) GetMessages(c *gin.Context) {
 func (h *chatHandler) CreateMessage(c *gin.Context) {
 	var body types.ChatMessage
 
-	maxFormSize := int64(1<<30) + (1 << 20)                           // 1gb + 20mb
-	if err := c.Request.ParseMultipartForm(maxFormSize); err != nil { // 32MB max
+	maxFormSize := int64(1<<30) + (1 << 20) // 1gb + 20mb
+	if err := c.Request.ParseMultipartForm(maxFormSize); err != nil {
 		types.NewAPIError(http.StatusBadRequest, "ERR_PARSE_FORM", "Failed to parse form", err).Respond(c)
 		return
 	}

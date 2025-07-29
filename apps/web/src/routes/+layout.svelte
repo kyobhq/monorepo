@@ -1,18 +1,25 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import '../app.css';
 	import '@fontsource/host-grotesk/400.css';
 	import '@fontsource/host-grotesk/500.css';
 	import '@fontsource/host-grotesk/600.css';
-
-	import SideBar from 'ui/SideBar/SideBar.svelte';
-	import ServerBar from 'ui/ServerBar/ServerBar.svelte';
+	import '@fontsource/host-grotesk/700.css';
+	import { backend } from 'stores/backendStore.svelte';
+	import { userStore } from 'stores/userStore.svelte';
+	import { onMount } from 'svelte';
 	let { children } = $props();
+
+	onMount(async () => {
+		const identityRes = await backend.checkIdentity();
+		identityRes.match(
+			(user) => {
+				userStore.user = user;
+				goto('/servers');
+			},
+			(error) => goto('/signin')
+		);
+	});
 </script>
 
-<div class="flex">
-	<SideBar />
-	<main class="flex-1 relative">
-		{@render children()}
-	</main>
-	<ServerBar />
-</div>
+{@render children()}

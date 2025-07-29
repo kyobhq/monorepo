@@ -1,13 +1,20 @@
+import type { Server } from "$lib/types/types";
 import { print } from "utils/print"
 
-export class Server {
+export class ServerStore {
+  servers = $state<Record<string, Server>>({});
+
   getChannel() {
     print("todo!")
   }
 
-  getServer() {
-    print("todo!")
+  getServer(id: string) {
+    return this.servers[id]
+  }
+
+  addServer(server: Server) {
+    this.servers[server.id] = server
   }
 }
 
-export const serverStore = new Server()
+export const serverStore = new ServerStore()

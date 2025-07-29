@@ -5,6 +5,7 @@ import (
 	"backend/internal/broker"
 	"backend/internal/database"
 	"backend/internal/domains"
+	"backend/internal/files"
 	"backend/internal/validation"
 	"fmt"
 	"net/http"
@@ -21,6 +22,7 @@ type Server struct {
 	db     database.Service
 	broker broker.Service
 	actors actors.Service
+	files  files.Service
 
 	authSvc    domains.AuthService
 	chatSvc    domains.ChatService
@@ -38,6 +40,7 @@ func NewServer() *http.Server {
 	databaseService := database.New()
 	brokerService := broker.New()
 	actorsService := actors.New()
+	filesService := files.New()
 
 	authService := domains.NewAuthService(databaseService, brokerService)
 	chatService := domains.NewChatService(actorsService, databaseService)
@@ -45,7 +48,7 @@ func NewServer() *http.Server {
 	channelService := domains.NewChannelService(databaseService)
 	friendService := domains.NewFriendService(databaseService)
 	roleService := domains.NewRoleService(databaseService)
-	serverService := domains.NewServerService(databaseService)
+	serverService := domains.NewServerService(databaseService, filesService)
 
 	NewServer := &Server{
 		port: port,
@@ -53,6 +56,7 @@ func NewServer() *http.Server {
 		db:     databaseService,
 		broker: brokerService,
 		actors: actorsService,
+		files:  filesService,
 
 		authSvc:    authService,
 		chatSvc:    chatService,

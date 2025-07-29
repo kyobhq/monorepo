@@ -1,8 +1,8 @@
 package types
 
 type SignInParams struct {
-	EmailOrUsername string `validate:"required" json:"email_or_username"`
-	Password        string `validate:"required" json:"password"`
+	Email    string `validate:"required,email" json:"email"`
+	Password string `validate:"required" json:"password"`
 }
 
 type SignUpParams struct {

@@ -18,6 +18,7 @@ export type ContextMenuTarget = (typeof contextMenuTargets)[number];
 
 export interface Channel {
   id: string;
+  server_id: string;
   name: string;
   type: ChannelTypes;
   unread: boolean;
@@ -94,10 +95,9 @@ export interface Friend extends Partial<User> {
 }
 
 export interface Setup {
-  user: User;
-  friends: Friend[];
-  emojis: Emoji[];
   servers: Record<string, Server>;
+  emojis: Emoji[];
+  friends: Friend[];
 }
 
 export interface DefaultResponse {

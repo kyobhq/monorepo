@@ -24,5 +24,5 @@
 	<div class={['relative w-8 h-8', border && 'after:absolute after:inset-0 after:inner-main-700']}>
 		<img src={avatar} alt={name} class="w-full h-full object-cover" />
 	</div>
-	<span class="text-sm" style="color: {color ? color : 'var(--ui-main-300)'};">{name}</span>
+	<span style="color: {color ? color : 'var(--ui-main-300)'};">{name}</span>
 </div>

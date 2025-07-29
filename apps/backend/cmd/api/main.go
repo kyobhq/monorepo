@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
 func gracefulShutdown(apiServer *http.Server, done chan bool) {
@@ -35,6 +37,9 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 }
 
 func main() {
+	vips.Startup(nil)
+	defer vips.Shutdown()
+
 	server := server.NewServer()
 
 	done := make(chan bool, 1)

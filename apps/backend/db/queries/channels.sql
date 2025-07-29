@@ -11,6 +11,11 @@ SELECT *
 FROM channels
 WHERE server_id = $1 AND active = true;
 
+-- name: GetChannelsFromServers :many
+SELECT *
+FROM channels
+WHERE server_id = ANY($1::text[]) AND active = true;
+
 -- name: CreateChannel :one
 INSERT INTO channels (
   id, server_id, name, description, type, e2ee, users, roles

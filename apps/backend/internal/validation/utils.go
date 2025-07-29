@@ -37,21 +37,7 @@ func ParseAndValidate[T any](r *http.Request, body *T) *types.APIError {
 		return types.NewAPIError(http.StatusBadRequest, "ERR_INVALID_BODY", "Invalid JSON body", err)
 	}
 
-	err = Validator.Struct(body)
-	if err != nil {
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
-			return types.NewAPIError(
-				http.StatusBadRequest,
-				"ERR_VALIDATION_FAILED",
-				"Validation failed",
-				formatValidationErrors(validationErrors),
-			)
-		}
-		// Fallback for other validation errors
-		return types.NewAPIError(http.StatusBadRequest, "ERR_VALIDATION_FAILED", "Validation failed", err)
-	}
-
-	return nil
+	return Validate(body)
 }
 
 func formatValidationErrors(errs validator.ValidationErrors) error {
@@ -139,6 +125,23 @@ func ValidateSingleFile(fileHeader *multipart.FileHeader, config FileValidationC
 				float64(config.MaxSize)/(1024*1024)),
 			nil,
 		)
+	}
+
+	return nil
+}
+
+func Validate[T any](body *T) *types.APIError {
+	err := Validator.Struct(body)
+	if err != nil {
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			return types.NewAPIError(
+				http.StatusBadRequest,
+				"ERR_VALIDATION_FAILED",
+				"Validation failed",
+				formatValidationErrors(validationErrors),
+			)
+		}
+		return types.NewAPIError(http.StatusBadRequest, "ERR_VALIDATION_FAILED", "Validation failed", err)
 	}
 
 	return nil

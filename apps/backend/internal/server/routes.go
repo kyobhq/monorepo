@@ -14,10 +14,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type"},
-		AllowCredentials: true, // Enable cookies/auth
+		AllowCredentials: true,
 	}))
 
 	r.Use(middlewares.RateLimiter(middlewares.LimiterConfig{
@@ -30,21 +30,24 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.GET("/health", s.healthHandler)
 
 	api := r.Group("/api")
-	protected := api.Group("/auth")
+	protected := api.Group("/protected")
 	protected.Use(middlewares.Auth(s.broker))
 
 	auth := handlers.NewAuthHandlers(s.authSvc)
 	api.POST("/signin", auth.SignIn)
 	api.POST("/signup", auth.SignUp)
-	api.POST("/logout", auth.Logout)
+	protected.GET("/check", auth.Check)
+	protected.POST("/logout", auth.Logout)
 
 	ws := handlers.NewWSHandlers(s.actors)
 	protected.GET("/ws/:user_id", ws.Setup)
 
 	user := handlers.NewUserHandlers(s.userSvc)
-	protected.GET("/users/:user_id", user.GetUser)
-	protected.PATCH("/users/:user_id/account", user.UpdateAccount)
-	protected.PATCH("/users/:user_id/profile", user.UpdateProfile)
+	// protected.GET("/users/:user_id", user.GetUser)
+	protected.GET("/users/setup", user.Setup)
+	protected.PATCH("/users/account", user.UpdateAccount)
+	protected.PATCH("/users/profile", user.UpdateProfile)
+	protected.PATCH("/users/avatar", user.UpdateAvatar)
 
 	friend := handlers.NewFriendHandlers(s.friendSvc)
 	protected.POST("/friends/:receiver_id", friend.SendRequest)
@@ -56,8 +59,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	protected.POST("/servers/:server_id/join", server.JoinServer)
 	protected.POST("/servers/:server_id/leave", server.LeaveServer)
 	protected.POST("/servers/:server_id/invite", server.CreateInvite)
-	protected.DELETE("/servers/:server_id/invite", server.DeleteInvite)
+	protected.DELETE("/servers/invite/:invite_id", server.DeleteInvite)
 	protected.PATCH("/servers/:server_id/profile", server.EditProfile)
+	protected.PATCH("/servers/:server_id/avatar", server.EditAvatar)
 	protected.DELETE("/servers/:server_id", server.DeleteServer)
 
 	channel := handlers.NewChannelHandlers(s.channelSvc)

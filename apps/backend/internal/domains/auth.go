@@ -30,15 +30,15 @@ func NewAuthService(db database.Service, broker broker.Service) *authService {
 }
 
 func (s *authService) SignIn(ctx *gin.Context, user *types.SignInParams) (*string, *types.APIError) {
-	if user.EmailOrUsername == "admin" {
+	if user.Email == "admin" {
 		return nil, &types.APIError{
 			Status:  http.StatusForbidden,
-			Code:    "ERR_ADMIN_USERNAME",
-			Message: "You cannot user admin as a username.",
+			Code:    "ERR_ADMIN",
+			Message: "no",
 		}
 	}
 
-	dbUser, err := s.db.GetUser(ctx, user.EmailOrUsername)
+	dbUser, err := s.db.GetUser(ctx, user.Email)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusNotFound,

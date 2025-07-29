@@ -1,5 +1,12 @@
-export interface StandardError {
-  error: string;
+export interface APIError {
+  status: number;
+  code: string;
+  cause: string;
+  message: string;
+}
+
+export interface APIDefaultError {
+  code: string;
+  error?: string;
   cause?: any;
-  response: Response;
 }
