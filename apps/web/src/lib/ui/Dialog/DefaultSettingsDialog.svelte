@@ -2,7 +2,17 @@
 	import { Dialog } from 'bits-ui';
 	import { scaleBlur } from 'utils/transition';
 
-	let { children, state = $bindable() } = $props();
+	let { children, state = $bindable(), initialized = $bindable() } = $props();
+
+	$effect(() => {
+		if (state) {
+			setTimeout(() => {
+				initialized = true;
+			}, 500);
+		} else {
+			initialized = false;
+		}
+	});
 </script>
 
 <Dialog.Root onOpenChange={(s) => (state = s)} open={state}>
@@ -12,7 +22,7 @@
 			{#snippet child({ props, open })}
 				{#if open}
 					<div
-						class="bg-main-950 border-[0.5px] border-main-700 fixed top-1/2 left-1/2 z-50 w-[70rem] h-[50rem] -translate-1/2 flex"
+						class="bg-main-950 border-[0.5px] border-main-700 fixed top-1/2 left-1/2 z-50 w-[60rem] h-[40rem] -translate-1/2 flex"
 						{...props}
 						transition:scaleBlur={{}}
 					>

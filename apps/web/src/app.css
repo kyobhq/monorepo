@@ -96,3 +96,21 @@ body {
     #121414 37.72%
   );
 }
+
+.tiptap {
+	height: 100%;
+  overflow: auto;
+  scroll-padding: 16px;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+	color: var(--ui-main-400);
+	content: attr(data-placeholder);
+	float: left;
+	height: 0;
+	pointer-events: none;
+}
+
+.chat-input {
+	padding: 1rem;
+}

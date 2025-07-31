@@ -143,6 +143,9 @@ export function createEditorConfig({
     onTransaction,
     onBlur: onBlur ? onBlur : () => { },
     onFocus: onFocus ? onFocus : () => { },
+    onUpdate: ({ editor }) => {
+      editor.view.dom.scrollTop = editor.view.dom.scrollHeight
+    },
     editorProps: editorProps
       ? {
         ...editorProps,
@@ -161,6 +164,7 @@ export function createEditorConfig({
           if (ev.key === 'Escape' && onEscapePress) {
             onEscapePress();
           }
+
 
           return false;
         }

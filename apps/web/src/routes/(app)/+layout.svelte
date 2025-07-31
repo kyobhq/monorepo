@@ -28,7 +28,7 @@
 
 <div class="flex">
 	<SideBar />
-	<main class="flex-1 relative">
+	<main class="flex flex-col w-[calc(100%-19.5rem*2)] relative">
 		{@render children()}
 	</main>
 	{#if currentTab === 'servers' && currentServer}

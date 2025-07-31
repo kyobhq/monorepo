@@ -20,7 +20,7 @@
 	>
 		<CloseIcon height={20} width={20} />
 	</Dialog.Close>
-	<section class="mt-2.5 flex flex-col h-full gap-y-1">
+	<section class="flex flex-col h-full gap-y-1">
 		{#each settings as setting, idx (idx)}
 			<button
 				class={[

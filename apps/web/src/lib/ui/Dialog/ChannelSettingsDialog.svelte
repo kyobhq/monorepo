@@ -16,8 +16,9 @@
 		channelStore.getChannel(page.params.server_id || '', coreStore.channelSettingsDialog.channel_id)
 	);
 
+	let initialized = $state(false);
 	let isSubmitting = $state(false);
-	let isButtonComplete = $state(false);
+	let isButtonComplete = $state(true);
 
 	const { form, errors, enhance } = superForm(defaults(valibot(EditChannelSchema)), {
 		dataType: 'json',
@@ -26,6 +27,7 @@
 		resetForm: false,
 		async onUpdate({ form }) {
 			if (form.valid) {
+				isButtonComplete = false;
 				isSubmitting = true;
 
 				if (!page.params.server_id || !currentChannel) return;
@@ -53,11 +55,15 @@
 		}
 	});
 
-	let changes = $derived(
-		$form.name !== currentChannel?.name ||
+	let changes = $derived.by(() => {
+		if (!initialized) return false;
+
+		return (
+			$form.name !== currentChannel?.name ||
 			$form.description !== currentChannel?.description ||
 			!isButtonComplete
-	);
+		);
+	});
 
 	$effect(() => {
 		if (currentChannel) {
@@ -69,7 +75,7 @@
 	});
 </script>
 
-<DefaultSettingsDialog bind:state={coreStore.channelSettingsDialog.open}>
+<DefaultSettingsDialog bind:state={coreStore.channelSettingsDialog.open} bind:initialized>
 	<SideBarSettings
 		settings={['Overview', 'Permissions']}
 		navigationFn={(setting) => (coreStore.channelSettingsDialog.section = setting)}
@@ -105,7 +111,7 @@
 			{#if changes}
 				<div
 					transition:flyBlur={{ duration: 150, y: 5 }}
-					class="w-[calc(100%-20rem)] absolute -bottom-3 left-1/2 -translate-x-1/2 flex justify-between items-center bg-main-800 border-[0.5px] border-main-600 py-1.5 pr-1.5 pl-4"
+					class="w-[calc(100%-5rem)] absolute -bottom-3 left-1/2 -translate-x-1/2 flex justify-between items-center bg-main-800 border-[0.5px] border-main-600 py-1.5 pr-1.5 pl-4"
 				>
 					<p>It seems you have unsaved changes!</p>
 					<SubmitButton text="Save" bind:isSubmitting bind:isComplete={isButtonComplete} />
