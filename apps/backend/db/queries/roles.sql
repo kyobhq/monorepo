@@ -6,10 +6,19 @@ INSERT INTO roles (
 )
 RETURNING *;
 
--- name: GetUserAbilities :many
-SELECT r.abilities 
-FROM roles r, server_members sm 
-WHERE sm.server_id = $1 AND sm.user_id = $2 AND r.id = ANY(sm.roles);
+-- name: GetUserAbilities :one
+SELECT COALESCE(array_agg(DISTINCT ability), '{}'::text[])::text[] as abilities
+FROM (
+  SELECT unnest(r.abilities) as ability
+  FROM roles r, server_members sm 
+  WHERE sm.server_id = $1 AND sm.user_id = $2 AND r.id = ANY(sm.roles)
+  
+  UNION
+  
+  SELECT 'OWNER' as ability
+  FROM servers s
+  WHERE s.id = $1 AND s.owner_id = $2
+) subquery;
 
 -- name: CheckPermission :one
 SELECT 1

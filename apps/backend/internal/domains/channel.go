@@ -16,6 +16,7 @@ type ChannelService interface {
 	PinChannel(c *gin.Context, body *types.PinChannelParams) *types.APIError
 	DeleteChannel(c *gin.Context, body *types.DeleteChannelParams) *types.APIError
 	DeleteCategory(c *gin.Context, body *types.DeleteCategoryParams) *types.APIError
+	EditChannel(c *gin.Context, body *types.EditChannelParams) *types.APIError
 }
 
 type channelService struct {
@@ -31,14 +32,7 @@ func NewChannelService(db database.Service, permissions permissions.Service) *ch
 }
 
 func (s *channelService) CreateCategory(c *gin.Context, body *types.CreateCategoryParams) (*db.ChannelCategory, *types.APIError) {
-	user, exists := c.Get("user")
-	if !exists {
-		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
-	}
-	userID := user.(*db.User).ID
-
-	ok := s.permissions.CheckPermission(c, body.ServerID, userID, types.ManageChannels)
-	if !ok {
+	if ok := s.permissions.CheckPermission(c, body.ServerID, types.ManageChannels); !ok {
 		return nil, types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN_CREATE_CATEGORY", "Forbidden to create category.", nil)
 	}
 
@@ -51,14 +45,7 @@ func (s *channelService) CreateCategory(c *gin.Context, body *types.CreateCatego
 }
 
 func (s *channelService) CreateChannel(c *gin.Context, body *types.CreateChannelParams) (*db.Channel, *types.APIError) {
-	user, exists := c.Get("user")
-	if !exists {
-		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
-	}
-	userID := user.(*db.User).ID
-
-	ok := s.permissions.CheckPermission(c, body.ServerID, userID, types.ManageChannels)
-	if !ok {
+	if ok := s.permissions.CheckPermission(c, body.ServerID, types.ManageChannels); !ok {
 		return nil, types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN_CREATE_CHANNEL", "Forbidden to create channel.", nil)
 	}
 
@@ -78,8 +65,7 @@ func (s *channelService) PinChannel(c *gin.Context, body *types.PinChannelParams
 	userID := user.(*db.User).ID
 	channelID := c.Param("channel_id")
 
-	err := s.db.PinChannel(c, channelID, userID, body)
-	if err != nil {
+	if err := s.db.PinChannel(c, channelID, userID, body); err != nil {
 		return types.NewAPIError(http.StatusInternalServerError, "ERR_PIN_CHANNEL", "Failed to pin channel.", err)
 	}
 
@@ -89,19 +75,11 @@ func (s *channelService) PinChannel(c *gin.Context, body *types.PinChannelParams
 func (s *channelService) DeleteChannel(c *gin.Context, body *types.DeleteChannelParams) *types.APIError {
 	channelID := c.Param("channel_id")
 
-	user, exists := c.Get("user")
-	if !exists {
-		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
-	}
-	userID := user.(*db.User).ID
-
-	ok := s.permissions.CheckPermission(c, body.ServerID, userID, types.ManageChannels)
-	if !ok {
+	if ok := s.permissions.CheckPermission(c, body.ServerID, types.ManageChannels); !ok {
 		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN_DELETE_CHANNEL", "Forbidden to delete channel.", nil)
 	}
 
-	err := s.db.DeleteChannel(c, channelID)
-	if err != nil {
+	if err := s.db.DeleteChannel(c, channelID); err != nil {
 		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_CHANNEL", "Failed to delete channel.", err)
 	}
 
@@ -111,20 +89,26 @@ func (s *channelService) DeleteChannel(c *gin.Context, body *types.DeleteChannel
 func (s *channelService) DeleteCategory(c *gin.Context, body *types.DeleteCategoryParams) *types.APIError {
 	categoryID := c.Param("category_id")
 
-	user, exists := c.Get("user")
-	if !exists {
-		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
-	}
-	userID := user.(*db.User).ID
-
-	ok := s.permissions.CheckPermission(c, body.ServerID, userID, types.ManageChannels)
-	if !ok {
+	if ok := s.permissions.CheckPermission(c, body.ServerID, types.ManageChannels); !ok {
 		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN_DELETE_CATEGORY", "Forbidden to delete category.", nil)
 	}
 
-	err := s.db.DeleteCategory(c, categoryID)
-	if err != nil {
+	if err := s.db.DeleteCategory(c, categoryID); err != nil {
 		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_CATEGORY", "Failed to delete category.", err)
+	}
+
+	return nil
+}
+
+func (s *channelService) EditChannel(c *gin.Context, body *types.EditChannelParams) *types.APIError {
+	channelID := c.Param("channel_id")
+
+	if ok := s.permissions.CheckPermission(c, body.ServerID, types.ManageChannels); !ok {
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN_DELETE_CATEGORY", "Forbidden to delete category.", nil)
+	}
+
+	if err := s.db.UpdateChannelInformations(c, channelID, body); err != nil {
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_EDIT_CHANNEL", "Failed to edit channel.", err)
 	}
 
 	return nil

@@ -43,7 +43,7 @@ func NewServer() *http.Server {
 	brokerService := broker.New()
 	actorsService := actors.New()
 	filesService := files.New()
-	permissionsService := permissions.New(databaseService)
+	permissionsService := permissions.New(databaseService, brokerService)
 
 	authService := domains.NewAuthService(databaseService, brokerService)
 	chatService := domains.NewChatService(actorsService, databaseService, permissionsService)

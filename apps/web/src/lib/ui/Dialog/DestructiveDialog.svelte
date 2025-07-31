@@ -6,8 +6,8 @@
 </script>
 
 <Dialog.Root
-	onOpenChange={(s) => (coreStore.openDestructiveDialog.open = s)}
-	open={coreStore.openDestructiveDialog.open}
+	onOpenChange={(s) => (coreStore.destructiveDialog.open = s)}
+	open={coreStore.destructiveDialog.open}
 >
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 bg-black/20 transition-opacity" />
@@ -20,8 +20,8 @@
 						transition:scaleBlur={{}}
 					>
 						<div class="relative w-full py-5 px-4">
-							<p class="font-semibold text-xl">{coreStore.openDestructiveDialog.title}</p>
-							<p class="text-main-400 text-sm">{coreStore.openDestructiveDialog.subtitle}</p>
+							<p class="font-semibold text-xl">{coreStore.destructiveDialog.title}</p>
+							<p class="text-main-400 text-sm">{coreStore.destructiveDialog.subtitle}</p>
 
 							<Dialog.Close
 								type="button"
@@ -34,10 +34,10 @@
 						<div class="flex justify-end p-3">
 							<button
 								type="button"
-								onclick={coreStore.openDestructiveDialog.onclick}
+								onclick={coreStore.destructiveDialog.onclick}
 								class="bg-red-400/20 border-[0.5px] border-red-400 px-2 py-1 hover:cursor-pointer hocus:bg-red-400 transition-colors duration-75 text-red-400 hocus:text-red-50"
 							>
-								{coreStore.openDestructiveDialog.buttonText}
+								{coreStore.destructiveDialog.buttonText}
 							</button>
 						</div>
 					</div>

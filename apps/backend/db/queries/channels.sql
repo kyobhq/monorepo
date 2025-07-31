@@ -45,7 +45,7 @@ INSERT INTO channel_pins (
 );
 
 -- name: UpdateChannelInformations :exec
-UPDATE channels SET name = $1, description = $2 WHERE id = $3;
+UPDATE channels SET name = $2, description = $3, users = $4, roles = $5 WHERE id = $1;
 
 -- name: DeleteChannel :exec
 DELETE FROM channels WHERE id = $1;

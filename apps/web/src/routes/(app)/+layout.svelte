@@ -9,6 +9,7 @@
 	import CreateCategoryDialog from 'ui/Dialog/CreateCategoryDialog.svelte';
 	import CreateChannelDialog from 'ui/Dialog/CreateChannelDialog.svelte';
 	import DestructiveDialog from 'ui/Dialog/DestructiveDialog.svelte';
+	import ChannelSettingsDialog from 'ui/Dialog/ChannelSettingsDialog.svelte';
 	let { children } = $props();
 
 	const currentTab = $derived(page.url.pathname.split('/')[1]);
@@ -39,3 +40,4 @@
 <CreateCategoryDialog />
 <CreateChannelDialog />
 <DestructiveDialog />
+<ChannelSettingsDialog />

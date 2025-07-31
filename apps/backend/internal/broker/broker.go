@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/anthdm/hollywood/actor"
@@ -38,6 +39,9 @@ type Service interface {
 	CacheUser(ctx context.Context, token string, user db.User) error
 	GetCachedUser(ctx context.Context, token string) (*db.User, error)
 	RemoveCachedUser(ctx context.Context, token string) error
+
+	CacheServerAbilities(ctx context.Context, serverID, userID string, abilities []string) error
+	GetServerAbilities(ctx context.Context, serverID, userID string) (string, error)
 }
 
 type service struct {
@@ -120,6 +124,21 @@ func (s *service) RemoveCachedUser(ctx context.Context, token string) error {
 	}
 
 	return nil
+}
+
+func (s *service) CacheServerAbilities(ctx context.Context, serverID, userID string, abilities []string) error {
+	key := fmt.Sprintf("roles:%s:%s", serverID, userID)
+	res := s.db.Set(ctx, key, strings.Join(abilities, ","), 10*time.Minute)
+	_, err := res.Result()
+
+	return err
+}
+
+func (s *service) GetServerAbilities(ctx context.Context, serverID, userID string) (string, error) {
+	key := fmt.Sprintf("roles:%s:%s", serverID, userID)
+	res := s.db.Get(ctx, key)
+
+	return res.Result()
 }
 
 // Health checks the health of the broker connection by pinging the broker.

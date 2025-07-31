@@ -9,8 +9,10 @@
 	let { categoryId } = $props();
 
 	function openChannelDialog() {
-		coreStore.openChannelDialog.open = true;
-		coreStore.openChannelDialog.category_id = categoryId;
+		coreStore.channelDialog = {
+			open: true,
+			category_id: categoryId
+		};
 	}
 
 	function handleDelete() {
@@ -19,7 +21,7 @@
 		const category = categoryStore.getCategory(page.params.server_id, categoryId);
 		if (!category) return;
 
-		coreStore.openDestructiveDialog = {
+		coreStore.destructiveDialog = {
 			open: true,
 			title: `Delete ${category.name}`,
 			subtitle: 'All content in the channels will be permanently deleted.',
@@ -28,7 +30,7 @@
 				const res = await backend.deleteCategory(page.params.server_id!, categoryId);
 				res.match(
 					(_) => {
-						coreStore.openDestructiveDialog.open = false;
+						coreStore.destructiveDialog.open = false;
 					},
 					(error) => {
 						console.error(`${error.code}: ${error.message}`);

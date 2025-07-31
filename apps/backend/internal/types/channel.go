@@ -21,6 +21,14 @@ type CreateCategoryParams struct {
 	E2EE     bool     `json:"e2ee"`
 }
 
+type EditChannelParams struct {
+	ServerID    string   `json:"server_id"`
+	Name        string   `json:"name" validate:"required,min=1,max=20"`
+	Description string   `json:"description" validate:"omitempty"`
+	Users       []string `json:"users" validate:"omitempty"`
+	Roles       []string `json:"roles" validate:"omitempty"`
+}
+
 type PinChannelParams struct {
 	ServerID string `json:"server_id" validate:"required"`
 	Position int    `json:"position" validate:"min=0"`

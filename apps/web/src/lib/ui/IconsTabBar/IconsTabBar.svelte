@@ -19,14 +19,14 @@
 	});
 </script>
 
-<div class="flex items-center p-1 border border-main-700 w-fit relative">
-	{#each tabs as tab}
+<div class="flex items-center p-1 border-[0.5px] border-main-700 w-fit relative">
+	{#each tabs as tab, idx (idx)}
 		{@const Icon = tab.Icon}
 
 		<button
 			bind:this={buttonEl}
 			onclick={() => onclick(tab.href)}
-			class={'p-[0.4rem] z-[1] group hover:cursor-pointer'}
+			class="p-[0.4rem] z-[1] group hover:cursor-pointer"
 			data-route={tab.href}
 		>
 			<Icon

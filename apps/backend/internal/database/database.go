@@ -55,6 +55,8 @@ type Service interface {
 	DeleteCategory(ctx context.Context, categoryID string) error
 	CreateRole(ctx context.Context, body *types.CreateRoleParams) (db.Role, error)
 	CheckPermission(ctx context.Context, serverID, userID string, ability types.Ability) (bool, error)
+	GetServerAbilities(ctx context.Context, serverID, userID string) ([]string, error)
+	UpdateChannelInformations(ctx context.Context, channelID string, body *types.EditChannelParams) error
 }
 
 type service struct {
@@ -329,6 +331,23 @@ func (s *service) CheckPermission(ctx context.Context, serverID, userID string, 
 	})
 
 	return ok == 1, err
+}
+
+func (s *service) GetServerAbilities(ctx context.Context, serverID, userID string) ([]string, error) {
+	return s.queries.GetUserAbilities(ctx, db.GetUserAbilitiesParams{
+		ServerID: serverID,
+		UserID:   userID,
+	})
+}
+
+func (s *service) UpdateChannelInformations(ctx context.Context, channelID string, body *types.EditChannelParams) error {
+	return s.queries.UpdateChannelInformations(ctx, db.UpdateChannelInformationsParams{
+		ID:          channelID,
+		Name:        body.Name,
+		Description: pgtype.Text{String: body.Description, Valid: true},
+		Users:       body.Users,
+		Roles:       body.Roles,
+	})
 }
 
 // Health checks the health of the database connection by pinging the database.

@@ -3,10 +3,10 @@
 	import CloseIcon from 'ui/icons/CloseIcon.svelte';
 	import { scaleBlur } from 'utils/transition';
 
-	let { children, title, subtitle, openState = $bindable() } = $props();
+	let { children, title, subtitle, state = $bindable() } = $props();
 </script>
 
-<Dialog.Root onOpenChange={(s) => (openState = s)} open={openState}>
+<Dialog.Root onOpenChange={(s) => (state = s)} open={state}>
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 bg-black/20 transition-opacity" />
 		<Dialog.Content forceMount={true}>

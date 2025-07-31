@@ -12,7 +12,7 @@
 >
 	<button
 		class="h-13 w-13 bg-main-900 text-main-500 aspect-square hocus:bg-main-800 hocus:text-main-200 hover:cursor-pointer transition-colors duration-75 flex items-center justify-center"
-		onclick={() => (coreStore.openServerDialog = true)}
+		onclick={() => (coreStore.serverDialog = true)}
 	>
 		<PlusIcon height={20} width={20} />
 	</button>

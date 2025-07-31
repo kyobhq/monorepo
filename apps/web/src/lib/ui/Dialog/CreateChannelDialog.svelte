@@ -19,10 +19,10 @@
 		async onUpdate({ form }) {
 			if (form.valid) {
 				form.data.server_id = page.params.server_id || '';
-				form.data.category_id = coreStore.openChannelDialog.category_id;
+				form.data.category_id = coreStore.channelDialog.category_id;
 				form.data.position = channelStore.getChannelsLastPositionInCategory(
 					page.params.server_id || '',
-					coreStore.openChannelDialog.category_id
+					coreStore.channelDialog.category_id
 				);
 				form.data.type = form.data.e2ee ? 'textual-e2ee' : 'textual';
 
@@ -36,7 +36,7 @@
 					}
 				);
 
-				coreStore.openChannelDialog.open = false;
+				coreStore.channelDialog.open = false;
 			}
 		}
 	});
@@ -47,7 +47,7 @@
 </script>
 
 <DefaultDialog
-	bind:openState={coreStore.openChannelDialog.open}
+	bind:state={coreStore.channelDialog.open}
 	title="Create a channel"
 	subtitle="You don't really have a choice if you want to talk to people ;)"
 >

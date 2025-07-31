@@ -2,7 +2,7 @@ import type { APIError } from '$lib/types/errors';
 import { errAsync, okAsync, ResultAsync } from 'neverthrow';
 import ky, { type Input, type Options } from 'ky';
 import type { Category, Channel, Server, Setup, User } from '$lib/types/types';
-import type { CreateCategoryType, CreateChannelType, CreateServerType, PinChannelType } from '$lib/types/schemas';
+import type { CreateCategoryType, CreateChannelType, CreateServerType, EditChannelType, PinChannelType } from '$lib/types/schemas';
 
 const client = ky.create({
   prefixUrl: `${import.meta.env.VITE_API_URL}/protected`,
@@ -85,6 +85,10 @@ export class BackendStore {
 
   deleteCategory(serverID: string, categoryID: string): ResultAsync<void, APIError> {
     return this.makeRequest<void>(`channels/category/${categoryID}`, { method: 'delete', json: { server_id: serverID } })
+  }
+
+  editChannel(channelID: string, body: EditChannelType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`channels/${channelID}`, { method: 'patch', json: body })
   }
 }
 

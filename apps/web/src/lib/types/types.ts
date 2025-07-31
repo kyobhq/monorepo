@@ -23,6 +23,7 @@ export interface Channel {
   last_mentions?: string[];
   messages?: Message[];
   users?: string[];
+  roles?: string[];
   voice_users: {
     user_id: string;
     deafen: boolean;
@@ -40,10 +41,7 @@ export interface Server {
   description?: any;
   main_color?: string;
   categories: Record<string, Category>;
-  member_count: number;
-  members: (Partial<User> & { roles: string[] })[];
   public: boolean;
-  roles?: Role[];
 }
 
 export interface Role {

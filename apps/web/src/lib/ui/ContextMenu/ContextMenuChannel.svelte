@@ -14,7 +14,7 @@
 		const channel = channelStore.getChannel(page.params.server_id, channelId);
 		if (!channel) return;
 
-		coreStore.openDestructiveDialog = {
+		coreStore.destructiveDialog = {
 			open: true,
 			title: `Delete ${channel.name}`,
 			subtitle: 'All content in this channel will be permanently deleted.',
@@ -23,7 +23,7 @@
 				const res = await backend.deleteChannel(page.params.server_id!, channelId);
 				res.match(
 					(_) => {
-						coreStore.openDestructiveDialog.open = false;
+						coreStore.destructiveDialog.open = false;
 					},
 					(error) => {
 						console.error(`${error.code}: ${error.message}`);
@@ -32,11 +32,19 @@
 			}
 		};
 	}
+
+	function openSettings() {
+		coreStore.channelSettingsDialog = {
+			open: true,
+			channel_id: channelId,
+			section: 'Overview'
+		};
+	}
 </script>
 
 <ContextMenuSkeleton>
 	{#snippet contextMenuContent()}
-		<ContextMenuItem onclick={() => {}} text="Edit Channel" />
+		<ContextMenuItem onclick={openSettings} text="Edit Channel" />
 		<ContextMenuItem onclick={handleDelete} text="Delete Channel" destructive />
 	{/snippet}
 </ContextMenuSkeleton>

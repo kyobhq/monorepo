@@ -44,9 +44,8 @@ func (h *channelHandler) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	err := h.domain.DeleteCategory(c, &body)
-	if err != nil {
-		err.Respond(c)
+	if derr := h.domain.DeleteCategory(c, &body); derr != nil {
+		derr.Respond(c)
 		return
 	}
 
@@ -78,9 +77,8 @@ func (h *channelHandler) PinChannel(c *gin.Context) {
 		return
 	}
 
-	err := h.domain.PinChannel(c, &body)
-	if err != nil {
-		err.Respond(c)
+	if derr := h.domain.PinChannel(c, &body); derr != nil {
+		derr.Respond(c)
 		return
 	}
 
@@ -88,6 +86,19 @@ func (h *channelHandler) PinChannel(c *gin.Context) {
 }
 
 func (h *channelHandler) EditChannel(c *gin.Context) {
+	var body types.EditChannelParams
+
+	if verr := validation.ParseAndValidate(c.Request, &body); verr != nil {
+		verr.Respond(c)
+		return
+	}
+
+	if derr := h.domain.EditChannel(c, &body); derr != nil {
+		derr.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
 func (h *channelHandler) DeleteChannel(c *gin.Context) {
@@ -98,9 +109,8 @@ func (h *channelHandler) DeleteChannel(c *gin.Context) {
 		return
 	}
 
-	err := h.domain.DeleteChannel(c, &body)
-	if err != nil {
-		err.Respond(c)
+	if derr := h.domain.DeleteChannel(c, &body); derr != nil {
+		derr.Respond(c)
 		return
 	}
 

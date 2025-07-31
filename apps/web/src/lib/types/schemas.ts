@@ -103,3 +103,18 @@ export const PinChannelSchema = v.object({
 })
 
 export interface PinChannelType extends v.InferInput<typeof PinChannelSchema> { }
+
+export const EditChannelSchema = v.object({
+  server_id: v.string(),
+  name: v.pipe(
+    v.string(),
+    v.minLength(1, 'The length must be equal or above 1 character.'),
+    v.maxLength(20, 'The length must be equal or below 20 characters.'),
+    v.nonEmpty('Please enter a name for your channel.')
+  ),
+  description: v.optional(v.string()),
+  users: v.optional(v.array(v.string())),
+  roles: v.optional(v.array(v.string())),
+})
+
+export interface EditChannelType extends v.InferInput<typeof EditChannelSchema> { }

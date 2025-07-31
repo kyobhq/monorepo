@@ -11,7 +11,7 @@
 </script>
 
 <div
-	class="text-300 flex items-center gap-3 border border-main-700 bg-main-950 pl-3 transition duration-100 focus-within:border-main-500"
+	class="text-300 flex items-center gap-3 border-[0.5px] border-main-700 bg-main-950 pl-3 transition duration-100 focus-within:border-main-500"
 >
 	<Icon height={18} width={18} />
 	<input

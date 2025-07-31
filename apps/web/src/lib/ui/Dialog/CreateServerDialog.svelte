@@ -48,7 +48,7 @@
 						};
 
 						serverStore.addServer(server);
-						coreStore.openServerDialog = false;
+						coreStore.serverDialog = false;
 						goto(`/servers/${server.id}`);
 					},
 					(error) => {
@@ -84,7 +84,7 @@
 </script>
 
 <DefaultDialog
-	bind:openState={coreStore.openServerDialog}
+	bind:state={coreStore.serverDialog}
 	title="Create a server"
 	subtitle="It can be either public or private."
 >

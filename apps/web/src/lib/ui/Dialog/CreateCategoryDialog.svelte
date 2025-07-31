@@ -36,14 +36,14 @@
 					}
 				);
 
-				coreStore.openCategoryDialog = false;
+				coreStore.categoryDialog = false;
 			}
 		}
 	});
 </script>
 
 <DefaultDialog
-	bind:openState={coreStore.openCategoryDialog}
+	bind:state={coreStore.categoryDialog}
 	title="Create a category"
 	subtitle="A nice way to organize your server!"
 >

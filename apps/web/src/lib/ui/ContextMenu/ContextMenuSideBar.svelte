@@ -6,6 +6,6 @@
 
 <ContextMenuSkeleton>
 	{#snippet contextMenuContent()}
-		<ContextMenuItem onclick={() => (coreStore.openCategoryDialog = true)} text="Create category" />
+		<ContextMenuItem onclick={() => (coreStore.categoryDialog = true)} text="Create category" />
 	{/snippet}
 </ContextMenuSkeleton>
