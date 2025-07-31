@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { ChannelTypes } from './types';
 
 export const SignUpSchema = v.object({
   email: v.pipe(
@@ -53,6 +54,52 @@ export const CreateServerSchema = v.object({
     x: v.number(),
     y: v.number()
   }),
+  position: v.number(),
 })
 
 export interface CreateServerType extends v.InferInput<typeof CreateServerSchema> { }
+
+export const CreateCategorySchema = v.object({
+  server_id: v.string(),
+  name: v.pipe(
+    v.string(),
+    v.minLength(1, 'The length must be equal or above 1 character.'),
+    v.maxLength(20, 'The length must be equal or below 20 characters.'),
+    v.nonEmpty('Please enter a name for your category.')
+  ),
+  position: v.number(),
+  users: v.optional(v.array(v.string())),
+  roles: v.optional(v.array(v.string())),
+  e2ee: v.boolean()
+})
+
+export interface CreateCategoryType extends v.InferInput<typeof CreateCategorySchema> { }
+
+export const CreateChannelSchema = v.object({
+  position: v.number(),
+  category_id: v.string(),
+  server_id: v.string(),
+  name: v.pipe(
+    v.string(),
+    v.minLength(1, 'The length must be equal or above 1 character.'),
+    v.maxLength(20, 'The length must be equal or below 20 characters.'),
+    v.nonEmpty('Please enter a name for your channel.')
+  ),
+  description: v.optional(v.string()),
+  users: v.optional(v.array(v.string())),
+  roles: v.optional(v.array(v.string())),
+  type: v.pipe(
+    v.string(),
+    v.enum(ChannelTypes)
+  ),
+  e2ee: v.boolean()
+})
+
+export interface CreateChannelType extends v.InferInput<typeof CreateChannelSchema> { }
+
+export const PinChannelSchema = v.object({
+  server_id: v.string(),
+  position: v.number(),
+})
+
+export interface PinChannelType extends v.InferInput<typeof PinChannelSchema> { }

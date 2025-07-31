@@ -106,9 +106,9 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 		}
 	}
 
-	res.Servers = make(map[string]types.ServerWithChannels)
+	res.Servers = make(map[string]types.ServerWithCategories)
 	if len(servers) > 0 {
-		serversMap, err := s.processServers(ctx, userID, servers)
+		serversMap, err := s.processServers(ctx, servers)
 		if err != nil {
 			return nil, &types.APIError{
 				Status:  http.StatusInternalServerError,
@@ -124,10 +124,15 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 	return &res, nil
 }
 
-func (s *userService) processServers(ctx *gin.Context, userID string, servers []db.GetServersFromUserRow) (map[string]types.ServerWithChannels, error) {
+func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFromUserRow) (map[string]types.ServerWithCategories, error) {
 	serverIDs := make([]string, 0, len(servers))
 	for _, server := range servers {
 		serverIDs = append(serverIDs, server.ID)
+	}
+
+	allCategories, err := s.db.GetCategoriesFromServers(ctx, serverIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	allChannels, err := s.db.GetChannelsFromServers(ctx, serverIDs)
@@ -140,9 +145,14 @@ func (s *userService) processServers(ctx *gin.Context, userID string, servers []
 		return nil, err
 	}
 
-	channelsByServer := make(map[string][]db.Channel)
+	categoriesByServer := make(map[string][]db.ChannelCategory)
+	for _, category := range allCategories {
+		categoriesByServer[category.ServerID] = append(categoriesByServer[category.ServerID], category)
+	}
+
+	channelsByCategory := make(map[string][]db.Channel)
 	for _, channel := range allChannels {
-		channelsByServer[channel.ServerID] = append(channelsByServer[channel.ServerID], channel)
+		channelsByCategory[channel.CategoryID] = append(channelsByCategory[channel.CategoryID], channel)
 	}
 
 	rolesByServer := make(map[string][]db.GetRolesFromServersRow)
@@ -150,17 +160,24 @@ func (s *userService) processServers(ctx *gin.Context, userID string, servers []
 		rolesByServer[role.ServerID] = append(rolesByServer[role.ServerID], role)
 	}
 
-	result := make(map[string]types.ServerWithChannels)
-
+	result := make(map[string]types.ServerWithCategories)
 	for _, server := range servers {
-		channelMap := make(map[string]db.Channel)
-		for _, channel := range channelsByServer[server.ID] {
-			channelMap[channel.ID] = channel
+		categoryMap := make(map[string]types.CategoryWithChannels)
+		for _, category := range categoriesByServer[server.ID] {
+			channelMap := make(map[string]db.Channel)
+			for _, channel := range channelsByCategory[category.ID] {
+				channelMap[channel.ID] = channel
+			}
+
+			categoryMap[category.ID] = types.CategoryWithChannels{
+				category,
+				channelMap,
+			}
 		}
 
-		result[server.ID] = types.ServerWithChannels{
+		result[server.ID] = types.ServerWithCategories{
 			server,
-			channelMap,
+			categoryMap,
 			rolesByServer[server.ID],
 		}
 	}

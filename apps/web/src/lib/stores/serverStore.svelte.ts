@@ -1,11 +1,24 @@
 import type { Server } from "$lib/types/types";
-import { print } from "utils/print"
 
 export class ServerStore {
   servers = $state<Record<string, Server>>({});
 
-  getChannel() {
-    print("todo!")
+  safeServerOperation<T>(
+    serverID: string,
+    operation: (server: Server) => T,
+    fallback: T
+  ): T {
+    const server = this.servers[serverID];
+    if (!server) {
+      return fallback;
+    }
+
+    try {
+      return operation(server);
+    } catch (error) {
+      console.warn(`Server operation failed for ${serverID}:`, error);
+      return fallback;
+    }
   }
 
   getServer(id: string) {
@@ -14,6 +27,14 @@ export class ServerStore {
 
   addServer(server: Server) {
     this.servers[server.id] = server
+  }
+
+  getLastPosition() {
+    return Object.values(this.servers).length
+  }
+
+  deleteServer(serverID: string) {
+    delete serverStore.servers[serverID]
   }
 }
 

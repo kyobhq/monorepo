@@ -4,6 +4,7 @@ import (
 	db "backend/db/gen_queries"
 	"backend/internal/database"
 	"backend/internal/files"
+	"backend/internal/permissions"
 	"backend/internal/types"
 	"fmt"
 	"mime/multipart"
@@ -24,14 +25,16 @@ type ServerService interface {
 }
 
 type serverService struct {
-	db    database.Service
-	files files.Service
+	db          database.Service
+	files       files.Service
+	permissions permissions.Service
 }
 
-func NewServerService(db database.Service, files files.Service) *serverService {
+func NewServerService(db database.Service, files files.Service, permissions permissions.Service) *serverService {
 	return &serverService{
-		db:    db,
-		files: files,
+		db:          db,
+		files:       files,
+		permissions: permissions,
 	}
 }
 

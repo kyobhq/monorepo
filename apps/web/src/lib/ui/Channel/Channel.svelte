@@ -3,8 +3,10 @@
 	import Lock from '../icons/Lock.svelte';
 	import HashChat from '../icons/HashChat.svelte';
 	import type { ChannelTypes } from '$lib/types/types';
+	import ContextMenuChannel from 'ui/ContextMenu/ContextMenuChannel.svelte';
 
 	interface Props {
+		id: string;
 		type: ChannelTypes;
 		name: string;
 		serverName?: string;
@@ -12,7 +14,7 @@
 		active?: boolean;
 	}
 
-	const { type, name, serverName, onclick, active }: Props = $props();
+	const { id, type, name, serverName, onclick, active }: Props = $props();
 
 	const ICONS = {
 		textual: HashChat,
@@ -26,7 +28,7 @@
 <button
 	{onclick}
 	class={[
-		'flex items-center w-full gap-x-2 hover:cursor-pointer transition-colors duration-75 py-2 px-2.5',
+		'relative flex items-center w-full gap-x-2 hover:cursor-pointer transition-colors duration-75 py-2 px-2.5',
 		active ? 'text-main-50 bg-main-900' : 'hocus:bg-main-900 hocus:text-main-200 text-main-300'
 	]}
 >
@@ -39,4 +41,5 @@
 			</span>
 		{/if}
 	</div>
+	<ContextMenuChannel channelId={id} />
 </button>

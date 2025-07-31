@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import '../app.css';
 	import '@fontsource/host-grotesk/400.css';
 	import '@fontsource/host-grotesk/500.css';
@@ -15,7 +16,7 @@
 		identityRes.match(
 			(user) => {
 				userStore.user = user;
-				goto('/servers');
+				if (!page.params.server_id) goto('/servers');
 			},
 			(error) => goto('/signin')
 		);

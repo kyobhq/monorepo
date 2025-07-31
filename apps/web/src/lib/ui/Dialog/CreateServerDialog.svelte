@@ -11,6 +11,8 @@
 	import FormInput from 'ui/Form/FormInput.svelte';
 	import DefaultDialog from './DefaultDialog.svelte';
 	import Switch from 'ui/Switch/Switch.svelte';
+	import DialogFooter from './DialogFooter.svelte';
+	import { goto } from '$app/navigation';
 
 	let avatar = $state<string | undefined>();
 	let crop = $state({ x: 0, y: 0 });
@@ -24,12 +26,13 @@
 		validators: valibot(CreateServerSchema),
 		async onUpdate({ form }) {
 			if (form.valid) {
+				form.data.position = serverStore.getLastPosition();
+
 				const res = await backend.createServer(form.data);
 				res.match(
 					(s) => {
 						const server: Server = {
 							...s,
-							channels: {},
 							member_count: 1,
 							main_color: '12,14,14',
 							members: [
@@ -46,6 +49,7 @@
 
 						serverStore.addServer(server);
 						coreStore.openServerDialog = false;
+						goto(`/servers/${server.id}`);
 					},
 					(error) => {
 						console.error(`${error.code}: ${error.message}`);
@@ -150,11 +154,6 @@
 			/>
 		</div>
 
-		<div class="border-t-[0.5px] border-t-main-700 flex justify-end p-3 mt-8">
-			<button
-				class="bg-accent-darker border-[0.5px] border-accent px-2 py-1 hover:cursor-pointer hocus:bg-accent transition-colors duration-75"
-				>Create server</button
-			>
-		</div>
+		<DialogFooter buttonText="Create server" />
 	</form>
 </DefaultDialog>

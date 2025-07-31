@@ -1,15 +1,20 @@
 package domains
 
-import "backend/internal/database"
+import (
+	"backend/internal/database"
+	"backend/internal/permissions"
+)
 
 type RoleService interface{}
 
 type roleService struct {
-	db database.Service
+	db          database.Service
+	permissions permissions.Service
 }
 
-func NewRoleService(db database.Service) *roleService {
+func NewRoleService(db database.Service, permissions permissions.Service) *roleService {
 	return &roleService{
-		db: db,
+		db:          db,
+		permissions: permissions,
 	}
 }

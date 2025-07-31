@@ -9,17 +9,13 @@ export type ChannelTypes = (typeof ChannelTypes)[keyof typeof ChannelTypes];
 export const ABILITIES = ['ADMIN', 'MANAGE_CHANNELS', 'MANAGE_ROLES', 'MANAGE_SERVER', 'MANAGE_EXPRESSIONS', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 'BAN', 'KICK', 'MUTE', 'ATTACH_FILES', 'MANAGE_MESSAGES'] as const
 export type AbilitiesType = typeof ABILITIES[number]
 
-export const contextMenuTargets = [
-  'serverButton',
-  'channelButton',
-  'message'
-] as const;
-export type ContextMenuTarget = (typeof contextMenuTargets)[number];
-
 export interface Channel {
   id: string;
+  position: number;
   server_id: string;
+  category_id: string;
   name: string;
+  description: string;
   type: ChannelTypes;
   unread: boolean;
   last_message_sent?: string;
@@ -36,13 +32,14 @@ export interface Channel {
 
 export interface Server {
   id: string;
+  position: number;
   owner_id: string;
   name: string;
   avatar: string;
   banner: string;
   description?: any;
   main_color?: string;
-  channels: Record<string, Channel>;
+  categories: Record<string, Category>;
   member_count: number;
   members: (Partial<User> & { roles: string[] })[];
   public: boolean;
@@ -136,4 +133,21 @@ export interface Emoji {
   id: string;
   url: string;
   shortcode: string;
+}
+
+export interface ContextMenuTarget {
+  name: string
+  author?: string
+}
+
+
+export interface Category {
+  id: string;
+  position: number;
+  server_id: string;
+  name: string;
+  users?: string[];
+  roles?: string[];
+  e2ee: boolean;
+  channels: Record<string, Channel>;
 }

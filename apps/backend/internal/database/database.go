@@ -46,7 +46,15 @@ type Service interface {
 	LeaveServer(ctx context.Context, serverID string, userID string) error
 	DeleteServer(ctx context.Context, serverID string) (pgconn.CommandTag, error)
 	GetChannelsFromServers(ctx context.Context, serverIDs []string) ([]db.Channel, error)
+	GetCategoriesFromServers(ctx context.Context, serverIDs []string) ([]db.ChannelCategory, error)
 	GetRolesFromServers(ctx context.Context, serverIDs []string) ([]db.GetRolesFromServersRow, error)
+	CreateCategory(ctx context.Context, body *types.CreateCategoryParams) (db.ChannelCategory, error)
+	PinChannel(ctx context.Context, channelID, userID string, body *types.PinChannelParams) error
+	CreateChannel(ctx context.Context, body *types.CreateChannelParams) (db.Channel, error)
+	DeleteChannel(ctx context.Context, channelID string) error
+	DeleteCategory(ctx context.Context, categoryID string) error
+	CreateRole(ctx context.Context, body *types.CreateRoleParams) (db.Role, error)
+	CheckPermission(ctx context.Context, serverID, userID string, ability types.Ability) (bool, error)
 }
 
 type service struct {
@@ -177,6 +185,7 @@ func (s *service) CreateServer(ctx context.Context, ownerID string, body *types.
 		ID:       cuid2.Generate(),
 		UserID:   ownerID,
 		ServerID: server.ID,
+		Position: int32(body.Position),
 	})
 	if err != nil {
 		return nil, err
@@ -248,8 +257,78 @@ func (s *service) GetChannelsFromServers(ctx context.Context, serverIDs []string
 	return s.queries.GetChannelsFromServers(ctx, serverIDs)
 }
 
+func (s *service) GetCategoriesFromServers(ctx context.Context, serverIDs []string) ([]db.ChannelCategory, error) {
+	return s.queries.GetCategoriesFromServers(ctx, serverIDs)
+}
+
 func (s *service) GetRolesFromServers(ctx context.Context, serverIDs []string) ([]db.GetRolesFromServersRow, error) {
 	return s.queries.GetRolesFromServers(ctx, serverIDs)
+}
+
+func (s *service) CreateCategory(ctx context.Context, body *types.CreateCategoryParams) (db.ChannelCategory, error) {
+	return s.queries.CreateCategory(ctx, db.CreateCategoryParams{
+		ID:       cuid2.Generate(),
+		Position: int32(body.Position),
+		ServerID: body.ServerID,
+		Name:     body.Name,
+		Users:    body.Users,
+		Roles:    body.Roles,
+		E2ee:     body.E2EE,
+	})
+}
+
+func (s *service) PinChannel(ctx context.Context, channelID, userID string, body *types.PinChannelParams) error {
+	return s.queries.PinChannel(ctx, db.PinChannelParams{
+		ID:        cuid2.Generate(),
+		Position:  int32(body.Position),
+		ServerID:  body.ServerID,
+		ChannelID: channelID,
+		UserID:    userID,
+	})
+}
+
+func (s *service) CreateChannel(ctx context.Context, body *types.CreateChannelParams) (db.Channel, error) {
+	return s.queries.CreateChannel(ctx, db.CreateChannelParams{
+		ID:          cuid2.Generate(),
+		Position:    int32(body.Position),
+		CategoryID:  body.CategoryID,
+		ServerID:    body.ServerID,
+		Name:        body.Name,
+		Description: pgtype.Text{String: body.Description, Valid: true},
+		Type:        body.Type,
+		E2ee:        body.E2EE,
+		Users:       body.Users,
+		Roles:       body.Roles,
+	})
+}
+
+func (s *service) DeleteChannel(ctx context.Context, channelID string) error {
+	return s.queries.DeleteChannel(ctx, channelID)
+}
+
+func (s *service) DeleteCategory(ctx context.Context, categoryID string) error {
+	return s.queries.DeleteCategory(ctx, categoryID)
+}
+
+func (s *service) CreateRole(ctx context.Context, body *types.CreateRoleParams) (db.Role, error) {
+	return s.queries.CreateRole(ctx, db.CreateRoleParams{
+		ID:        cuid2.Generate(),
+		Position:  int32(body.Position),
+		ServerID:  body.ServerID,
+		Name:      body.Name,
+		Color:     body.Color,
+		Abilities: body.Abilities,
+	})
+}
+
+func (s *service) CheckPermission(ctx context.Context, serverID, userID string, ability types.Ability) (bool, error) {
+	ok, err := s.queries.CheckPermission(ctx, db.CheckPermissionParams{
+		ID:      serverID,
+		OwnerID: userID,
+		Column3: string(ability),
+	})
+
+	return ok == 1, err
 }
 
 // Health checks the health of the database connection by pinging the database.

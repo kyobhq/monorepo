@@ -6,21 +6,23 @@
 	import BarSeparator from 'ui/BarSeparator/BarSeparator.svelte';
 	import Channel from 'ui/Channel/Channel.svelte';
 	import CollapsibleBox from 'ui/CollapsibleBox/CollapsibleBox.svelte';
+	import ContextMenuSideBar from 'ui/ContextMenu/ContextMenuSideBar.svelte';
 	import ServersSlider from 'ui/ServersSlider/ServersSlider.svelte';
 
 	const currentServer = $derived(serverStore.getServer(page.params.server_id || '') || undefined);
 </script>
 
-<section class="mt-2.5">
+<section class="mt-2.5 flex flex-col h-full">
 	<ServersSlider />
 	{#if userStore.pinned_channels.length > 0}
-		<div class="px-2.5">
+		<div class="px-2.5 pb-2.5">
 			<CollapsibleBox header="Pinned channels">
 				{#each userStore.pinned_channels as channel (channel.id)}
 					{@const channelHref = `/servers/${channel.server_id}/channels/${channel.id}`}
 					{@const channelServer = serverStore.getServer(channel.server_id)}
 
 					<Channel
+						id={channel.id}
 						type={channel.type}
 						name={channel.name}
 						serverName={channelServer.name}
@@ -33,17 +35,23 @@
 	{/if}
 	{#if currentServer}
 		<BarSeparator title={currentServer.name} />
-		<section class="flex flex-col gap-y-2 p-2.5">
-			<CollapsibleBox header="general">
-				<Channel type="textual" name="General" onclick={() => {}} />
-			</CollapsibleBox>
-			<CollapsibleBox header="cool stuff">
-				<Channel type="textual" name="General" onclick={() => {}} />
-			</CollapsibleBox>
-			<CollapsibleBox header="vocals">
-				<Channel type="voice" name="General" onclick={() => {}} />
-				<Channel type="voice" name="Cowork" onclick={() => {}} />
-			</CollapsibleBox>
+		<section class="relative flex flex-col gap-y-2 p-2.5 h-full">
+			<ContextMenuSideBar />
+			{#each Object.values(currentServer.categories).sort((a, b) => a.position - b.position) as category (category.id)}
+				<CollapsibleBox header={category.name} categoryId={category.id}>
+					{#if category.channels}
+						{#each Object.values(category.channels).sort((a, b) => a.position - b.position) as channel (channel.id)}
+							<Channel
+								id={channel.id}
+								type={channel.type}
+								name={channel.name}
+								onclick={() => goto(`/servers/${channel.server_id}/channels/${channel.id}`)}
+								active={page.url.pathname.includes(channel.id)}
+							/>
+						{/each}
+					{/if}
+				</CollapsibleBox>
+			{/each}
 		</section>
 	{/if}
 </section>

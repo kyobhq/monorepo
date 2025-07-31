@@ -21,5 +21,5 @@ type UpdateProfileParams struct {
 }
 
 type Setup struct {
-	Servers map[string]ServerWithChannels `json:"servers"`
+	Servers map[string]ServerWithCategories `json:"servers"`
 }

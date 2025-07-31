@@ -1,4 +1,15 @@
-<script lang="ts"></script>
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { serverStore } from 'stores/serverStore.svelte';
+
+	$effect(() => {
+		if (page.params.server_id) return;
+
+		const firstServerID = Object.values(serverStore.servers).find((s) => s.position === 0)?.id;
+		if (firstServerID) goto(`/servers/${firstServerID}`);
+	});
+</script>
 
 <div class="w-full h-full flex flex-col justify-center items-center gap-y-4 text-main-600">
 	<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24">

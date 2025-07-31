@@ -6,6 +6,9 @@
 	import CreateServerDialog from 'ui/Dialog/CreateServerDialog.svelte';
 	import { onMount } from 'svelte';
 	import { backend } from 'stores/backendStore.svelte';
+	import CreateCategoryDialog from 'ui/Dialog/CreateCategoryDialog.svelte';
+	import CreateChannelDialog from 'ui/Dialog/CreateChannelDialog.svelte';
+	import DestructiveDialog from 'ui/Dialog/DestructiveDialog.svelte';
 	let { children } = $props();
 
 	const currentTab = $derived(page.url.pathname.split('/')[1]);
@@ -33,3 +36,6 @@
 </div>
 
 <CreateServerDialog />
+<CreateCategoryDialog />
+<CreateChannelDialog />
+<DestructiveDialog />

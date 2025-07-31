@@ -15,18 +15,52 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: channel_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.channel_categories (
+    id character varying(255) NOT NULL,
+    "position" integer DEFAULT 0 NOT NULL,
+    server_id character varying(255) NOT NULL,
+    name character varying(255) NOT NULL,
+    users character varying(255)[],
+    roles character varying(255)[],
+    e2ee boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: channel_pins; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.channel_pins (
+    id character varying(255) NOT NULL,
+    "position" integer DEFAULT 0 NOT NULL,
+    server_id character varying(255) NOT NULL,
+    channel_id character varying(255) NOT NULL,
+    user_id character varying(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: channels; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.channels (
-    id character varying(20) NOT NULL,
-    server_id character varying(20) NOT NULL,
+    id character varying(255) NOT NULL,
+    "position" integer DEFAULT 0 NOT NULL,
+    server_id character varying(255) NOT NULL,
+    category_id character varying(255) NOT NULL,
     name character varying(255) NOT NULL,
     description text,
     type character varying(255) NOT NULL,
-    e2ee boolean DEFAULT true NOT NULL,
-    users character varying(20)[],
-    roles character varying(20)[],
+    users character varying(255)[],
+    roles character varying(255)[],
+    e2ee boolean DEFAULT false NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
@@ -98,8 +132,8 @@ CREATE TABLE public.messages (
 --
 
 CREATE TABLE public.roles (
-    id character varying(20) NOT NULL,
-    server_id character varying(20) NOT NULL,
+    id character varying(255) NOT NULL,
+    server_id character varying(255) NOT NULL,
     "position" integer DEFAULT 0 NOT NULL,
     name character varying(255) NOT NULL,
     color character varying(255) NOT NULL,
@@ -124,6 +158,7 @@ CREATE TABLE public.schema_migrations (
 
 CREATE TABLE public.server_members (
     id character varying(255) NOT NULL,
+    "position" integer DEFAULT 0 NOT NULL,
     user_id character varying(255) NOT NULL,
     server_id character varying(255) NOT NULL,
     roles character varying(255)[],
@@ -196,6 +231,22 @@ CREATE TABLE public.users (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+
+--
+-- Name: channel_categories channel_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channel_categories
+    ADD CONSTRAINT channel_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: channel_pins channel_pins_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channel_pins
+    ADD CONSTRAINT channel_pins_pkey PRIMARY KEY (id);
 
 
 --
@@ -344,6 +395,46 @@ CREATE INDEX idx_users_email ON public.users USING btree (email);
 --
 
 CREATE INDEX idx_users_username ON public.users USING btree (username);
+
+
+--
+-- Name: channel_categories channel_categories_server_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channel_categories
+    ADD CONSTRAINT channel_categories_server_id_fkey FOREIGN KEY (server_id) REFERENCES public.servers(id) ON DELETE CASCADE;
+
+
+--
+-- Name: channel_pins channel_pins_channel_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channel_pins
+    ADD CONSTRAINT channel_pins_channel_id_fkey FOREIGN KEY (channel_id) REFERENCES public.channels(id) ON DELETE CASCADE;
+
+
+--
+-- Name: channel_pins channel_pins_server_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channel_pins
+    ADD CONSTRAINT channel_pins_server_id_fkey FOREIGN KEY (server_id) REFERENCES public.servers(id) ON DELETE CASCADE;
+
+
+--
+-- Name: channel_pins channel_pins_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channel_pins
+    ADD CONSTRAINT channel_pins_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: channels channels_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channels
+    ADD CONSTRAINT channels_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.channel_categories(id) ON DELETE CASCADE;
 
 
 --

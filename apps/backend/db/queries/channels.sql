@@ -11,6 +11,11 @@ SELECT *
 FROM channels
 WHERE server_id = $1 AND active = true;
 
+-- name: GetCategoriesFromServers :many
+SELECT *
+FROM channel_categories
+WHERE server_id = ANY($1::text[]);
+
 -- name: GetChannelsFromServers :many
 SELECT *
 FROM channels
@@ -18,17 +23,35 @@ WHERE server_id = ANY($1::text[]) AND active = true;
 
 -- name: CreateChannel :one
 INSERT INTO channels (
-  id, server_id, name, description, type, e2ee, users, roles
+  id, position, server_id, category_id, name, description, type, e2ee, users, roles
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 )
 RETURNING *;
+
+-- name: CreateCategory :one
+INSERT INTO channel_categories (
+  id, position, server_id, name, users, roles, e2ee
+) VALUES (
+  $1, $2, $3, $4, $5, $6, $7
+)
+RETURNING *;
+
+-- name: PinChannel :exec
+INSERT INTO channel_pins (
+  id, position, server_id, channel_id, user_id
+) VALUES (
+  $1, $2, $3, $4, $5
+);
 
 -- name: UpdateChannelInformations :exec
 UPDATE channels SET name = $1, description = $2 WHERE id = $3;
 
 -- name: DeleteChannel :exec
 DELETE FROM channels WHERE id = $1;
+
+-- name: DeleteCategory :exec
+DELETE FROM channel_categories WHERE id = $1;
 
 -- name: DeactivateChannel :one
 UPDATE channels SET active = false

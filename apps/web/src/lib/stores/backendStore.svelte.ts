@@ -1,8 +1,8 @@
 import type { APIError } from '$lib/types/errors';
 import { errAsync, okAsync, ResultAsync } from 'neverthrow';
 import ky, { type Input, type Options } from 'ky';
-import type { Server, Setup, User } from '$lib/types/types';
-import type { CreateServerType } from '$lib/types/schemas';
+import type { Category, Channel, Server, Setup, User } from '$lib/types/types';
+import type { CreateCategoryType, CreateChannelType, CreateServerType, PinChannelType } from '$lib/types/schemas';
 
 const client = ky.create({
   prefixUrl: `${import.meta.env.VITE_API_URL}/protected`,
@@ -65,6 +65,26 @@ export class BackendStore {
 
     return this.makeRequest<Server>('servers', { method: 'post', body: formData })
 
+  }
+
+  createCategory(body: CreateCategoryType): ResultAsync<Category, APIError> {
+    return this.makeRequest<Category>('channels/category', { method: 'post', json: body })
+  }
+
+  createChannel(body: CreateChannelType): ResultAsync<Channel, APIError> {
+    return this.makeRequest<Channel>('channels', { method: 'post', json: body })
+  }
+
+  pinChannel(body: PinChannelType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>('channels/pin', { method: 'post', json: body })
+  }
+
+  deleteChannel(serverID: string, channelID: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`channels/${channelID}`, { method: 'delete', json: { server_id: serverID } })
+  }
+
+  deleteCategory(serverID: string, categoryID: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`channels/category/${categoryID}`, { method: 'delete', json: { server_id: serverID } })
   }
 }
 

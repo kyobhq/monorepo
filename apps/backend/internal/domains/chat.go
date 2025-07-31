@@ -3,6 +3,7 @@ package domains
 import (
 	"backend/internal/actors"
 	"backend/internal/database"
+	"backend/internal/permissions"
 	"backend/internal/types"
 
 	"github.com/gin-gonic/gin"
@@ -13,14 +14,16 @@ type ChatService interface {
 }
 
 type chatService struct {
-	db     database.Service
-	actors actors.Service
+	db          database.Service
+	actors      actors.Service
+	permissions permissions.Service
 }
 
-func NewChatService(actors actors.Service, db database.Service) *chatService {
+func NewChatService(actors actors.Service, db database.Service, permissions permissions.Service) *chatService {
 	return &chatService{
-		db:     db,
-		actors: actors,
+		db:          db,
+		actors:      actors,
+		permissions: permissions,
 	}
 }
 

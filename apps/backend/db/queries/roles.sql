@@ -11,6 +11,20 @@ SELECT r.abilities
 FROM roles r, server_members sm 
 WHERE sm.server_id = $1 AND sm.user_id = $2 AND r.id = ANY(sm.roles);
 
+-- name: CheckPermission :one
+SELECT 1
+FROM servers s
+WHERE s.id = $1
+  AND (
+  s.owner_id = $2
+  OR EXISTS (
+    SELECT 1
+    FROM server_members sm
+    JOIN roles r ON r.id = ANY(sm.roles)
+    WHERE sm.server_id = s.id AND sm.user_id = $2 AND $3::text = ANY(r.abilities)
+  )
+);
+
 -- name: GetRoles :many
 SELECT r.id, r.position, r.name, r.color, r.abilities, array_agg(sm.user_id) FILTER (WHERE sm.user_id IS NOT NULL) AS members
 FROM roles r

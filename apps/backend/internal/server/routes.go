@@ -65,9 +65,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 	protected.DELETE("/servers/:server_id", server.DeleteServer)
 
 	channel := handlers.NewChannelHandlers(s.channelSvc)
-	protected.POST("/channel", channel.CreateChannel)
-	protected.PATCH("/channel/:channel_id", channel.EditChannel)
-	protected.DELETE("/channel/:channel_id", channel.DeleteChannel)
+	protected.POST("/channels", channel.CreateChannel)
+	protected.POST("/channels/category", channel.CreateCategory)
+	protected.POST("/channels/pin/:channel_id", channel.PinChannel)
+	protected.PATCH("/channels/:channel_id", channel.EditChannel)
+	protected.DELETE("/channels/:channel_id", channel.DeleteChannel)
+	protected.DELETE("/channels/category/:category_id", channel.DeleteCategory)
 
 	chat := handlers.NewChatHandlers(s.chatSvc)
 	protected.GET("/messages/:server_id", chat.GetMessages)

@@ -17,6 +17,7 @@ type CreateServerParams struct {
 	Description json.RawMessage `json:"description"`
 	Public      bool            `json:"public"`
 	Crop        Crop            `json:"crop" validate:"required"`
+	Position    int             `json:"position" validate:"min=0"`
 }
 
 type JoinServerParams struct {
@@ -34,8 +35,13 @@ type UpdateServerAvatarParams struct {
 	MainColor string `json:"main_color" validate:"omitempty"`
 }
 
-type ServerWithChannels struct {
+type ServerWithCategories struct {
 	db.GetServersFromUserRow
-	Channels map[string]db.Channel       `json:"channels"`
-	Roles    []db.GetRolesFromServersRow `json:"roles"`
+	Categories map[string]CategoryWithChannels `json:"categories"`
+	Roles      []db.GetRolesFromServersRow     `json:"roles"`
+}
+
+type CategoryWithChannels struct {
+	db.ChannelCategory
+	Channels map[string]db.Channel `json:"channels"`
 }

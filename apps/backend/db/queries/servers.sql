@@ -11,10 +11,10 @@ SELECT * FROM servers WHERE id = $1 AND owner_id = $2;
 SELECT id FROM server_members WHERE server_id = $1 AND user_id = $2;
 
 -- name: GetServersFromUser :many
-SELECT DISTINCT s.*, sm.roles, (SELECT count(id) FROM server_members smc WHERE smc.server_id=s.id) AS member_count
+SELECT DISTINCT s.*, sm.roles, sm.position, (SELECT count(id) FROM server_members smc WHERE smc.server_id=s.id) AS member_count
 FROM servers s
-LEFT JOIN server_members sm ON sm.server_id = s.id AND sm.user_id = $1
-WHERE s.id <> 'global' OR sm.user_id IS NOT NULL;
+INNER JOIN server_members sm ON sm.server_id = s.id AND sm.user_id = $1
+WHERE s.id <> 'global';
 
 -- name: GetServerMembers :many
 SELECT u.id, u.username, u.display_name, u.avatar FROM server_members sm, users u WHERE sm.server_id = $1 AND sm.user_id = u.id;
@@ -40,9 +40,9 @@ RETURNING *;
 
 -- name: JoinServer :exec
 INSERT INTO server_members (
-  id, user_id, server_id
+  id, user_id, server_id, position
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 );
 
 -- name: LeaveServer :exec
