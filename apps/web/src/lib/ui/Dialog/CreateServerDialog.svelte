@@ -33,18 +33,8 @@
 					(s) => {
 						const server: Server = {
 							...s,
-							member_count: 1,
-							main_color: '12,14,14',
-							members: [
-								{
-									id: userStore.user?.id,
-									username: userStore.user?.username,
-									display_name: userStore.user?.display_name,
-									banner: userStore.user?.banner,
-									avatar: userStore.user?.avatar,
-									roles: []
-								}
-							]
+							categories: {},
+							main_color: '12,14,14'
 						};
 
 						serverStore.addServer(server);

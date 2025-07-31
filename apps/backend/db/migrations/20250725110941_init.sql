@@ -96,6 +96,7 @@ CREATE TABLE messages(
   content JSONB NOT NULL,
   everyone BOOLEAN NOT NULL DEFAULT FALSE,
   mentions_users VARCHAR(255) ARRAY,
+  mentions_roles VARCHAR(255) ARRAY,
   mentions_channels VARCHAR(255) ARRAY,
   attachments JSONB DEFAULT '[]',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,

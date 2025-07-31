@@ -120,6 +120,7 @@ CREATE TABLE public.messages (
     content jsonb NOT NULL,
     everyone boolean DEFAULT false NOT NULL,
     mentions_users character varying(255)[],
+    mentions_roles character varying(255)[],
     mentions_channels character varying(255)[],
     attachments jsonb DEFAULT '[]'::jsonb,
     created_at timestamp with time zone DEFAULT now() NOT NULL,

@@ -118,3 +118,16 @@ export const EditChannelSchema = v.object({
 })
 
 export interface EditChannelType extends v.InferInput<typeof EditChannelSchema> { }
+
+export const CreateMessageSchema = v.object({
+  server_id: v.string(),
+  channel_id: v.string(),
+  content: v.any(),
+  everyone: v.optional(v.boolean()),
+  mentions_users: v.optional(v.array(v.string())),
+  mentions_roles: v.optional(v.array(v.string())),
+  mentions_channels: v.optional(v.array(v.string())),
+  attachments: v.optional(v.array(v.pipe(v.file('Please select a valid file.'))))
+});
+
+export interface CreateMessageType extends v.InferInput<typeof CreateMessageSchema> { }

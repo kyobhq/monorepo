@@ -22,7 +22,7 @@
 			onclick: async () => {
 				const res = await backend.deleteChannel(page.params.server_id!, channelId);
 				res.match(
-					(_) => {
+					() => {
 						coreStore.destructiveDialog.open = false;
 					},
 					(error) => {

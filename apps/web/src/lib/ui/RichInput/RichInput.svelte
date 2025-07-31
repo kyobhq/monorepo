@@ -8,6 +8,9 @@
 	import { createEditorConfig } from './richInputConfig';
 	import PlusIcon from 'ui/icons/PlusIcon.svelte';
 	import EmojiIcon from 'ui/icons/EmojiIcon.svelte';
+	import type { CreateMessageType } from '$lib/types/schemas';
+	import { backend } from 'stores/backendStore.svelte';
+	import { Placeholder } from '@tiptap/extensions';
 
 	interface Props {
 		server: Server;
@@ -23,25 +26,32 @@
 
 	async function prepareMessage(message: any) {
 		if (editor.getText().length <= 0 || editor.getText().length > 2500) return;
-		// const everyone = editor.getText().includes('@everyone');
-		// const ids =
-		// 	editor
-		// 		.getText()
-		// 		.match(/<@(\d+)>/g)
-		// 		?.map((match) => match.slice(2, -1)) || [];
+		const everyone = editor.getText().includes('@everyone');
+		const ids =
+			editor
+				.getText()
+				.match(/<@(\d+)>/g)
+				?.map((match) => match.slice(2, -1)) || [];
 
-		// const payload = {
-		// 	content: message,
-		// 	mentions_users: [...new Set(ids)],
-		// 	everyone: everyone,
-		// 	attachments
-		// };
+		const payload: CreateMessageType = {
+			server_id: server.id,
+			channel_id: channel.id,
+			content: message,
+			mentions_users: [...new Set(ids)],
+			mentions_roles: [],
+			mentions_channels: [],
+			everyone: everyone,
+			attachments
+		};
 
-		// const res = await backend.sendMessage(server.id, channel.id, payload);
-		// if (res.isErr()) {
-		// 	console.error(`${res.error.code}: ${res.error.error}`);
-		// }
-		//
+		const res = await backend.createMessage(payload);
+		res.match(
+			() => {},
+			(error) => {
+				console.error(`${error.code}: ${error.message}`);
+			}
+		);
+
 		editor.commands.clearContent();
 		attachments = [];
 	}
@@ -50,9 +60,12 @@
 		editor = new Editor(
 			createEditorConfig({
 				element: element,
-				placeholder: friend
-					? `Message ${friend.display_name}`
-					: `Message #${channel?.name} in ${server?.name}`,
+				placeholder: Placeholder.configure({
+					placeholder: () =>
+						friend
+							? `Message ${friend.display_name}`
+							: `Message #${channel?.name} in ${server?.name}`
+				}),
 				onTransaction: () => {
 					editor = editor;
 				},
@@ -73,6 +86,11 @@
 		if (editor) {
 			editor.destroy();
 		}
+	});
+
+	$effect(() => {
+		if (!editor) return;
+		editor.setOptions();
 	});
 </script>
 

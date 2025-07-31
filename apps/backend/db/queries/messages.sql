@@ -15,9 +15,9 @@ SELECT channel_id, last_read_message_id, unread_mention_ids FROM user_channel_re
 
 -- name: CreateMessage :one
 INSERT INTO messages (
-  id, author_id, server_id, channel_id, content, everyone, mentions_users, mentions_channels, attachments
+  id, author_id, server_id, channel_id, content, everyone, mentions_users, mentions_roles, mentions_channels, attachments
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 )
 RETURNING *;
 

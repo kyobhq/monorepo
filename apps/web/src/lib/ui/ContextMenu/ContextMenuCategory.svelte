@@ -29,7 +29,7 @@
 			onclick: async () => {
 				const res = await backend.deleteCategory(page.params.server_id!, categoryId);
 				res.match(
-					(_) => {
+					() => {
 						coreStore.destructiveDialog.open = false;
 					},
 					(error) => {

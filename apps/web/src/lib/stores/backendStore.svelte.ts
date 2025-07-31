@@ -2,7 +2,8 @@ import type { APIError } from '$lib/types/errors';
 import { errAsync, okAsync, ResultAsync } from 'neverthrow';
 import ky, { type Input, type Options } from 'ky';
 import type { Category, Channel, Server, Setup, User } from '$lib/types/types';
-import type { CreateCategoryType, CreateChannelType, CreateServerType, EditChannelType, PinChannelType } from '$lib/types/schemas';
+import type { CreateCategoryType, CreateChannelType, CreateMessageType, CreateServerType, EditChannelType, PinChannelType } from '$lib/types/schemas';
+import type { ArrayPathItem } from 'valibot';
 
 const client = ky.create({
   prefixUrl: `${import.meta.env.VITE_API_URL}/protected`,
@@ -89,6 +90,20 @@ export class BackendStore {
 
   editChannel(channelID: string, body: EditChannelType): ResultAsync<void, APIError> {
     return this.makeRequest<void>(`channels/${channelID}`, { method: 'patch', json: body })
+  }
+
+  createMessage(body: CreateMessageType): ResultAsync<void, APIError> {
+    const formData = new FormData();
+    formData.append('server_id', body.server_id);
+    formData.append('channel_id', body.channel_id);
+    formData.append('content', JSON.stringify(body.content));
+    formData.append('everyone', body.everyone ? 'true' : 'false');
+    body.mentions_users?.forEach((user) => formData.append('mentions_users[]', user));
+    body.mentions_channels?.forEach((channel) => formData.append('mentions_channels[]', channel));
+    body.mentions_roles?.forEach((role) => formData.append('mentions_roles[]', role));
+    body.attachments?.forEach((attachment) => formData.append('attachments[]', attachment));
+
+    return this.makeRequest(`messages`, { method: "post", body: formData })
   }
 }
 

@@ -57,6 +57,7 @@ type Service interface {
 	CheckPermission(ctx context.Context, serverID, userID string, ability types.Ability) (bool, error)
 	GetServerAbilities(ctx context.Context, serverID, userID string) ([]string, error)
 	UpdateChannelInformations(ctx context.Context, channelID string, body *types.EditChannelParams) error
+	CreateMessage(ctx context.Context, userID string, body *types.CreateMessageParams) (db.Message, error)
 }
 
 type service struct {
@@ -347,6 +348,21 @@ func (s *service) UpdateChannelInformations(ctx context.Context, channelID strin
 		Description: pgtype.Text{String: body.Description, Valid: true},
 		Users:       body.Users,
 		Roles:       body.Roles,
+	})
+}
+
+func (s *service) CreateMessage(ctx context.Context, userID string, body *types.CreateMessageParams) (db.Message, error) {
+	return s.queries.CreateMessage(ctx, db.CreateMessageParams{
+		ID:               cuid2.Generate(),
+		AuthorID:         userID,
+		ServerID:         body.ServerID,
+		ChannelID:        body.ChannelID,
+		Content:          body.Content,
+		Everyone:         body.Everyone,
+		MentionsUsers:    body.MentionsUsers,
+		MentionsRoles:    body.MentionsRoles,
+		MentionsChannels: body.MentionsChannels,
+		Attachments:      body.Attachments,
 	})
 }
 

@@ -1,7 +1,7 @@
 import StarterKit from '@tiptap/starter-kit';
 import { EmojisSuggestion } from './extensions/emojis/emojis';
 import { CustomMention } from './extensions/mentions/mentions';
-import { Placeholder } from '@tiptap/extensions';
+import { Placeholder, type PlaceholderOptions } from '@tiptap/extensions';
 import type { Content, EditorOptions, Extension, FocusPosition } from '@tiptap/core';
 import type { EditorProps } from '@tiptap/pm/view';
 import { editorStore } from 'stores/editorStore.svelte';
@@ -10,7 +10,7 @@ interface EditorConfigOptions {
   element: Element;
   autofocus?: FocusPosition;
   content?: Content;
-  placeholder?: string;
+  placeholder?: Extension<PlaceholderOptions, any>;
   additionalExtensions?: Extension[];
   editorProps?: EditorProps<any>;
   onTransaction?: () => void;
@@ -131,7 +131,7 @@ export function createEditorConfig({
     })
   ];
 
-  const extensions = placeholder ? [Placeholder.configure({ placeholder }), ...base] : base;
+  const extensions = placeholder ? [placeholder, ...base] : base;
 
   if (additionalExtensions) extensions.push(...additionalExtensions);
 
