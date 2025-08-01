@@ -30,7 +30,7 @@
 		if (wasSubmitting && !isSubmitting && !isSubmitted) {
 			const timer = setTimeout(() => {
 				isSubmitted = true;
-			}, 1000);
+			}, 600);
 			return () => clearTimeout(timer);
 		}
 		wasSubmitting = isSubmitting;

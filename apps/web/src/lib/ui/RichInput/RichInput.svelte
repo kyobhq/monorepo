@@ -111,12 +111,12 @@
 	{/if}
 	<div class="flex gap-x-1">
 		<button
-			class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-975 hocus:bg-main-950 border-[0.5px] border-main-800 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer"
+			class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-950/30 hocus:bg-main-950 border-[0.5px] border-main-800 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer"
 		>
 			<PlusIcon height={22} width={22} />
 		</button>
 		<div
-			class="bg-main-975 border-[0.5px] border-main-800 relative flex w-[calc(100%-3.5rem*2-0.5rem)] flex-col transition duration-100 focus-within:bg-main-950/70 hocus:bg-main-950"
+			class="bg-main-950/30 border-[0.5px] border-main-800 relative flex w-[calc(100%-3.5rem*2-0.5rem)] flex-col transition duration-100 focus-within:bg-main-950/70 hocus:bg-main-950"
 		>
 			<!-- {#if attachments.length > 0} -->
 			<!-- 	<Attachments bind:attachments /> -->
@@ -127,7 +127,7 @@
 			</div>
 		</div>
 		<button
-			class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-975 hocus:bg-main-950 border-[0.5px] border-main-800 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer"
+			class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-950/30 hocus:bg-main-950 border-[0.5px] border-main-800 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer"
 		>
 			<EmojiIcon height={22} width={22} />
 		</button>
