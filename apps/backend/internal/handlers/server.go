@@ -72,6 +72,9 @@ func (h *serverHandler) CreateServer(c *gin.Context) {
 	c.JSON(http.StatusOK, server)
 }
 
+func (h *serverHandler) GetInformations() {
+}
+
 func (h *serverHandler) JoinServer(c *gin.Context) {
 	var body types.JoinServerParams
 

@@ -10,7 +10,6 @@
 	import ServersSlider from 'ui/ServersSlider/ServersSlider.svelte';
 
 	const currentServer = $derived(serverStore.getServer(page.params.server_id || '') || undefined);
-	console.log(currentServer);
 </script>
 
 <section class="mt-2.5 flex flex-col h-full">

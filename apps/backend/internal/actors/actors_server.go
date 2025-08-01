@@ -37,7 +37,7 @@ func (s *server) Receive(ctx *actor.Context) {
 	switch msg := ctx.Message().(type) {
 	case actor.Started:
 		slog.Info("server started",
-			"id", ctx.PID().GetID(),
+			"pid", ctx.PID(),
 		)
 		ctx.SpawnChild(newChannel(s.hub), "channel", actor.WithID("global"))
 	case actor.Stopped:

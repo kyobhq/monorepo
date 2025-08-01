@@ -52,8 +52,11 @@ func (u *user) initializeUser(ctx *actor.Context) {
 		ChannelId: "global",
 		Status:    "online",
 	}
-	serverPID := u.hub.GetServer("global")
-	u.hub.SendMessageTo(ServerEngine, serverPID, connectMessage, ctx.PID())
+
+	serverPIDs := u.hub.GetAllServerInstances("global")
+	for _, pid := range serverPIDs {
+		u.hub.SendMessageTo(ServerEngine, pid, connectMessage, ctx.PID())
+	}
 }
 
 func (u *user) killUser(ctx *actor.Context) {
@@ -62,6 +65,9 @@ func (u *user) killUser(ctx *actor.Context) {
 		ServerId: "global",
 		Status:   "offline",
 	}
-	serverPID := u.hub.GetServer("global")
-	u.hub.SendMessageTo(ServerEngine, serverPID, disconnectMessage, ctx.PID())
+
+	serverPIDs := u.hub.GetAllServerInstances("global")
+	for _, pid := range serverPIDs {
+		u.hub.SendMessageTo(ServerEngine, pid, disconnectMessage, ctx.PID())
+	}
 }

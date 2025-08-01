@@ -2,6 +2,7 @@ package domains
 
 import (
 	db "backend/db/gen_queries"
+	"backend/internal/actors"
 	"backend/internal/database"
 	"backend/internal/files"
 	"backend/internal/permissions"
@@ -22,18 +23,21 @@ type ServerService interface {
 	EditProfile(ctx *gin.Context, serverID string, body *types.UpdateServerProfileParams) *types.APIError
 	EditAvatar(ctx *gin.Context, serverID string, body *types.UpdateServerAvatarParams) *types.APIError
 	DeleteServer(ctx *gin.Context, serverID string) *types.APIError
+	GetInformations(ctx *gin.Context, serverID string) *types.APIError
 }
 
 type serverService struct {
 	db          database.Service
 	files       files.Service
+	actors      actors.Service
 	permissions permissions.Service
 }
 
-func NewServerService(db database.Service, files files.Service, permissions permissions.Service) *serverService {
+func NewServerService(db database.Service, actors actors.Service, files files.Service, permissions permissions.Service) *serverService {
 	return &serverService{
 		db:          db,
 		files:       files,
+		actors:      actors,
 		permissions: permissions,
 	}
 }
@@ -176,6 +180,12 @@ func (s *serverService) DeleteServer(ctx *gin.Context, serverID string) *types.A
 			Message: "Server not found.",
 		}
 	}
+
+	return nil
+}
+
+func (s *serverService) GetInformations(ctx *gin.Context, serverID string) *types.APIError {
+	// s.actors.EnsureServerInRegion(serverID, os.Getenv("REGION"))
 
 	return nil
 }
