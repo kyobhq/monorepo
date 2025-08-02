@@ -58,6 +58,8 @@ type Service interface {
 	GetServerAbilities(ctx context.Context, serverID, userID string) ([]string, error)
 	UpdateChannelInformations(ctx context.Context, channelID string, body *types.EditChannelParams) error
 	CreateMessage(ctx context.Context, userID string, body *types.CreateMessageParams) (db.Message, error)
+	GetServers(ctx context.Context) ([]string, error)
+	GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, error)
 }
 
 type service struct {
@@ -364,6 +366,14 @@ func (s *service) CreateMessage(ctx context.Context, userID string, body *types.
 		MentionsChannels: body.MentionsChannels,
 		Attachments:      body.Attachments,
 	})
+}
+
+func (s *service) GetServers(ctx context.Context) ([]string, error) {
+	return s.queries.GetServersIDs(ctx)
+}
+
+func (s *service) GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, error) {
+	return s.queries.GetChannelsIDs(ctx)
 }
 
 // Health checks the health of the database connection by pinging the database.

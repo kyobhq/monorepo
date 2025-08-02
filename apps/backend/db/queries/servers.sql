@@ -56,3 +56,6 @@ UPDATE servers SET name = $1, description = $2 WHERE id = $3 AND owner_id = $4;
 
 -- name: DeleteServer :execresult
 DELETE FROM servers WHERE id = $1 AND owner_id = $2;
+
+-- name: GetServersIDs :many
+SELECT id FROM servers WHERE id <> 'global';

@@ -60,3 +60,6 @@ WHERE type = 'dm'
   AND $1::varchar = ANY(users) 
   AND $2::varchar = ANY(users)
 RETURNING *;
+
+-- name: GetChannelsIDs :many
+SELECT id, server_id FROM channels WHERE id <> 'global';

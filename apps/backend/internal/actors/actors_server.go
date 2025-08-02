@@ -39,7 +39,6 @@ func (s *server) Receive(ctx *actor.Context) {
 		slog.Info("server started",
 			"pid", ctx.PID(),
 		)
-		ctx.SpawnChild(newChannel(s.hub), "channel", actor.WithID("global"))
 	case actor.Stopped:
 		slog.Info("server stopped",
 			"id", ctx.PID().GetID(),
@@ -49,6 +48,11 @@ func (s *server) Receive(ctx *actor.Context) {
 			"id", ctx.PID().GetID(),
 			"err", msg.Err,
 		)
+	case *messages.StartChannel:
+		slog.Info("server started",
+			"pid", ctx.PID(),
+		)
+		ctx.SpawnChild(newChannel(s.hub), "channel", actor.WithID(msg.Channel.Id))
 	case *messages.GetServerUsers:
 		ctx.Respond(&messages.GetServerUsers{
 			UserIds: slices.Collect(maps.Keys(s.users)),
