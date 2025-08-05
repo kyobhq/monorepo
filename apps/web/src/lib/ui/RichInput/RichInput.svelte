@@ -25,7 +25,7 @@
 	let attachments = $state<File[]>([]);
 
 	async function prepareMessage(message: any) {
-		if (editor.getText().length <= 0 || editor.getText().length > 2500) return;
+		if (editor.getText().trim().length <= 0 || editor.getText().length > 2500) return;
 		const everyone = editor.getText().includes('@everyone');
 		const ids =
 			editor
@@ -92,17 +92,20 @@
 		if (!editor) return;
 		editor.setOptions();
 	});
+
+	const icon =
+		'h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-900 hocus:bg-main-800/80 border-[0.5px] border-main-700 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer transition-colors duration-75';
 </script>
 
-<div class="flex w-full flex-col gap-y-1 px-2 pb-2">
-	{#if editorStore.currentInput === 'main' && editorStore.currentChannel === channel.id && editorStore.mentionProps}
+<div class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5">
+	{#if editorStore.currentInput === 'main' && editorStore.mentionProps}
 		<MentionsList
 			props={editorStore.mentionProps}
 			bind:this={editorStore.mentionsListEl}
 			class="w-full"
 		/>
 	{/if}
-	{#if editorStore.currentInput === 'main' && editorStore.currentChannel === channel.id && editorStore.emojiProps}
+	{#if editorStore.currentInput === 'main' && editorStore.emojiProps}
 		<EmojisList
 			props={editorStore.emojiProps}
 			bind:this={editorStore.emojisListEl}
@@ -110,13 +113,11 @@
 		/>
 	{/if}
 	<div class="flex gap-x-1">
-		<button
-			class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-950/30 hocus:bg-main-950 border-[0.5px] border-main-800 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer"
-		>
+		<button class={icon}>
 			<PlusIcon height={22} width={22} />
 		</button>
 		<div
-			class="bg-main-950/30 border-[0.5px] border-main-800 relative flex w-[calc(100%-3.5rem*2-0.5rem)] flex-col transition duration-100 focus-within:bg-main-950/70 hocus:bg-main-950"
+			class="bg-main-900 border-[0.5px] border-main-700 relative flex w-[calc(100%-3.5rem*2-0.625rem)] flex-col transition duration-100 focus-within:border-main-500 hocus:bg-main-800/70"
 		>
 			<!-- {#if attachments.length > 0} -->
 			<!-- 	<Attachments bind:attachments /> -->
@@ -126,9 +127,7 @@
 				<div class="max-h-[10rem] w-full" bind:this={element}></div>
 			</div>
 		</div>
-		<button
-			class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-950/30 hocus:bg-main-950 border-[0.5px] border-main-800 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer"
-		>
+		<button class={icon}>
 			<EmojiIcon height={22} width={22} />
 		</button>
 	</div>

@@ -1,9 +1,8 @@
 import type { APIError } from '$lib/types/errors';
 import { errAsync, okAsync, ResultAsync } from 'neverthrow';
 import ky, { type Input, type Options } from 'ky';
-import type { Category, Channel, Server, Setup, User } from '$lib/types/types';
-import type { CreateCategoryType, CreateChannelType, CreateMessageType, CreateServerType, EditChannelType, PinChannelType } from '$lib/types/schemas';
-import type { ArrayPathItem } from 'valibot';
+import type { Category, Channel, Message, Server, ServerInformations, Setup } from '$lib/types/types';
+import type { CreateCategoryType, CreateChannelType, CreateMessageType, CreateServerType, DeleteMessageType, EditChannelType, EditMessageType, PinChannelType } from '$lib/types/schemas';
 
 const client = ky.create({
   prefixUrl: `${import.meta.env.VITE_API_URL}/protected`,
@@ -45,10 +44,6 @@ export class BackendStore {
         return okAsync(data as T);
       })
     );
-  }
-
-  checkIdentity(): ResultAsync<User, APIError> {
-    return this.makeRequest<User>('check');
   }
 
   getSetup(): ResultAsync<Setup, APIError> {
@@ -104,6 +99,22 @@ export class BackendStore {
     body.attachments?.forEach((attachment) => formData.append('attachments[]', attachment));
 
     return this.makeRequest(`messages`, { method: "post", body: formData })
+  }
+
+  getServerInformations(serverID: string): ResultAsync<ServerInformations, APIError> {
+    return this.makeRequest<ServerInformations>(`servers/${serverID}`)
+  }
+
+  getMessages(channelID: string): ResultAsync<Message[], APIError> {
+    return this.makeRequest<Message[]>(`messages/${channelID}`)
+  }
+
+  editMessage(messageID: string, body: EditMessageType): ResultAsync<void, APIError> {
+    return this.makeRequest(`messages/${messageID}`, { method: "patch", json: body })
+  }
+
+  deleteMessage(messageID: string, body: DeleteMessageType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`messages/${messageID}`, { method: 'delete', json: body })
   }
 }
 

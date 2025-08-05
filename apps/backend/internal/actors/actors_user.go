@@ -1,6 +1,7 @@
 package actors
 
 import (
+	"backend/internal/database"
 	messages "backend/proto"
 	"log/slog"
 
@@ -14,15 +15,17 @@ type user struct {
 	wsConn  *gws.Conn
 	friends []string
 	hub     Service
+	db      database.Service
 }
 
-func newUser(actorService Service, wsConn *gws.Conn) actor.Producer {
+func newUser(actorService Service, db database.Service, wsConn *gws.Conn) actor.Producer {
 	return func() actor.Receiver {
 		return &user{
 			logger:  slog.Default(),
 			wsConn:  wsConn,
 			friends: []string{},
 			hub:     actorService,
+			db:      db,
 		}
 	}
 }
@@ -41,33 +44,41 @@ func (u *user) Receive(ctx *actor.Context) {
 	case *messages.WSMessage:
 		message, _ := proto.Marshal(msg)
 		u.wsConn.WriteMessage(gws.OpcodeBinary, message)
-	default:
 	}
 }
 
 func (u *user) initializeUser(ctx *actor.Context) {
-	connectMessage := &messages.ChangeStatus{
-		Id:        GetIDFromPID(ctx.PID()),
-		ServerId:  "global",
-		ChannelId: "global",
-		Status:    "online",
+	userID := GetIDFromPID(ctx.PID())
+	servers, err := u.db.GetUserServers(ctx.Context(), userID)
+	if err != nil {
+		slog.Error("failed to initialize user", "err", err)
 	}
 
-	serverPIDs := u.hub.GetAllServerInstances("global")
-	for _, pid := range serverPIDs {
-		u.hub.SendMessageTo(ServerEngine, pid, connectMessage, ctx.PID())
+	for _, server := range servers {
+		connectMessage := &messages.ChangeStatus{
+			Id:       userID,
+			ServerId: server.ID,
+			Status:   "online",
+		}
+
+		u.hub.SendUserStatusMessage(ctx.PID(), connectMessage)
 	}
 }
 
 func (u *user) killUser(ctx *actor.Context) {
-	disconnectMessage := &messages.ChangeStatus{
-		Id:       GetIDFromPID(ctx.PID()),
-		ServerId: "global",
-		Status:   "offline",
+	userID := GetIDFromPID(ctx.PID())
+	servers, err := u.db.GetUserServers(ctx.Context(), userID)
+	if err != nil {
+		slog.Error("failed to initialize user", "err", err)
 	}
 
-	serverPIDs := u.hub.GetAllServerInstances("global")
-	for _, pid := range serverPIDs {
-		u.hub.SendMessageTo(ServerEngine, pid, disconnectMessage, ctx.PID())
+	for _, server := range servers {
+		disconnectMessage := &messages.ChangeStatus{
+			Id:       userID,
+			ServerId: server.ID,
+			Status:   "offline",
+		}
+
+		u.hub.SendUserStatusMessage(ctx.PID(), disconnectMessage)
 	}
 }

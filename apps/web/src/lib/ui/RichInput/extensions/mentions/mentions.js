@@ -59,18 +59,7 @@ export const CustomMention = MentionExtended.configure({
       pluginKey: new PluginKey('at'),
       items: ({ query }) => {
         const res = [];
-
-        const activeWindow = windows.getActiveWindow();
-        if (!activeWindow?.serverId) return [];
-
         let users = [];
-
-        if (activeWindow.serverId === 'global' && activeWindow.channelId) {
-          users =
-            serverStore.getChannel(activeWindow.serverId, activeWindow.channelId).users || [];
-        } else {
-          users = serverStore.getServer(activeWindow?.serverId).members;
-        }
 
         for (const user of users) {
           if (

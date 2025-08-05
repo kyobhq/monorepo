@@ -6,7 +6,8 @@ export class Editor {
   mentionProps = $state<SuggestionProps | null>();
   mentionsListEl = $state<any>(null);
   emojiProps = $state<SuggestionProps | null>();
-  emojisListEl = $state<any>(null);
+  emojisListEl = $state<any>();
+  menuHeight = $state(0);
 }
 
 export const editorStore = new Editor();

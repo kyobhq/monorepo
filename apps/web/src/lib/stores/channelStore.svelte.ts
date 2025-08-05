@@ -1,9 +1,10 @@
-import type { Channel } from "$lib/types/types";
+import type { Channel, Message } from "$lib/types/types";
 import { categoryStore } from "./categoryStore.svelte";
 import { serverStore } from "./serverStore.svelte";
 
 class ChannelStore {
-  currentChannel = $state<Channel | null>(null)
+  currentChannel = $state<Channel | null>(null);
+  messages = $state<Message[]>([]);
 
   getFirstChannel(serverID: string) {
     const server = serverStore.getServer(serverID)
@@ -34,6 +35,24 @@ class ChannelStore {
     if (!category) return null;
 
     category.channels[channel.id] = channel
+  }
+
+  addMessage(message: Message) {
+    this.messages.unshift(message)
+  }
+
+  editMessage(message: Partial<Message>) {
+    const index = this.messages.findIndex(m => m.id === message.id)
+    if (index !== -1) {
+      this.messages[index] = {
+        ...this.messages[index],
+        ...message
+      }
+    }
+  }
+
+  deleteMessage(messageID: string) {
+    this.messages = this.messages.filter(message => message.id !== messageID)
   }
 
   deleteChannel(serverID: string, categoryID: string, channelID: string) {

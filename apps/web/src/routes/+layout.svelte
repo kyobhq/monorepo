@@ -7,18 +7,23 @@
 	import '@fontsource/host-grotesk/600.css';
 	import '@fontsource/host-grotesk/700.css';
 	import { backend } from 'stores/backendStore.svelte';
+	import { serverStore } from 'stores/serverStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
+	import { ws } from 'stores/websocketStore.svelte';
 	import { onMount } from 'svelte';
 	let { children } = $props();
 
 	onMount(async () => {
-		const identityRes = await backend.checkIdentity();
+		const identityRes = await backend.getSetup();
 		identityRes.match(
-			(user) => {
-				userStore.user = user;
+			(setup) => {
+				userStore.user = setup.user;
+				serverStore.servers = setup.servers;
+				ws.init(setup.user.id);
+
 				if (!page.params.server_id) goto('/servers');
 			},
-			(error) => goto('/signin')
+			() => goto('/signin')
 		);
 	});
 </script>

@@ -4,14 +4,13 @@ package types;
 option go_package = "github.com/okzmo/nyo/proto";
 
 message WSMessage {
-  string type = 1;
   oneof content {
-    ChangeStatus user_change_status = 2;
-    NewChatMessage new_chat_message = 3;
-    EditChatMessage edit_chat_message = 4;
-    DeleteChatMessage delete_chat_message = 5;
-    StartChannel start_channel = 6;
-    KillChannel kill_channel = 7;
+    ChangeStatus user_change_status = 1;
+    NewChatMessage new_chat_message = 2;
+    EditChatMessage edit_chat_message = 3;
+    DeleteChatMessage delete_chat_message = 4;
+    StartChannel start_channel = 5;
+    KillChannel kill_channel = 6;
   }
 }
 
@@ -44,7 +43,7 @@ message KillChannel {
 
 message Message {
 	string id = 1;
-	string author_id = 2;
+	User author = 2;
 	string server_id = 3;
 	string channel_id = 4;
 	bytes content = 5;
@@ -54,6 +53,21 @@ message Message {
 	bytes attachments = 9;
 	google.protobuf.Timestamp created_at = 10;
 	google.protobuf.Timestamp updated_at = 11;
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string display_name = 3;
+  string avatar = 4;
+  string banner = 5;
+  bytes about_me = 6;
+  int32 experience = 7;
+  string main_color = 8;
+  repeated UserLinksRow links = 9;
+  repeated UserFactsRow facts = 10;
+	google.protobuf.Timestamp created_at = 11;
+	google.protobuf.Timestamp updated_at = 12;
 }
 
 message Channel {
@@ -66,6 +80,18 @@ message Channel {
 	repeated string users = 7;
 	repeated string roles = 8;
 	bool active = 9;
+}
+
+message UserLinksRow {
+  string id = 1;
+  string label = 2;
+  string url = 3;
+}
+
+message UserFactsRow {
+  string id = 1;
+  string label = 2;
+  string value = 3;
 }
 
 message GetServerUsers {

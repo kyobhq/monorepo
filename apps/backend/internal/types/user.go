@@ -1,6 +1,9 @@
 package types
 
-import "encoding/json"
+import (
+	db "backend/db/gen_queries"
+	"encoding/json"
+)
 
 type UpdateAccountParams struct {
 	Email    string `json:"email" validate:"omitempty,email"`
@@ -21,5 +24,6 @@ type UpdateProfileParams struct {
 }
 
 type Setup struct {
+	User    *db.User                        `json:"user"`
 	Servers map[string]ServerWithCategories `json:"servers"`
 }

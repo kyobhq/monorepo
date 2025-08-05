@@ -17,10 +17,16 @@
 	<ContextMenu.Trigger class="absolute inset-0"></ContextMenu.Trigger>
 	<ContextMenu.Portal>
 		<ContextMenu.Content
-			class="bg-main-950 border-[0.5px] border-main-700 relative flex w-[225px] flex-col gap-y-1 p-1 select-none"
+			class="bg-main-950 border-[0.5px] border-main-700 relative flex w-[225px] flex-col gap-y-1 p-1 select-none context-shadow z-10"
 			onmousedown={contextMenuMouseDown}
 		>
 			{@render contextMenuContent()}
 		</ContextMenu.Content>
 	</ContextMenu.Portal>
 </ContextMenu.Root>
+
+<style>
+	:global(.context-shadow) {
+		box-shadow: 0px 0px 24px rgba(16, 16, 18, 0.95);
+	}
+</style>

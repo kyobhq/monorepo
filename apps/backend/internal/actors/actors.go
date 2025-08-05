@@ -2,7 +2,7 @@ package actors
 
 import (
 	"backend/internal/database"
-	protoTypes "backend/proto"
+	message "backend/proto"
 	"context"
 	"fmt"
 	"log"
@@ -34,11 +34,19 @@ type Service interface {
 
 	GetAllChannelInstances(serverID, channelID string) []*actor.PID
 
-	SendMessageTo(engine Engine, PID *actor.PID, mess any, userPID ...*actor.PID)
+	SendChatMessage(chatMessage *message.NewChatMessage)
+
+	EditMessage(chatMessage *message.EditChatMessage)
+
+	DeleteMessage(chatMessage *message.DeleteChatMessage)
+
+	SendUserStatusMessage(userPID *actor.PID, status *message.ChangeStatus)
 
 	KillActor(userPID *actor.PID)
 
 	StartServerInRegion(serverID, region string) *actor.PID
+
+	BroadcastMessageToUser(userPID *actor.PID, message *message.WSMessage)
 }
 
 type service struct {
@@ -64,12 +72,12 @@ func New(dbService database.Service) Service {
 	}
 
 	c.RegisterKind("server", newServer(actorService), cluster.NewKindConfig())
-	c.RegisterKind("user", newUser(actorService, nil), cluster.NewKindConfig())
+	c.RegisterKind("user", newUser(actorService, dbService, nil), cluster.NewKindConfig())
 
 	eventPID := c.Engine().SpawnFunc(func(ctx *actor.Context) {
 		switch msg := ctx.Message().(type) {
 		case cluster.ActivationEvent:
-			fmt.Println("got activation event")
+			// fmt.Println("got activation event")
 		case cluster.MemberJoinEvent:
 			fmt.Println("member joined", msg.Member.Host, msg.Member.ID, msg.Member.Region)
 		}
@@ -97,8 +105,8 @@ func (se *service) Bootstrap() {
 
 			for _, channel := range channels {
 				if channel.ServerID == serverID {
-					se.cluster.Engine().Send(serverPID, protoTypes.StartChannel{
-						Channel: &protoTypes.Channel{
+					se.cluster.Engine().Send(serverPID, &message.StartChannel{
+						Channel: &message.Channel{
 							Id: channel.ID,
 						},
 					})
@@ -108,39 +116,27 @@ func (se *service) Bootstrap() {
 	}
 }
 
+func (se *service) KillActor(userPID *actor.PID) {
+	se.cluster.Deactivate(userPID)
+}
+
 func (se *service) CreateUser(userID string, wsConn *gws.Conn) *actor.PID {
-	return se.cluster.Spawn(newUser(se, wsConn), "user", actor.WithID(userID))
+	return se.cluster.Spawn(newUser(se, se.db, wsConn), "user", actor.WithID(userID))
 }
 
 func (se *service) GetUser(userID string) *actor.PID {
 	return se.cluster.GetActiveByID("user/" + userID)
 }
 
-// func (se *service) GetAllServersInstances(serverIDs []string) []*actor.PID {
-// 	var instances []*actor.PID
-//
-// 	for _, id := range serverIDs {
-// 		for _, region := range regions {
-// 			actorPID := se.cluster.GetActiveByID("server/" + id + "@" + region)
-// 			if actorPID == nil {
-// 				actorPID = se.StartServerInRegion(id, region)
-// 			}
-//
-// 			if region == os.Getenv("region") {
-// 				instances = append(instances, actorPID)
-// 			}
-// 		}
-// 	}
-//
-// 	return instances
-// }
-
 func (se *service) GetAllServerInstances(serverID string) []*actor.PID {
 	var instances []*actor.PID
 
 	for _, region := range regions {
 		actorPID := se.cluster.GetActiveByID("server/" + serverID + "@" + region)
-		instances = append(instances, actorPID)
+
+		if actorPID != nil {
+			instances = append(instances, actorPID)
+		}
 	}
 
 	return instances
@@ -161,15 +157,34 @@ func (se *service) StartServerInRegion(serverID, region string) *actor.PID {
 	return se.cluster.Activate("server", cluster.NewActivationConfig().WithID(serverID+"@"+region).WithRegion(region))
 }
 
-func (se *service) SendMessageTo(engine Engine, PID *actor.PID, mess any, userPID ...*actor.PID) {
-	switch engine {
-	case UserEngine:
-		se.cluster.Engine().Send(PID, mess)
-	case ServerEngine:
-		se.cluster.Engine().SendWithSender(PID, mess, userPID[0])
+func (se *service) SendChatMessage(chatMessage *message.NewChatMessage) {
+	channels := se.GetAllChannelInstances(chatMessage.Message.ServerId, chatMessage.Message.ChannelId)
+	for _, channelPID := range channels {
+		se.cluster.Engine().Send(channelPID, chatMessage)
 	}
 }
 
-func (se *service) KillActor(userPID *actor.PID) {
-	se.cluster.Deactivate(userPID)
+func (se *service) EditMessage(chatMessage *message.EditChatMessage) {
+	channels := se.GetAllChannelInstances(chatMessage.Message.ServerId, chatMessage.Message.ChannelId)
+	for _, channelPID := range channels {
+		se.cluster.Engine().Send(channelPID, chatMessage)
+	}
+}
+
+func (se *service) DeleteMessage(chatMessage *message.DeleteChatMessage) {
+	channels := se.GetAllChannelInstances(chatMessage.Message.ServerId, chatMessage.Message.ChannelId)
+	for _, channelPID := range channels {
+		se.cluster.Engine().Send(channelPID, chatMessage)
+	}
+}
+
+func (se *service) SendUserStatusMessage(userPID *actor.PID, status *message.ChangeStatus) {
+	servers := se.GetAllServerInstances(status.ServerId)
+	for _, serverPID := range servers {
+		se.cluster.Engine().SendWithSender(serverPID, status, userPID)
+	}
+}
+
+func (se *service) BroadcastMessageToUser(userPID *actor.PID, message *message.WSMessage) {
+	se.cluster.Engine().Send(userPID, message)
 }

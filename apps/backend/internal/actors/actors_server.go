@@ -49,9 +49,6 @@ func (s *server) Receive(ctx *actor.Context) {
 			"err", msg.Err,
 		)
 	case *messages.StartChannel:
-		slog.Info("server started",
-			"pid", ctx.PID(),
-		)
 		ctx.SpawnChild(newChannel(s.hub), "channel", actor.WithID(msg.Channel.Id))
 	case *messages.GetServerUsers:
 		ctx.Respond(&messages.GetServerUsers{

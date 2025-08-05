@@ -23,7 +23,7 @@ type ServerService interface {
 	EditProfile(ctx *gin.Context, serverID string, body *types.UpdateServerProfileParams) *types.APIError
 	EditAvatar(ctx *gin.Context, serverID string, body *types.UpdateServerAvatarParams) *types.APIError
 	DeleteServer(ctx *gin.Context, serverID string) *types.APIError
-	GetInformations(ctx *gin.Context, serverID string) *types.APIError
+	GetInformations(ctx *gin.Context) (*db.GetServerInformationsRow, *types.APIError)
 }
 
 type serverService struct {
@@ -184,10 +184,20 @@ func (s *serverService) DeleteServer(ctx *gin.Context, serverID string) *types.A
 	return nil
 }
 
-func (s *serverService) GetInformations(ctx *gin.Context, serverID string) *types.APIError {
-	// s.actors.EnsureServerInRegion(serverID, os.Getenv("REGION"))
+func (s *serverService) GetInformations(ctx *gin.Context) (*db.GetServerInformationsRow, *types.APIError) {
+	serverID := ctx.Param("server_id")
 
-	return nil
+	serverInformations, err := s.db.GetServerInformations(ctx, serverID)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_SERVER_INFORMATIONS",
+			Cause:   err.Error(),
+			Message: "Failed to get server informations.",
+		}
+	}
+
+	return &serverInformations, nil
 }
 
 func (s *serverService) DeleteInvite(ctx *gin.Context, inviteID string) *types.APIError {

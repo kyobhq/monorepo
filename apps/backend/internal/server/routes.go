@@ -36,7 +36,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 	auth := handlers.NewAuthHandlers(s.authSvc)
 	api.POST("/signin", auth.SignIn)
 	api.POST("/signup", auth.SignUp)
-	protected.GET("/check", auth.Check)
 	protected.POST("/logout", auth.Logout)
 
 	ws := handlers.NewWSHandlers(s.actors)
@@ -56,6 +55,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	server := handlers.NewServerHandlers(s.serverSvc)
 	protected.POST("/servers", server.CreateServer)
+	protected.GET("/servers/:server_id", server.GetInformations)
 	protected.POST("/servers/:server_id/join", server.JoinServer)
 	protected.POST("/servers/:server_id/leave", server.LeaveServer)
 	protected.POST("/servers/:server_id/invite", server.CreateInvite)

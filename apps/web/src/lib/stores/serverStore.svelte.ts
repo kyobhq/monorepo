@@ -1,7 +1,10 @@
-import type { Server } from "$lib/types/types";
+import type { Member, Role, Server } from "$lib/types/types";
 
 export class ServerStore {
   servers = $state<Record<string, Server>>({});
+  members = $state<Member[]>([]);
+  roles = $state<Role[]>([]);
+  memberCount = $state<number>(0);
 
   safeServerOperation<T>(
     serverID: string,

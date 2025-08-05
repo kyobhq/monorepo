@@ -17,7 +17,66 @@ INNER JOIN server_members sm ON sm.server_id = s.id AND sm.user_id = $1
 WHERE s.id <> 'global';
 
 -- name: GetServerMembers :many
-SELECT u.id, u.username, u.display_name, u.avatar FROM server_members sm, users u WHERE sm.server_id = $1 AND sm.user_id = u.id;
+SELECT 
+    u.id, 
+    u.username, 
+    u.display_name, 
+    u.avatar,
+    sm.roles,
+    COALESCE(MIN(r.position), 999999) as min_role_position
+FROM server_members sm
+JOIN users u ON u.id = sm.user_id
+LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
+WHERE sm.server_id = $1
+GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles
+ORDER BY min_role_position, u.username
+LIMIT $2 OFFSET $3;
+
+-- name: GetServerInformations :one
+SELECT 
+    (
+        SELECT json_agg(json_build_object(
+            'user_id', ranked_members.user_id,
+            'username', ranked_members.username,
+            'display_name', ranked_members.display_name,
+            'avatar', ranked_members.avatar,
+            'roles', ranked_members.roles
+        ))
+        FROM (
+            SELECT 
+                u.id as user_id,
+                u.username,
+                u.display_name,
+                u.avatar,
+                sm.roles,
+                COALESCE(MIN(r.position), 999999) as min_role_position
+            FROM server_members sm
+            JOIN users u ON u.id = sm.user_id
+            LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
+            WHERE sm.server_id = s.id
+            GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles
+            ORDER BY min_role_position, u.username
+            LIMIT 50
+        ) ranked_members
+    ) as members,
+    (
+        SELECT json_agg(json_build_object(
+            'id', r.id,
+            'name', r.name,
+            'color', r.color,
+            'position', r.position,
+            'abilities', r.abilities
+        ) ORDER BY r.position)
+        FROM roles r
+        WHERE r.server_id = s.id
+    ) as roles,
+    (
+        SELECT count(id)
+        FROM server_members smc
+        WHERE smc.server_id = s.id
+    ) as member_count
+FROM servers s
+WHERE s.id = $1;
 
 -- name: GetMembersFromServers :many
 SELECT u.id, u.username, u.display_name, u.avatar, u.banner, sm.server_id, sm.roles

@@ -72,7 +72,14 @@ func (h *serverHandler) CreateServer(c *gin.Context) {
 	c.JSON(http.StatusOK, server)
 }
 
-func (h *serverHandler) GetInformations() {
+func (h *serverHandler) GetInformations(c *gin.Context) {
+	serverInformations, err := h.domain.GetInformations(c)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, serverInformations)
 }
 
 func (h *serverHandler) JoinServer(c *gin.Context) {

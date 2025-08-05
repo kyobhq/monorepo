@@ -21,6 +21,13 @@ func NewChatHandlers(chatService domains.ChatService) *chatHandler {
 }
 
 func (h *chatHandler) GetMessages(c *gin.Context) {
+	messages, err := h.domain.GetMessages(c)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, messages)
 }
 
 func (h *chatHandler) CreateMessage(c *gin.Context) {
@@ -66,7 +73,33 @@ func (h *chatHandler) CreateMessage(c *gin.Context) {
 }
 
 func (h *chatHandler) EditMessage(c *gin.Context) {
+	var body types.EditMessageParams
+
+	if verr := validation.ParseAndValidate(c.Request, &body); verr != nil {
+		verr.Respond(c)
+		return
+	}
+
+	if derr := h.domain.EditMessage(c, &body); derr != nil {
+		derr.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
 func (h *chatHandler) DeleteMessage(c *gin.Context) {
+	var body types.DeleteMessageParams
+
+	if verr := validation.ParseAndValidate(c.Request, &body); verr != nil {
+		verr.Respond(c)
+		return
+	}
+
+	if derr := h.domain.DeleteMessage(c, &body); derr != nil {
+		derr.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }

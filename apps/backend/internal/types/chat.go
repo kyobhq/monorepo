@@ -13,10 +13,26 @@ type CreateMessageParams struct {
 	Attachments      json.RawMessage `json:"attachments"`
 }
 
+type EditMessageParams struct {
+	ServerID         string          `json:"server_id" validate:"required"`
+	ChannelID        string          `json:"channel_id" validate:"required"`
+	Content          json.RawMessage `json:"content" validate:"required"`
+	Everyone         bool            `json:"everyone"`
+	MentionsUsers    []string        `json:"mentions_users"`
+	MentionsRoles    []string        `json:"mentions_roles"`
+	MentionsChannels []string        `json:"mentions_channels"`
+}
+
 type File struct {
 	ID       string `json:"id"`
 	URL      string `json:"url"`
 	Filename string `json:"file_name"`
 	Filesize string `json:"file_size"`
 	Type     string `json:"type"`
+}
+
+type DeleteMessageParams struct {
+	ServerID  string `json:"server_id" validate:"required"`
+	ChannelID string `json:"channel_id" validate:"required"`
+	AuthorID  string `json:"author_id" validate:"required"`
 }

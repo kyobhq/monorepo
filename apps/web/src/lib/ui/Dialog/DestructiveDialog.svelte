@@ -25,7 +25,7 @@
 
 							<Dialog.Close
 								type="button"
-								class="text-main-400 h-8 w-8 hocus:bg-main-900 hocus:text-main-50 absolute top-5 right-5 transition-colors hover:cursor-pointer border-[0.5px] border-main-700 aspect-square flex justify-center items-center duration-75"
+								class="text-main-400 h-8 w-8 hocus:bg-main-900 hocus:text-main-50 absolute top-3 right-3 transition-colors hover:cursor-pointer border-[0.5px] border-main-700 aspect-square flex justify-center items-center duration-75"
 							>
 								<CloseIcon height={18} width={18} />
 							</Dialog.Close>

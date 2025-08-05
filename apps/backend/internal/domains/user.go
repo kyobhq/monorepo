@@ -86,7 +86,7 @@ func (s *userService) UpdateProfile(ctx *gin.Context, userID string, body *types
 func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 	var res types.Setup
 
-	user, exists := ctx.Get("user")
+	u, exists := ctx.Get("user")
 	if !exists {
 		return nil, &types.APIError{
 			Status:  http.StatusUnauthorized,
@@ -94,9 +94,9 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 			Message: "Unauthorized.",
 		}
 	}
-	userID := user.(*db.User).ID
+	user := u.(*db.User)
 
-	servers, err := s.db.GetUserServers(ctx, userID)
+	servers, err := s.db.GetUserServers(ctx, user.ID)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,
@@ -106,6 +106,7 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 		}
 	}
 
+	res.User = user
 	res.Servers = make(map[string]types.ServerWithCategories)
 	if len(servers) > 0 {
 		serversMap, err := s.processServers(ctx, servers)

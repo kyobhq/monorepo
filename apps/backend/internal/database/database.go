@@ -60,6 +60,11 @@ type Service interface {
 	CreateMessage(ctx context.Context, userID string, body *types.CreateMessageParams) (db.Message, error)
 	GetServers(ctx context.Context) ([]string, error)
 	GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, error)
+	GetServerInformations(ctx context.Context, serverID string) (db.GetServerInformationsRow, error)
+	GetMessages(ctx context.Context, channelID string) ([]db.GetMessagesFromChannelRow, error)
+	DeleteMessage(ctx context.Context, messageID string, userID string) error
+	GetMessageAuthor(ctx context.Context, messageID string) (string, error)
+	EditMessage(ctx context.Context, messageID string, body *types.EditMessageParams) error
 }
 
 type service struct {
@@ -99,7 +104,6 @@ func New() Service {
 
 func (s *service) CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error) {
 	avatarURL := pgtype.Text{String: "https://i.pinimg.com/1200x/ef/cf/e5/efcfe5321149cb491399bd159586a2ec.jpg", Valid: true}
-	mainColor := pgtype.Text{String: "12,14,14", Valid: true}
 	return s.queries.CreateUser(ctx, db.CreateUserParams{
 		ID:          cuid2.Generate(),
 		Email:       user.Email,
@@ -107,7 +111,6 @@ func (s *service) CreateUser(ctx context.Context, user *types.SignUpParams) (db.
 		DisplayName: user.DisplayName,
 		Password:    user.Password,
 		Avatar:      avatarURL,
-		MainColor:   mainColor,
 	})
 }
 
@@ -374,6 +377,35 @@ func (s *service) GetServers(ctx context.Context) ([]string, error) {
 
 func (s *service) GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, error) {
 	return s.queries.GetChannelsIDs(ctx)
+}
+
+func (s *service) GetServerInformations(ctx context.Context, serverID string) (db.GetServerInformationsRow, error) {
+	return s.queries.GetServerInformations(ctx, serverID)
+}
+
+func (s *service) GetMessages(ctx context.Context, channelID string) ([]db.GetMessagesFromChannelRow, error) {
+	return s.queries.GetMessagesFromChannel(ctx, channelID)
+}
+
+func (s *service) DeleteMessage(ctx context.Context, messageID string, userID string) error {
+	return s.queries.DeleteMessage(ctx, db.DeleteMessageParams{
+		ID:       messageID,
+		AuthorID: userID,
+	})
+}
+
+func (s *service) GetMessageAuthor(ctx context.Context, messageID string) (string, error) {
+	return s.queries.GetMessageAuthor(ctx, messageID)
+}
+
+func (s *service) EditMessage(ctx context.Context, messageID string, body *types.EditMessageParams) error {
+	return s.queries.UpdateMessage(ctx, db.UpdateMessageParams{
+		ID:               messageID,
+		Content:          body.Content,
+		Everyone:         body.Everyone,
+		MentionsUsers:    body.MentionsUsers,
+		MentionsChannels: body.MentionsChannels,
+	})
 }
 
 // Health checks the health of the database connection by pinging the database.

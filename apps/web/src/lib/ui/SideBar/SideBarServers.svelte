@@ -8,11 +8,12 @@
 	import CollapsibleBox from 'ui/CollapsibleBox/CollapsibleBox.svelte';
 	import ContextMenuSideBar from 'ui/ContextMenu/ContextMenuSideBar.svelte';
 	import ServersSlider from 'ui/ServersSlider/ServersSlider.svelte';
+	import UserBar from 'ui/UserBar/UserBar.svelte';
 
 	const currentServer = $derived(serverStore.getServer(page.params.server_id || '') || undefined);
 </script>
 
-<section class="mt-2.5 flex flex-col h-full">
+<section class="mt-2.5 flex flex-col relative h-[calc(100%-3.765rem)]">
 	<ServersSlider />
 	{#if userStore.pinned_channels.length > 0}
 		<div class="px-2.5 pb-2.5">
@@ -35,7 +36,7 @@
 	{/if}
 	{#if currentServer}
 		<BarSeparator title={currentServer.name} />
-		<section class="relative flex flex-col gap-y-2 p-2.5 h-full">
+		<section class="relative flex flex-col gap-y-2 p-2.5">
 			<ContextMenuSideBar />
 			{#each Object.values(currentServer.categories).sort((a, b) => a.position - b.position) as category (category.id)}
 				<CollapsibleBox header={category.name} categoryId={category.id}>
@@ -54,4 +55,5 @@
 			{/each}
 		</section>
 	{/if}
+	<UserBar />
 </section>

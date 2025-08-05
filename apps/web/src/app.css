@@ -4,21 +4,21 @@
   --ui-accent-darker: #005F5A;
   --ui-accent: #009689;
   --ui-accent-lighter: #00BBA7;
-  --ui-main-50: #F0fdfA;
-  --ui-main-100: #DAE6E3;
-  --ui-main-200: #C4CECC;
-  --ui-main-300: #ADB7B5;
-  --ui-main-400: #97A09E;
-  --ui-main-500: #818987;
-  --ui-main-600: #6B7170;
-  --ui-main-700: #555A59;
-  --ui-main-800: #3E4342;
-  --ui-main-900: #282B2B;
-  --ui-main-950: #1D201F;
-  --ui-main-975: #121414;
+  --ui-main-50: #F0F0FF;
+  --ui-main-100: #DEDEEB;
+  --ui-main-200: #C4C4D0;
+  --ui-main-300: #ADADB8;
+  --ui-main-400: #9797A1;
+  --ui-main-500: #818189;
+  --ui-main-600: #6B6B72;
+  --ui-main-700: #55555A;
+  --ui-main-800: #3E3E43;
+  --ui-main-900: #28282B;
+  --ui-main-950: #1D1D20;
+  --ui-main-975: #121214;
 
-  --ui-accent-select-fg: #F0FDFA;
-  --ui-accent-select-bg: #F0FDFA33;
+  --ui-accent-select-fg: #F0F0FF;
+  --ui-accent-select-bg: #F0F0FF33;
 }
 
 .light {
@@ -86,6 +86,10 @@ body {
   box-shadow: inset 0px 0px 0px 2px #E9EBDF, inset 0px 0px 6px 4px rgba(0, 0, 0, 0.5);
 }
 
+@utility highlight-border {
+  @apply after:content-normal after:absolute after:inset-0 after:border-[0.5px] after:border-main-50/20
+}
+
 .auth-gradient {
   background: linear-gradient(
     251.76deg,
@@ -104,7 +108,7 @@ body {
 }
 
 .tiptap p.is-editor-empty:first-child::before {
-	color: var(--ui-main-400);
+	color: var(--ui-main-500);
 	content: attr(data-placeholder);
 	float: left;
 	height: 0;
@@ -113,4 +117,23 @@ body {
 
 .chat-input {
 	padding: 1rem;
+}
+
+.user-profile-gradient {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+  isolation: isolate;
+  background: linear-gradient(
+    180deg, 
+    transparent 0%, 
+    var(--user-color-75) 75%,
+    var(--user-color-80) 80%,
+    var(--user-color-85) 85%,
+    var(--user-color-90) 90%,
+    var(--user-color-95) 95%,
+    var(--user-color-98) 14rem,
+    var(--user-color) 100%
+  );
 }

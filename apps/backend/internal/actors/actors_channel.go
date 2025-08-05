@@ -40,21 +40,28 @@ func (c *channel) Receive(ctx *actor.Context) {
 			"err", msg.Err,
 		)
 	case *messages.NewChatMessage:
-		if len(c.users) == 0 {
-			response := ctx.Request(ctx.Parent(), &messages.GetServerUsers{}, 10*time.Second)
-			result, err := response.Result()
-			if err == nil {
-				c.NewMessage(ctx, result.(*messages.GetServerUsers).UserIds, msg)
-			}
-		} else {
-			c.NewMessage(ctx, c.users, msg)
+		c.NewMessage(ctx, c.GetChannelUsers(ctx), msg)
+	case *messages.EditChatMessage:
+		c.EditMessage(ctx, c.GetChannelUsers(ctx), msg)
+	case *messages.DeleteChatMessage:
+		c.DeleteMessage(ctx, c.GetChannelUsers(ctx), msg)
+	}
+}
+
+func (c *channel) GetChannelUsers(ctx *actor.Context) []string {
+	if len(c.users) == 0 {
+		response := ctx.Request(ctx.Parent(), &messages.GetServerUsers{}, 10*time.Second)
+		result, err := response.Result()
+		if err == nil {
+			return result.(*messages.GetServerUsers).UserIds
 		}
 	}
+
+	return c.users
 }
 
 func (c *channel) NewMessage(ctx *actor.Context, userIDs []string, msg *messages.NewChatMessage) {
 	messageToBroadcast := &messages.WSMessage{
-		Type: "chat_message",
 		Content: &messages.WSMessage_NewChatMessage{
 			NewChatMessage: msg,
 		},
@@ -62,6 +69,32 @@ func (c *channel) NewMessage(ctx *actor.Context, userIDs []string, msg *messages
 
 	for _, userID := range userIDs {
 		userPID := c.hub.GetUser(userID)
-		c.hub.SendMessageTo(UserEngine, userPID, messageToBroadcast)
+		c.hub.BroadcastMessageToUser(userPID, messageToBroadcast)
+	}
+}
+
+func (c *channel) EditMessage(ctx *actor.Context, userIDs []string, msg *messages.EditChatMessage) {
+	messageToBroadcast := &messages.WSMessage{
+		Content: &messages.WSMessage_EditChatMessage{
+			EditChatMessage: msg,
+		},
+	}
+
+	for _, userID := range userIDs {
+		userPID := c.hub.GetUser(userID)
+		c.hub.BroadcastMessageToUser(userPID, messageToBroadcast)
+	}
+}
+
+func (c *channel) DeleteMessage(ctx *actor.Context, userIDs []string, msg *messages.DeleteChatMessage) {
+	messageToBroadcast := &messages.WSMessage{
+		Content: &messages.WSMessage_DeleteChatMessage{
+			DeleteChatMessage: msg,
+		},
+	}
+
+	for _, userID := range userIDs {
+		userPID := c.hub.GetUser(userID)
+		c.hub.BroadcastMessageToUser(userPID, messageToBroadcast)
 	}
 }

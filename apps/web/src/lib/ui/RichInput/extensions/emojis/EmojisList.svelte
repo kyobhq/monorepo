@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SuggestionProps } from '@tiptap/suggestion';
-	import { onDestroy } from 'svelte';
+	import { editorStore } from 'stores/editorStore.svelte';
 
 	interface Props {
 		props: SuggestionProps<any, any>;
@@ -10,7 +10,6 @@
 	let { props, class: classes }: Props = $props();
 
 	let selectedIndex = $state(0);
-	let scrollableMenu = $state<HTMLDivElement>();
 
 	export function handleKeyDown({ event }: { event: KeyboardEvent }) {
 		if (event.key === 'ArrowUp') {
@@ -40,18 +39,19 @@
 	}
 
 	function scrollToSelectedItem() {
-		if (scrollableMenu) {
-			const selectedItem = scrollableMenu.children[selectedIndex] as HTMLElement;
+		if (editorStore.menuScrollContainer) {
+			const selectedItem = editorStore.menuScrollContainer.children[selectedIndex] as HTMLElement;
 			if (selectedItem) {
-				const scrollTop = scrollableMenu.scrollTop;
-				const scrollBottom = scrollTop + scrollableMenu.clientHeight;
+				const scrollTop = editorStore.menuScrollContainer.scrollTop;
+				const scrollBottom = scrollTop + editorStore.menuScrollContainer.clientHeight;
 				const elementTop = selectedItem.offsetTop;
 				const elementBottom = elementTop + selectedItem.offsetHeight;
 
 				if (elementTop < scrollTop) {
-					scrollableMenu.scrollTop = elementTop;
+					editorStore.menuScrollContainer.scrollTop = elementTop;
 				} else if (elementBottom > scrollBottom) {
-					scrollableMenu.scrollTop = elementBottom - scrollableMenu.clientHeight;
+					editorStore.menuScrollContainer.scrollTop =
+						elementBottom - editorStore.menuScrollContainer.clientHeight;
 				}
 			}
 		}
@@ -80,9 +80,9 @@
 
 {#if props.items.length > 0}
 	<div
-		bind:this={scrollableMenu}
+		bind:clientHeight={editorStore.menuHeight}
 		class={[
-			'bg-main-900 inner-main-800 z-[10] flex max-h-[20rem] flex-col gap-y-1 overflow-y-auto px-1 py-1',
+			'bg-main-900 border-[0.5px] border-main-700 z-[10] flex max-h-[20rem] flex-col gap-y-1 overflow-y-auto px-1 py-1',
 			classes
 		]}
 	>
@@ -91,7 +91,7 @@
 			<button
 				class={[
 					'flex w-full items-center gap-x-1.5 px-2 py-1 text-left',
-					idx === selectedIndex ? 'bg-accent-100/20 text-accent-50' : 'hover:bg-accent-100/20'
+					idx === selectedIndex ? 'bg-main-800 text-accent-50' : 'hover:bg-accent-100/20'
 				]}
 				onclick={() => (selectedIndex = idx)}
 			>

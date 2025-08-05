@@ -4,6 +4,6 @@
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
-    "generate:types": "protoc --go_out=../../apps/backend/proto --go_opt=paths=source_relative ./types.proto"
+    "generate:types": "protoc --go_out=../../apps/backend/proto --go_opt=paths=source_relative --es_out=../../apps/web/src/lib/gen --es_opt=target=ts ./types.proto"
   }
 }

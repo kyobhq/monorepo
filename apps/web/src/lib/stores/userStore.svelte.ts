@@ -4,6 +4,8 @@ export class UserStore {
   user = $state<User>();
   emojis = $state([])
   pinned_channels = $state<Channel[]>([])
+  mute = $state(false);
+  deafen = $state(false);
 
 }
 

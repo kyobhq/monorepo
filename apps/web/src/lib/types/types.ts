@@ -82,6 +82,12 @@ export interface Member extends Partial<User> {
   roles: string[];
 }
 
+export interface ServerInformations {
+  member_count: number;
+  members: Member[];
+  roles: Role[];
+}
+
 export interface Friend extends Partial<User> {
   channel_id?: string;
   friendship_id: string;
@@ -90,6 +96,7 @@ export interface Friend extends Partial<User> {
 }
 
 export interface Setup {
+  user: User;
   servers: Record<string, Server>;
   emojis: Emoji[];
   friends: Friend[];
@@ -109,7 +116,11 @@ export interface Attachment {
 
 export interface Message {
   id: string;
-  author_id: string;
+  author: {
+    id: string;
+    avatar: string;
+    display_name: string;
+  };
   server_id: string;
   channel_id: string;
   content: any;

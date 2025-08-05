@@ -43,7 +43,7 @@ func NewWSHandlers(actorService actors.Service) *WSHandler {
 }
 
 func (ws *WSHandler) OnOpen(socket *gws.Conn) {
-	// _ = socket.SetDeadline(time.Now().Add(PingInterval + PingWait))
+	_ = socket.SetDeadline(time.Now().Add(PingInterval + PingWait))
 }
 
 func (ws *WSHandler) OnClose(socket *gws.Conn, err error) {

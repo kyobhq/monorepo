@@ -12,7 +12,7 @@
 
 <ContextMenu.Item
 	class={[
-		'flex px-2.5 py-1.5 hover:cursor-pointer transition-colors duration-75',
+		'flex px-2.5 py-1.5 hover:cursor-pointer transition-colors duration-75 select-none text-sm',
 		destructive ? 'text-red-400 hocus:bg-red-400/20' : 'hocus:bg-main-800'
 	]}
 	{onclick}

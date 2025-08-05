@@ -2,7 +2,18 @@
 SELECT * FROM messages WHERE id = $1;
 
 -- name: GetMessagesFromChannel :many
-SELECT * FROM messages WHERE channel_id = $1;
+SELECT m.*, (
+  SELECT json_build_object(
+    'id', u.id, 
+    'avatar', u.avatar, 
+    'display_name', u.display_name
+  ) 
+  FROM users u 
+  WHERE u.id = m.author_id
+) as author
+FROM messages m 
+WHERE channel_id = $1
+ORDER BY m.created_at;
 
 -- name: CheckChannelMembership :execresult
 SELECT c.id FROM channels c, server_members sm WHERE c.id = $1 and c.server_id = sm.server_id and sm.user_id = $2;
@@ -30,19 +41,13 @@ DO UPDATE SET
     unread_mention_ids = EXCLUDED.unread_mention_ids,
     updated_at = NOW();
 
--- name: UpdateMessage :execresult
+-- name: UpdateMessage :exec
 UPDATE messages 
 SET content = $1, mentions_users = $2, mentions_channels = $3, everyone = $4, updated_at = now()
-WHERE id = $5 AND author_id = $6;
+WHERE id = $5;
 
--- name: UpdateMessageContent :execresult
-UPDATE messages SET content = $1 WHERE id = $2 AND author_id = $3;
-
--- name: UpdateMessageMentionsUsers :execresult
-UPDATE messages SET mentions_users = $1 WHERE id = $2 AND author_id = $3;
-
--- name: UpdateMessageMentionsChannels :execresult
-UPDATE messages SET mentions_channels = $1 WHERE id = $2 AND author_id = $3;
-
--- name: DeleteMessage :execresult
+-- name: DeleteMessage :exec
 DELETE FROM messages WHERE id = $1 AND author_id = $2;
+
+-- name: GetMessageAuthor :one
+SELECT author_id FROM messages WHERE id = $1;

@@ -1,0 +1,35 @@
+<script lang="ts">
+	import type { Channel, Message, Server } from '$lib/types/types';
+	import { messageStore } from 'stores/messageStore.svelte';
+	import ContextMenuMessage from 'ui/ContextMenu/ContextMenuMessage.svelte';
+	import MessageEditSentence from './MessageEditSentence.svelte';
+	import MessageBubble from './MessageBubble.svelte';
+	import MessageAuthor from './MessageAuthor.svelte';
+
+	interface Props {
+		server: Server;
+		channel: Channel;
+		message: Message;
+	}
+
+	let { server, channel, message }: Props = $props();
+
+	let onClickSave = $state<() => Promise<void>>();
+</script>
+
+<div
+	class="flex gap-x-2.5 items-end hocus:bg-main-950/50 px-6 py-1.5 transition-colors duration-75 relative"
+>
+	<figure class="h-12 w-12 relative highlight-border mb-1 select-none shrink-0">
+		<img src={message.author.avatar} alt="" class="w-full h-full object-cover" />
+	</figure>
+	<div class="flex flex-col gap-y-1 relative w-[calc(100%-4rem)]">
+		{#if messageStore.editMessage?.id === message.id}
+			<MessageEditSentence bind:onClickSave />
+		{/if}
+		<MessageBubble {server} {channel} {message} bind:onClickSave />
+		<MessageAuthor {message} />
+	</div>
+
+	<ContextMenuMessage {message} />
+</div>

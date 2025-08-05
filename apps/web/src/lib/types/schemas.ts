@@ -131,3 +131,55 @@ export const CreateMessageSchema = v.object({
 });
 
 export interface CreateMessageType extends v.InferInput<typeof CreateMessageSchema> { }
+
+export const EditMessageSchema = v.object({
+  server_id: v.string(),
+  channel_id: v.string(),
+  content: v.any(),
+  everyone: v.optional(v.boolean()),
+  mentions_users: v.optional(v.array(v.string())),
+  mentions_roles: v.optional(v.array(v.string())),
+  mentions_channels: v.optional(v.array(v.string())),
+});
+
+export interface EditMessageType extends v.InferInput<typeof EditMessageSchema> { }
+
+export const DeleteMessageSchema = v.object({
+  server_id: v.string(),
+  channel_id: v.string(),
+  author_id: v.string(),
+});
+
+export interface DeleteMessageType extends v.InferInput<typeof DeleteMessageSchema> { }
+
+export const EditUserSchema = v.object({
+  username: v.string(),
+  display_name: v.string(),
+  about_me: v.any(),
+  links: v.optional(
+    v.array(
+      v.object({
+        id: v.string(),
+        label: v.pipe(v.string(), v.maxLength(20, 'Maximum 20 characters.')),
+        url: v.pipe(v.string(), v.url())
+      })
+    ),
+    []
+  ),
+  facts: v.optional(
+    v.array(
+      v.object({
+        id: v.string(),
+        label: v.pipe(v.string()),
+        value: v.pipe(v.string(), v.maxLength(20, 'Maximum 20 characters.'))
+      })
+    ),
+    []
+  )
+})
+
+export const EditPasswordSchema = v.object({
+  current: v.string(),
+  new: v.string(),
+  confirm: v.string(),
+})
