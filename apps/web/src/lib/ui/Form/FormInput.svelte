@@ -5,10 +5,10 @@
 	interface Props {
 		id: string;
 		inputValue: any;
-		error: any;
+		error?: any;
 		placeholder: string;
 		title: string;
-		type: 'text' | 'password' | 'textarea' | 'rich' | 'color-picker';
+		type: 'text' | 'password' | 'textarea' | 'rich' | 'color-picker' | 'email';
 		class?: string;
 		inputClass?: string;
 	}
@@ -27,7 +27,9 @@
 
 <div class={['flex flex-col', classes]}>
 	<div class="flex items-center gap-x-1">
-		<label for={id} class={['text-sm', error ? 'text-red-400' : 'text-main-500']}>{title}</label>
+		<label for={id} class={['text-sm select-none', error ? 'text-red-400' : 'text-main-500']}
+			>{title}</label
+		>
 		{#if error}
 			<p class="text-sm text-red-400">- {error}</p>
 		{/if}

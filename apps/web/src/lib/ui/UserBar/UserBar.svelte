@@ -15,6 +15,13 @@
 		userStore.deafen = !userStore.deafen;
 	}
 
+	function openSettings() {
+		coreStore.userSettingsDialog = {
+			open: true,
+			section: 'My Account'
+		};
+	}
+
 	const buttonIcon =
 		'p-1 border-[0.5px] border-transparent transition-colors duration-100 hover:cursor-pointer flex items-center justify-center';
 	const buttonIconNormal =
@@ -36,7 +43,7 @@
 				<img src={userStore.user.avatar} alt="" class="w-full h-full object-cover" />
 			</figure>
 			<div class="flex flex-col gap-y-0.5">
-				<p class="leading-none font-medium">{userStore.user.display_name}</p>
+				<p class="leading-none font-medium truncate w-24">{userStore.user.display_name}</p>
 				<p class="text-sm leading-none text-main-500">Connected</p>
 			</div>
 		</button>
@@ -54,7 +61,7 @@
 			>
 				<Headphone height={20} width={20} deafen={userStore.deafen} />
 			</button>
-			<button class={[buttonIcon, buttonIconNormal]}>
+			<button onclick={openSettings} class={[buttonIcon, buttonIconNormal]}>
 				<Gear height={20} width={20} class="flex justify-center items-center" />
 			</button>
 		</div>

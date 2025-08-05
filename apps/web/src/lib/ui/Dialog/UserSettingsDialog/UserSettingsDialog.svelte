@@ -1,72 +1,50 @@
 <script lang="ts">
 	import { coreStore } from 'stores/coreStore.svelte';
-	import DefaultSettingsDialog from './DefaultSettingsDialog.svelte';
+	import DefaultSettingsDialog from '../DefaultSettingsDialog.svelte';
 	import SideBarSettings from 'ui/SideBar/SideBarSettings.svelte';
-	import FormInput from 'ui/Form/FormInput.svelte';
-	import { page } from '$app/state';
-	import { defaults, superForm } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { EditChannelSchema } from '$lib/types/schemas';
-	import { flyBlur } from 'utils/transition';
-	import { backend } from 'stores/backendStore.svelte';
-	import SubmitButton from 'ui/SubmitButton/SubmitButton.svelte';
-	import SaveBar from 'ui/SaveBar/SaveBar.svelte';
+	import UserSettingsProfile from './UserSettingsProfile.svelte';
+	import UserSettingsPassword from './UserSettingsPassword.svelte';
+	import UserSettingsEmail from './UserSettingsEmail.svelte';
+	import Separator from '../Separator.svelte';
+	import UserSettingsAvatar from './UserSettingsAvatar.svelte';
 
 	let initialized = $state(false);
-	let isSubmitting = $state(false);
-	let isButtonComplete = $state(true);
+	let container = $state<HTMLDivElement>();
 
-	const { form, errors, enhance } = superForm(defaults(valibot(EditChannelSchema)), {
-		dataType: 'json',
-		SPA: true,
-		validators: valibot(EditChannelSchema),
-		resetForm: false,
-		async onUpdate({ form }) {
-			if (form.valid) {
-				isButtonComplete = false;
-				isSubmitting = true;
-
-				const res = await backend.editChannel(
-					coreStore.channelSettingsDialog.channel_id,
-					form.data
-				);
-				res.match(
-					() => {},
-					(error) => {
-						console.error(`${error.code}: ${error.message}`);
-					}
-				);
-
-				isSubmitting = false;
-			}
+	$effect(() => {
+		if (container && coreStore.userSettingsDialog.section) {
+			container.scrollTo({ top: 0 });
 		}
-	});
-
-	let changes = $derived.by(() => {
-		if (!initialized) return false;
-
-		return !isButtonComplete;
 	});
 </script>
 
-<DefaultSettingsDialog bind:state={coreStore.channelSettingsDialog.open} bind:initialized>
+<DefaultSettingsDialog bind:state={coreStore.userSettingsDialog.open} bind:initialized>
 	<SideBarSettings
 		settings={['My Account', 'Profile']}
-		navigationFn={(setting) => (coreStore.channelSettingsDialog.section = setting)}
-		activeSection={coreStore.channelSettingsDialog.section}
+		navigationFn={(setting) => (coreStore.userSettingsDialog.section = setting)}
+		activeSection={coreStore.userSettingsDialog.section}
 	/>
-	<div class="flex flex-col w-full h-full px-8 py-6">
-		<h3 class="text-xl font-semibold">{coreStore.channelSettingsDialog.section}</h3>
-		<form method="post" use:enhance class="w-full h-full flex flex-col gap-y-6 relative mt-8">
-			{#if coreStore.channelSettingsDialog.section === 'My Account'}
-				My account
-			{:else if coreStore.channelSettingsDialog.section === 'Profile'}
-				Profile
-			{/if}
-
-			{#if changes}
-				<SaveBar bind:isSubmitting {isButtonComplete} />
-			{/if}
-		</form>
+	<div bind:this={container} class="flex flex-col w-full h-full px-8 pt-6 pb-16 overflow-auto">
+		<h3 class="text-xl font-semibold select-none">{coreStore.userSettingsDialog.section}</h3>
+		{#if coreStore.userSettingsDialog.section === 'My Account'}
+			<UserSettingsEmail />
+			<Separator />
+			<UserSettingsPassword />
+			<Separator />
+			<div>
+				<p class="font-medium select-none">Account removal</p>
+				<p class="text-sm text-main-500 select-none">
+					This is not a soft delete! This action is irreversible.
+				</p>
+				<button
+					class="text-left w-fit bg-red-400/30 border-[0.5px] border-red-400 px-2 py-1.5 text-red-400 hocus:bg-red-400 hocus:text-red-50 hover:cursor-pointer transition-colors duration-100 mt-4"
+				>
+					Delete account
+				</button>
+			</div>
+		{:else if coreStore.userSettingsDialog.section === 'Profile'}
+			<UserSettingsAvatar />
+			<UserSettingsProfile />
+		{/if}
 	</div>
 </DefaultSettingsDialog>

@@ -38,6 +38,7 @@ type Service interface {
 
 	CacheUser(ctx context.Context, token string, user db.User) error
 	GetCachedUser(ctx context.Context, token string) (*db.User, error)
+	RefreshCachedUser(ctx context.Context, token string, user db.User) error
 	RemoveCachedUser(ctx context.Context, token string) error
 
 	CacheServerAbilities(ctx context.Context, serverID, userID string, abilities []string) error
@@ -88,7 +89,6 @@ func (s *service) PublishTo(channel string, message []byte) error {
 
 func (s *service) CacheUser(ctx context.Context, token string, user db.User) error {
 	user.Password = ""
-	user.Email = ""
 
 	userJSON, err := json.Marshal(user)
 	if err != nil {
@@ -114,6 +114,29 @@ func (s *service) GetCachedUser(ctx context.Context, token string) (*db.User, er
 	}
 
 	return &user, nil
+}
+
+func (s *service) RefreshCachedUser(ctx context.Context, token string, user db.User) error {
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+
+	key := "user:" + token
+	ttl, err := s.db.TTL(ctx, key).Result()
+	if err != nil {
+		return err
+	}
+
+	if ttl < 0 {
+		ttl = 30 * (24 * time.Hour)
+	}
+
+	if err = s.db.Set(ctx, key, userJSON, ttl).Err(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) RemoveCachedUser(ctx context.Context, token string) error {

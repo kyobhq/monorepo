@@ -36,7 +36,7 @@ LIMIT $2 OFFSET $3;
 SELECT 
     (
         SELECT json_agg(json_build_object(
-            'user_id', ranked_members.user_id,
+            'id', ranked_members.user_id,
             'username', ranked_members.username,
             'display_name', ranked_members.display_name,
             'avatar', ranked_members.avatar,

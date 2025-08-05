@@ -18,22 +18,38 @@ RETURNING *;
 -- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1;
 
--- name: UpdateUserAvatarNBanner :exec
+-- name: UpdateUserAvatarNBanner :one
 UPDATE users
-  set avatar = $2, banner = $3, main_color = $4
-WHERE id = $1;
+  set 
+    avatar = COALESCE($2, avatar),
+    banner = COALESCE($3, banner),
+    main_color = COALESCE($4, main_color),
+    updated_at = now()
+WHERE id = $1
+RETURNING *;
 
--- name: UpdateUserInformations :exec
+-- name: UpdateUserEmail :one
 UPDATE users
-set email = $2, username = $3
-WHERE id = $1;
+set email = $2
+WHERE id = $1
+RETURNING *;
 
 -- name: UpdateUserPassword :exec
 UPDATE users
   set password = $2
 WHERE id = $1;
 
--- name: UpdateUserProfile :exec
+-- name: UpdateUserProfile :one
 UPDATE users
-  set display_name = $2, about_me = $3, links = $4, facts = $5
-WHERE id = $1;
+  set username = $2, display_name = $3, about_me = $4, links = $5, facts = $6
+WHERE id = $1
+RETURNING *;
+
+-- name: GetUserLinks :many
+SELECT links FROM users WHERE id = $1;
+
+-- name: GetUserFacts :many
+SELECT facts FROM users WHERE id = $1;
+
+-- name: GetUserPassword :one
+SELECT password FROM users WHERE id = $1;

@@ -6,32 +6,47 @@
 	import type { Member } from '$lib/types/types';
 	import CollapsibleBox from 'ui/CollapsibleBox/CollapsibleBox.svelte';
 	import UserLine from 'ui/UserLine/UserLine.svelte';
+	import { userStore } from 'stores/userStore.svelte';
+	
 
 	let membersPerRole = $derived.by(() => {
-		if (!serverStore.roles) {
+		if (!serverStore.roles || serverStore.roles.length === 0) {
 			return {
 				Online: serverStore.members
 			};
 		}
 
-		let map: Record<string, Member[]> = {};
+		let roleGroups: Record<string, Member[]> = {};
 
 		for (const role of serverStore.roles) {
-			map[role.name] = [];
+			roleGroups[role.name] = [];
 		}
+		roleGroups['Online'] = [];
 
 		for (const member of serverStore.members) {
+			let hasRole = false;
+			
 			for (const role of serverStore.roles) {
 				if (member.roles.includes(role.id)) {
-					map[role.name].push(member);
+					roleGroups[role.name].push(member);
+					hasRole = true;
 					break;
 				}
 			}
-
-			map['Online'].push(member);
+			
+			if (!hasRole) {
+				roleGroups['Online'].push(member);
+			}
 		}
-
-		return map;
+		
+		const filteredRoleGroups: Record<string, Member[]> = {};
+		for (const [role, members] of Object.entries(roleGroups)) {
+			if (members.length > 0) {
+				filteredRoleGroups[role] = members;
+			}
+		}
+		
+		return filteredRoleGroups;
 	});
 </script>
 
@@ -44,7 +59,11 @@
 		{#each Object.keys(membersPerRole) as role, idx (idx)}
 			<CollapsibleBox header={role} canCollapse={false}>
 				{#each membersPerRole[role] as member (member.id)}
-					<UserLine name={member.display_name!} avatar={member.avatar!} hoverable />
+					{@const isCurrentUser = member.id === userStore.user!.id}
+					{@const displayName = isCurrentUser ? userStore.user!.display_name : member.display_name!}
+					{@const avatar = isCurrentUser ? userStore.user!.avatar : member.avatar!}
+
+					<UserLine name={displayName} avatar={avatar} hoverable />
 				{/each}
 			</CollapsibleBox>
 		{/each}

@@ -7,7 +7,7 @@
 		color?: string;
 	}
 
-	const { avatar, name, border = false, hoverable = false, color }: Props = $props();
+	const { avatar = $bindable(), name = $bindable(), border = false, hoverable = false, color }: Props = $props();
 
 	function getHoverColor(color: string) {
 		return color + '26';

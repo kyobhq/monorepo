@@ -87,7 +87,7 @@ body {
 }
 
 @utility highlight-border {
-  @apply after:content-normal after:absolute after:inset-0 after:border-[0.5px] after:border-main-50/20
+  @apply after:content-normal after:absolute after:inset-0 after:border-[0.5px] after:border-main-50/20 after:transition-colors after:duration-100;
 }
 
 .auth-gradient {

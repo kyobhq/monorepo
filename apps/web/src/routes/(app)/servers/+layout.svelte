@@ -2,11 +2,10 @@
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
-	import { onMount } from 'svelte';
 
 	let { children } = $props();
 
-	onMount(async () => {
+	async function getServerInformations() {
 		if (!page.params.server_id) return;
 
 		const serverInformations = await backend.getServerInformations(page.params.server_id);
@@ -20,6 +19,11 @@
 				console.error(`${error.code}: ${error.message}`);
 			}
 		);
+	}
+
+	$effect(() => {
+		if (!page.params.server_id) return;
+		getServerInformations();
 	});
 </script>
 

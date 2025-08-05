@@ -14,11 +14,21 @@ sql:
             go_type:
               import: "time"
               type: "Time"
-          - db_type: "jsonb"
+          - db_type: json
             go_type:
               import: "encoding/json"
               type: "RawMessage"
-          - db_type: "json"
+          - db_type: json
             go_type:
               import: "encoding/json"
               type: "RawMessage"
+            nullable: true
+          - db_type: jsonb
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - db_type: jsonb
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+            nullable: true

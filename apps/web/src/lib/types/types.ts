@@ -73,7 +73,7 @@ export interface User {
   avatar: string;
   banner: string;
   main_color?: string;
-  about?: any;
+  about_me?: any;
   facts: Fact[];
   links: Link[];
 }

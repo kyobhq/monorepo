@@ -11,6 +11,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import UserProfile from 'ui/UserProfile/UserProfile.svelte';
+	import UserSettingsDialog from 'ui/Dialog/UserSettingsDialog/UserSettingsDialog.svelte';
 	let { children } = $props();
 
 	const currentTab = $derived(page.url.pathname.split('/')[1]);
@@ -42,4 +43,5 @@
 <CreateChannelDialog />
 <DestructiveDialog />
 <ChannelSettingsDialog />
+<UserSettingsDialog />
 <UserProfile />

@@ -4,6 +4,7 @@ import (
 	db "backend/db/gen_queries"
 	"backend/internal/types"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -31,10 +32,10 @@ type Service interface {
 	GetUser(ctx context.Context, input string) (db.User, error)
 	GetUserByID(ctx context.Context, userID string) (db.User, error)
 	CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error)
-	UpdateUserAvatarNBanner(ctx context.Context, userID string, body *types.UpdateAvatarParams) error
-	UpdateUserAccount(ctx context.Context, userID string, body *types.UpdateAccountParams) error
-	UpdateUserPassword(ctx context.Context, userID string, password string) error
-	UpdateUserProfile(ctx context.Context, userID string, body *types.UpdateProfileParams) error
+	UpdateUserAvatarNBanner(ctx context.Context, userID string, avatarURL, bannerURL *string) (db.User, error)
+	UpdateUserEmail(ctx context.Context, userID string, body *types.UpdateEmailParams) (db.User, error)
+	UpdateUserPassword(ctx context.Context, userID string, hashedPassword string) error
+	UpdateUserProfile(ctx context.Context, userID string, body *types.UpdateProfileParams) (db.User, error)
 	GetUserServers(ctx context.Context, userID string) ([]db.GetServersFromUserRow, error)
 	CreateServer(ctx context.Context, ownerID string, body *types.CreateServerParams, avatarURL *string) (*db.Server, error)
 	CheckInvite(ctx context.Context, inviteCode string) (string, error)
@@ -65,6 +66,9 @@ type Service interface {
 	DeleteMessage(ctx context.Context, messageID string, userID string) error
 	GetMessageAuthor(ctx context.Context, messageID string) (string, error)
 	EditMessage(ctx context.Context, messageID string, body *types.EditMessageParams) error
+	GetUserLinks(ctx context.Context, userID string) ([]json.RawMessage, error)
+	GetUserFacts(ctx context.Context, userID string) ([]json.RawMessage, error)
+	GetUserPassword(ctx context.Context, userID string) (string, error)
 }
 
 type service struct {
@@ -125,16 +129,26 @@ func (s *service) GetUserByID(ctx context.Context, userID string) (db.User, erro
 	return s.queries.GetUserById(ctx, userID)
 }
 
-func (s *service) UpdateUserAvatarNBanner(ctx context.Context, userID string, body *types.UpdateAvatarParams) error {
-	avatarURL := pgtype.Text{String: body.Avatar, Valid: true}
-	bannerURL := pgtype.Text{String: body.Banner, Valid: true}
-	mainColor := pgtype.Text{String: body.MainColor, Valid: true}
+func (s *service) UpdateUserAvatarNBanner(ctx context.Context, userID string, avatarURL, bannerURL *string) (db.User, error) {
+	var avatar pgtype.Text
+	var banner pgtype.Text
+
+	if avatarURL != nil {
+		avatar = pgtype.Text{String: *avatarURL, Valid: true}
+	} else {
+		avatar = pgtype.Text{Valid: false}
+	}
+
+	if bannerURL != nil {
+		banner = pgtype.Text{String: *bannerURL, Valid: true}
+	} else {
+		banner = pgtype.Text{Valid: false}
+	}
 
 	return s.queries.UpdateUserAvatarNBanner(ctx, db.UpdateUserAvatarNBannerParams{
-		ID:        userID,
-		Avatar:    avatarURL,
-		Banner:    bannerURL,
-		MainColor: mainColor,
+		ID:     userID,
+		Avatar: avatar,
+		Banner: banner,
 	})
 }
 
@@ -142,24 +156,24 @@ func (s *service) GetUserServers(ctx context.Context, userID string) ([]db.GetSe
 	return s.queries.GetServersFromUser(ctx, userID)
 }
 
-func (s *service) UpdateUserAccount(ctx context.Context, userID string, body *types.UpdateAccountParams) error {
-	return s.queries.UpdateUserInformations(ctx, db.UpdateUserInformationsParams{
-		ID:       userID,
-		Email:    body.Email,
-		Username: body.Username,
+func (s *service) UpdateUserEmail(ctx context.Context, userID string, body *types.UpdateEmailParams) (db.User, error) {
+	return s.queries.UpdateUserEmail(ctx, db.UpdateUserEmailParams{
+		ID:    userID,
+		Email: body.Email,
 	})
 }
 
-func (s *service) UpdateUserPassword(ctx context.Context, userID string, password string) error {
+func (s *service) UpdateUserPassword(ctx context.Context, userID string, hashedPassword string) error {
 	return s.queries.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
 		ID:       userID,
-		Password: password,
+		Password: hashedPassword,
 	})
 }
 
-func (s *service) UpdateUserProfile(ctx context.Context, userID string, body *types.UpdateProfileParams) error {
+func (s *service) UpdateUserProfile(ctx context.Context, userID string, body *types.UpdateProfileParams) (db.User, error) {
 	return s.queries.UpdateUserProfile(ctx, db.UpdateUserProfileParams{
 		ID:          userID,
+		Username:    body.Username,
 		DisplayName: body.DisplayName,
 		AboutMe:     body.About,
 		Facts:       body.Facts,
@@ -406,6 +420,18 @@ func (s *service) EditMessage(ctx context.Context, messageID string, body *types
 		MentionsUsers:    body.MentionsUsers,
 		MentionsChannels: body.MentionsChannels,
 	})
+}
+
+func (s *service) GetUserLinks(ctx context.Context, userID string) ([]json.RawMessage, error) {
+	return s.queries.GetUserLinks(ctx, userID)
+}
+
+func (s *service) GetUserFacts(ctx context.Context, userID string) ([]json.RawMessage, error) {
+	return s.queries.GetUserFacts(ctx, userID)
+}
+
+func (s *service) GetUserPassword(ctx context.Context, userID string) (string, error) {
+	return s.queries.GetUserPassword(ctx, userID)
 }
 
 // Health checks the health of the database connection by pinging the database.

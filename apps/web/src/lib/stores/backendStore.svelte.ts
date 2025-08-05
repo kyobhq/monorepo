@@ -2,20 +2,21 @@ import type { APIError } from '$lib/types/errors';
 import { errAsync, okAsync, ResultAsync } from 'neverthrow';
 import ky, { type Input, type Options } from 'ky';
 import type { Category, Channel, Message, Server, ServerInformations, Setup } from '$lib/types/types';
-import type { CreateCategoryType, CreateChannelType, CreateMessageType, CreateServerType, DeleteMessageType, EditChannelType, EditMessageType, PinChannelType } from '$lib/types/schemas';
+import type { CreateCategoryType, CreateChannelType, CreateMessageType, CreateServerType, DeleteMessageType, EditAvatarType, EditChannelType, EditMessageType, EditPasswordType, EditUserType, PinChannelType } from '$lib/types/schemas';
 
 const client = ky.create({
   prefixUrl: `${import.meta.env.VITE_API_URL}/protected`,
   credentials: 'include',
   retry: 2,
-  timeout: 10000
+  timeout: 10000,
+  throwHttpErrors: false
 });
 
 export class BackendStore {
   private makeRequest<T>(endpoint: Input, options?: Options): ResultAsync<T, APIError> {
     return ResultAsync.fromPromise(
       client(endpoint, options),
-      (error) => ({
+      (error: unknown) => ({
         status: 0,
         code: 'NETWORK_ERROR',
         cause: 'Network request failed',
@@ -32,7 +33,7 @@ export class BackendStore {
         })
       ).andThen((data: unknown) => {
         if (!res.ok) {
-          const errorData = data as APIError
+          const errorData = data as APIError;
           return errAsync({
             status: res.status,
             code: errorData.code || 'API_ERROR',
@@ -115,6 +116,24 @@ export class BackendStore {
 
   deleteMessage(messageID: string, body: DeleteMessageType): ResultAsync<void, APIError> {
     return this.makeRequest<void>(`messages/${messageID}`, { method: 'delete', json: body })
+  }
+
+  updateProfile(body: EditUserType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>('users/profile', { method: 'patch', json: body })
+  }
+
+  updatePassword(body: EditPasswordType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>('users/password', { method: 'patch', json: body })
+  }
+
+  updateAvatarAndBanner(cropAvatarPixels: any, cropBannerPixels: any, body: EditAvatarType): ResultAsync<{ avatar: string, banner: string }, APIError> {
+    const formData = new FormData();
+    if (body.avatar) formData.append('avatar', body.avatar);
+    if (body.banner) formData.append('banner', body.banner);
+    if (cropAvatarPixels) formData.append('crop_avatar', JSON.stringify(cropAvatarPixels));
+    if (cropBannerPixels) formData.append('crop_banner', JSON.stringify(cropBannerPixels));
+
+    return this.makeRequest<{ avatar: string, banner: string }>('users/avatar', { method: 'patch', body: formData })
   }
 }
 

@@ -2,28 +2,40 @@ package domains
 
 import (
 	db "backend/db/gen_queries"
+	"backend/internal/broker"
+	"backend/internal/crypto"
 	"backend/internal/database"
+	"backend/internal/files"
 	"backend/internal/types"
+	"encoding/json"
+	"fmt"
+	"mime/multipart"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserService interface {
 	GetUserByID(ctx *gin.Context, userID string) (*db.User, *types.APIError)
-	UpdateAccount(ctx *gin.Context, userID string, body *types.UpdateAccountParams) *types.APIError
-	UpdateAvatar(ctx *gin.Context, userID string, body *types.UpdateAvatarParams) *types.APIError
-	UpdateProfile(ctx *gin.Context, userID string, body *types.UpdateProfileParams) *types.APIError
+	UpdateEmail(ctx *gin.Context, body *types.UpdateEmailParams) *types.APIError
+	UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHeader, banner []*multipart.FileHeader, body *types.UpdateAvatarParams) (*string, *string, *types.APIError)
+	UpdateProfile(ctx *gin.Context, body *types.UpdateProfileParams) *types.APIError
 	Setup(ctx *gin.Context) (*types.Setup, *types.APIError)
+	UpdatePassword(ctx *gin.Context, body *types.UpdatePasswordParams) *types.APIError
 }
 
 type userService struct {
-	db database.Service
+	db     database.Service
+	broker broker.Service
+	files  files.Service
 }
 
-func NewUserService(db database.Service) *userService {
+func NewUserService(db database.Service, broker broker.Service, files files.Service) *userService {
 	return &userService{
-		db: db,
+		db:     db,
+		broker: broker,
+		files:  files,
 	}
 }
 
@@ -41,8 +53,18 @@ func (s *userService) GetUserByID(ctx *gin.Context, userID string) (*db.User, *t
 	return &user, nil
 }
 
-func (s *userService) UpdateAccount(ctx *gin.Context, userID string, body *types.UpdateAccountParams) *types.APIError {
-	err := s.db.UpdateUserAccount(ctx, userID, body)
+func (s *userService) UpdateEmail(ctx *gin.Context, body *types.UpdateEmailParams) *types.APIError {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := u.(*db.User).ID
+
+	updatedUser, err := s.db.UpdateUserEmail(ctx, userID, body)
 	if err != nil {
 		return &types.APIError{
 			Status:  http.StatusInternalServerError,
@@ -52,31 +74,181 @@ func (s *userService) UpdateAccount(ctx *gin.Context, userID string, body *types
 		}
 	}
 
+	token, err := ctx.Cookie("token")
+	if err != nil {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_MISSING_TOKEN",
+			Message: "Session token not found.",
+		}
+	}
+	s.broker.RefreshCachedUser(ctx, token, updatedUser)
+
 	return nil
 }
 
-func (s *userService) UpdateAvatar(ctx *gin.Context, userID string, body *types.UpdateAvatarParams) *types.APIError {
-	err := s.db.UpdateUserAvatarNBanner(ctx, userID, body)
-	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPDATE_AVATAR",
-			Cause:   err.Error(),
-			Message: "Failed to update avatar.",
+func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHeader, banner []*multipart.FileHeader, body *types.UpdateAvatarParams) (*string, *string, *types.APIError) {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return nil, nil, &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	user := u.(*db.User)
+	oldAvatar := user.Avatar.String[len(os.Getenv("CDN_URL"))+1:]
+	oldBanner := user.Banner.String[len(os.Getenv("CDN_URL"))+1:]
+
+	var avatarURL, bannerURL *string
+
+	if len(avatar) > 0 {
+		a, perr := s.files.ProcessAndUploadAvatar(user.ID, "avatar", avatar[0], body.CropAvatar, 1<<20)
+		if perr != nil {
+			return nil, nil, perr
+		}
+		avatarURL = a
+
+		err := s.files.DeleteFile(oldAvatar)
+		if err != nil {
+			fmt.Println("Failed to delete old avatar:", err)
 		}
 	}
 
-	return nil
+	if len(banner) > 0 {
+		b, perr := s.files.ProcessAndUploadAvatar(user.ID, "banner", banner[0], body.CropBanner, 1<<20)
+		if perr != nil {
+			return nil, nil, perr
+		}
+		bannerURL = b
+
+		err := s.files.DeleteFile(oldBanner)
+		if err != nil {
+			fmt.Println("Failed to delete old banner:", err)
+		}
+	}
+
+	updatedUser, err := s.db.UpdateUserAvatarNBanner(ctx, user.ID, avatarURL, bannerURL)
+	if err != nil {
+		return nil, nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_UPDATE_AVATAR_BANNER",
+			Cause:   err.Error(),
+			Message: "Failed to update avatar/banner.",
+		}
+	}
+
+	token, err := ctx.Cookie("token")
+	if err != nil {
+		return nil, nil, &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_MISSING_TOKEN",
+			Message: "Session token not found.",
+		}
+	}
+	s.broker.RefreshCachedUser(ctx, token, updatedUser)
+
+	return avatarURL, bannerURL, nil
 }
 
-func (s *userService) UpdateProfile(ctx *gin.Context, userID string, body *types.UpdateProfileParams) *types.APIError {
-	err := s.db.UpdateUserProfile(ctx, userID, body)
+func (s *userService) UpdateProfile(ctx *gin.Context, body *types.UpdateProfileParams) *types.APIError {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := u.(*db.User).ID
+
+	var links []types.Link
+	var facts []types.Fact
+
+	if err := json.Unmarshal(body.Links, &links); err != nil || len(links) > 2 {
+		return &types.APIError{
+			Status:  http.StatusBadRequest,
+			Code:    "ERR_INVALID_LINKS",
+			Message: "You can only have 2 links.",
+		}
+	}
+
+	if err := json.Unmarshal(body.Facts, &facts); err != nil || len(facts) > 3 {
+		return &types.APIError{
+			Status:  http.StatusBadRequest,
+			Code:    "ERR_INVALID_FACTS",
+			Message: "You can only have 3 facts.",
+		}
+	}
+
+	updatedUser, err := s.db.UpdateUserProfile(ctx, userID, body)
 	if err != nil {
 		return &types.APIError{
 			Status:  http.StatusInternalServerError,
 			Code:    "ERR_UPDATE_PROFILE",
 			Cause:   err.Error(),
 			Message: "Failed to update profile.",
+		}
+	}
+
+	token, err := ctx.Cookie("token")
+	if err != nil {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_MISSING_TOKEN",
+			Message: "Session token not found.",
+		}
+	}
+	s.broker.RefreshCachedUser(ctx, token, updatedUser)
+
+	return nil
+}
+
+func (s *userService) UpdatePassword(ctx *gin.Context, body *types.UpdatePasswordParams) *types.APIError {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := u.(*db.User).ID
+
+	password, err := s.db.GetUserPassword(ctx, userID)
+	if err != nil {
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_PASSWORD",
+			Cause:   err.Error(),
+			Message: "Failed to get user password.",
+		}
+	}
+
+	if valid, err := crypto.VerifyPassword(body.Current, password); err != nil || !valid {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_INVALID_PASSWORD",
+			Message: "Invalid password.",
+		}
+	}
+
+	hashedPassword, err := crypto.HashPassword(body.New)
+	if err != nil {
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_HASH_PASSWORD",
+			Cause:   err.Error(),
+			Message: "Failed to hash password.",
+		}
+	}
+
+	if err := s.db.UpdateUserPassword(ctx, userID, hashedPassword); err != nil {
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_UPDATE_PASSWORD",
+			Cause:   err.Error(),
+			Message: "Failed to update password.",
 		}
 	}
 

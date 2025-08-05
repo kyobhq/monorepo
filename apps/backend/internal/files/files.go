@@ -26,6 +26,8 @@ type Service interface {
 	UploadFile(key string, mimeType string, fileData io.Reader, fileName string) error
 	ProcessAndUploadFiles(files []*multipart.FileHeader, maxSize int64) ([]byte, *types.APIError)
 	ProcessAndUploadImage(imageToUpload *multipart.FileHeader, crop types.Crop, maxSize int64) (*string, *types.APIError)
+	ProcessAndUploadAvatar(userID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop, maxSize int64) (*string, *types.APIError)
+	DeleteFile(key string) error
 }
 
 type service struct {
@@ -219,6 +221,73 @@ func (s *service) ProcessAndUploadImage(imageToUpload *multipart.FileHeader, cro
 	return &fileURL, nil
 }
 
+func (s *service) ProcessAndUploadAvatar(userID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop, maxSize int64) (*string, *types.APIError) {
+	file, err := avatarToUpload.Open()
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_OPEN_FILE",
+			Cause:   err.Error(),
+			Message: "Failed to open file.",
+		}
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_READ_FILE",
+			Cause:   err.Error(),
+			Message: "Failed to read file.",
+		}
+	}
+
+	mimeType := http.DetectContentType(buffer[:n])
+	if !strings.Contains(mimeType, "image") {
+		return nil, &types.APIError{
+			Status:  http.StatusBadRequest,
+			Code:    "ERR_INVALID_MIME_TYPE",
+			Message: "Invalid mime type.",
+		}
+	}
+
+	if seeker, ok := file.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
+
+	var key string
+	var fileData io.Reader = file
+
+	key = fmt.Sprintf("%s-%s-%s.webp", userID, imageType, cuid2.Generate())
+
+	imageData, err := cropImage(file, crop)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_CROP_IMAGE",
+			Cause:   err.Error(),
+			Message: "Failed to crop the image.",
+		}
+	}
+
+	fileData = bytes.NewReader(imageData)
+	if err := s.UploadFile(key, mimeType, fileData, avatarToUpload.Filename); err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_UPLOAD_FILE",
+			Cause:   err.Error(),
+			Message: "Failed to upload file.",
+		}
+	}
+	defer file.Close()
+
+	fileURL := fmt.Sprintf("%s/%s", s.cdnURL, key)
+
+	return &fileURL, nil
+}
+
 func (s *service) UploadFile(key string, mimeType string, fileData io.Reader, fileName string) error {
 	input := &s3.PutObjectInput{
 		Key:    &key,
@@ -234,6 +303,18 @@ func (s *service) UploadFile(key string, mimeType string, fileData io.Reader, fi
 	_, err := s.s3Client.PutObject(context.TODO(), input)
 	if err != nil {
 		return fmt.Errorf("failed to upload file: %w", err)
+	}
+
+	return nil
+}
+
+func (s *service) DeleteFile(key string) error {
+	_, err := s.s3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+		Key:    &key,
+		Bucket: aws.String("nyo-files"),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete file: %w", err)
 	}
 
 	return nil

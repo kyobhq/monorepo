@@ -10,6 +10,7 @@ export class Core {
   serverSettingsDialog = $state({ open: false, server_id: '', section: '' });
   categorySettingsDialog = $state({ open: false, category_id: '', section: '' });
   channelSettingsDialog = $state({ open: false, channel_id: '', section: '' });
+  userSettingsDialog = $state({ open: false, section: '' });
   destructiveDialog = $state({ open: false, title: '', subtitle: '', buttonText: '', onclick: () => { } })
   pressingShift = $state(false)
   profile = $state<{ open: boolean, user: User | null, el: HTMLElement | null }>({ open: false, user: null, el: null });

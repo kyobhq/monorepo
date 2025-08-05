@@ -44,7 +44,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	user := handlers.NewUserHandlers(s.userSvc)
 	// protected.GET("/users/:user_id", user.GetUser)
 	protected.GET("/users/setup", user.Setup)
-	protected.PATCH("/users/account", user.UpdateAccount)
+	protected.PATCH("/users/email", user.UpdateEmail)
+	protected.PATCH("/users/password", user.UpdatePassword)
 	protected.PATCH("/users/profile", user.UpdateProfile)
 	protected.PATCH("/users/avatar", user.UpdateAvatar)
 

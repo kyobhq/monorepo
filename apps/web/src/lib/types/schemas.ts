@@ -178,8 +178,43 @@ export const EditUserSchema = v.object({
   )
 })
 
-export const EditPasswordSchema = v.object({
-  current: v.string(),
-  new: v.string(),
-  confirm: v.string(),
-})
+export interface EditUserType extends v.InferInput<typeof EditUserSchema> { }
+
+export const EditPasswordSchema = v.pipe(
+  v.object({
+    current: v.string(),
+    new: v.string(),
+    confirm: v.string(),
+  }),
+  v.forward(
+    v.partialCheck(
+      [['new'], ['confirm']],
+      (input) => input.new === input.confirm,
+      'Passwords do not match.'
+    ),
+    ['confirm']
+  )
+)
+
+export interface EditPasswordType extends v.InferInput<typeof EditPasswordSchema> { }
+
+export const EditAvatarSchema = v.object({
+  avatar: v.optional(v.pipe(
+    v.file(),
+    v.mimeType(
+      ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif'],
+      'Please select a JPEG, PNG, GIF, WEBP or AVIF file.'
+    ),
+    v.maxSize(1024 * 1024 * 10, 'Please select a file smaller than 10 MB.')
+  )),
+  banner: v.optional(v.pipe(
+    v.file(),
+    v.mimeType(
+      ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif'],
+      'Please select a JPEG, PNG, GIF, WEBP or AVIF file.'
+    ),
+    v.maxSize(1024 * 1024 * 10, 'Please select a file smaller than 10 MB.')
+  )),
+});
+
+export interface EditAvatarType extends v.InferInput<typeof EditAvatarSchema> { }
