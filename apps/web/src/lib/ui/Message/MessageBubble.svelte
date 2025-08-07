@@ -2,10 +2,13 @@
 	import { generateHTML } from '@tiptap/core';
 	import { messageStore } from 'stores/messageStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
-	import { getMessageExtensions } from 'ui/RichInput/richInputConfig';
+	import { MESSAGE_EXTENSIONS } from 'ui/RichInput/richInputConfig';
 	import RichInputEdit from 'ui/RichInput/RichInputEdit.svelte';
 
 	let { server, channel, message, onClickSave = $bindable() } = $props();
+
+	// Memoize expensive HTML generation; only recompute when message.content changes
+	const html = $derived.by(() => generateHTML(message.content, MESSAGE_EXTENSIONS));
 </script>
 
 <div
@@ -19,6 +22,6 @@
 	{#if messageStore.editMessage?.id === message.id}
 		<RichInputEdit {server} {channel} bind:onClickSave />
 	{:else}
-		{@html generateHTML(message.content, getMessageExtensions())}
+		{@html html}
 	{/if}
 </div>

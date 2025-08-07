@@ -7,25 +7,30 @@
 	import CollapsibleBox from 'ui/CollapsibleBox/CollapsibleBox.svelte';
 	import UserLine from 'ui/UserLine/UserLine.svelte';
 	import { userStore } from 'stores/userStore.svelte';
+	import { page } from '$app/state';
 
 	let membersPerRole = $derived.by(() => {
-		if (!serverStore.roles || serverStore.roles.length === 0) {
+		if (!page.params.server_id) return {};
+		const members = serverStore.getMembers(page.params.server_id);
+		const roles = serverStore.getRoles(page.params.server_id);
+
+		if (roles.length === 0) {
 			return {
-				Members: serverStore.members
+				Members: members
 			};
 		}
 
 		let roleGroups: Record<string, Member[]> = {};
 
-		for (const role of serverStore.roles) {
+		for (const role of roles) {
 			roleGroups[role.name] = [];
 		}
 		roleGroups['Members'] = [];
 
-		for (const member of serverStore.members) {
+		for (const member of members) {
 			let hasRole = false;
 
-			for (const role of serverStore.roles) {
+			for (const role of roles) {
 				if (member.roles.includes(role.id)) {
 					roleGroups[role.name].push(member);
 					hasRole = true;

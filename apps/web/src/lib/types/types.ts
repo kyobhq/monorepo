@@ -42,6 +42,8 @@ export interface Server {
   main_color?: string;
   categories: Record<string, Category>;
   public: boolean;
+  members: Member[];
+  roles: Role[]
 }
 
 export interface Role {

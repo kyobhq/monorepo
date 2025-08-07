@@ -39,9 +39,9 @@ export class WebsocketStore {
           const value = wsMess.content.value;
 
           if (value.status === "offline") {
-            serverStore.setMemberOffline(value.user!.id)
+            serverStore.setMemberOffline(value.serverId, value.user!.id)
           } else {
-            if (value.type === "connect") serverStore.setMemberOnline(value.user!.id, value.status)
+            if (value.type === "connect") serverStore.setMemberOnline(value.serverId, value.user!.id, value.status)
             if (value.type === "join") {
               const member: Member = {
                 id: value.user!.id,
@@ -50,7 +50,7 @@ export class WebsocketStore {
                 status: value.status,
                 roles: []
               }
-              serverStore.addMember(member)
+              serverStore.addMember(value.serverId, member)
             }
           }
         }

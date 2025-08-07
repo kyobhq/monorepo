@@ -20,6 +20,7 @@
 				userStore.user = setup.user;
 				serverStore.servers = setup.servers;
 				ws.init(setup.user.id);
+				userStore.setupComplete = true;
 
 				if (!page.params.server_id) goto('/servers');
 			},

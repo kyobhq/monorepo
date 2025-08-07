@@ -7,6 +7,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { serverStore } from 'stores/serverStore.svelte';
+	import { coreStore } from 'stores/coreStore.svelte';
 
 	interface Props {
 		server: Server;
@@ -15,7 +16,13 @@
 	let { server }: Props = $props();
 	let inviteCreated = $state(false);
 
-	function openSettings() {}
+	function openSettings() {
+		coreStore.serverSettingsDialog = {
+			open: true,
+			server_id: server.id,
+			section: 'Server Profile'
+		};
+	}
 
 	async function createInvite(e: Event) {
 		e.preventDefault();

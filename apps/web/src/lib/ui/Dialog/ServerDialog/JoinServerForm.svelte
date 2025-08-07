@@ -6,6 +6,10 @@
 	import FormInput from 'ui/Form/FormInput.svelte';
 	import DialogFooter from '../DialogFooter.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
+	import type { Server } from '$lib/types/types';
+	import { coreStore } from 'stores/coreStore.svelte';
+	import { goto } from '$app/navigation';
+	import { tick } from 'svelte';
 
 	const { form, errors, enhance } = superForm(defaults(valibot(JoinServerSchema)), {
 		dataType: 'json',
@@ -17,10 +21,26 @@
 				const match = inviteInput.match(/(?:\/invite\/)?([A-Za-z0-9_-]{4,})$/);
 				const inviteId = match ? match[1] : inviteInput;
 
-				const res = await backend.joinServerWithInvite(inviteId);
+				const res = await backend.joinServerWithInvite(
+					inviteId,
+					Object.keys(serverStore.servers).length
+				);
 				res.match(
-					(server) => {
+					async (s) => {
+						const server: Server = {
+							...s,
+							main_color: '#121214',
+							members: [],
+							roles: []
+						};
+
 						serverStore.addServer(server);
+						coreStore.serverDialog = false;
+
+						// we wait for a tick and a microtask just to be sure we can go to the server, otherwise it just does nothing
+						await tick();
+						await new Promise((resolve) => setTimeout(resolve, 0));
+						goto(`/servers/${server.id}`);
 					},
 					(error) => {
 						console.error(`${error.code}: ${error.message}`);

@@ -98,8 +98,14 @@ func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHea
 		}
 	}
 	user := u.(*db.User)
-	oldAvatar := user.Avatar.String[len(os.Getenv("CDN_URL"))+1:]
-	oldBanner := user.Banner.String[len(os.Getenv("CDN_URL"))+1:]
+	var oldAvatar, oldBanner string
+
+	if user.Avatar.String != "" {
+		oldAvatar = user.Avatar.String[len(os.Getenv("CDN_URL"))+1:]
+	}
+	if user.Banner.String != "" {
+		oldBanner = user.Banner.String[len(os.Getenv("CDN_URL"))+1:]
+	}
 
 	var avatarURL, bannerURL *string
 
@@ -110,9 +116,11 @@ func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHea
 		}
 		avatarURL = a
 
-		err := s.files.DeleteFile(oldAvatar)
-		if err != nil {
-			fmt.Println("Failed to delete old avatar:", err)
+		if oldAvatar != "" {
+			err := s.files.DeleteFile(oldAvatar)
+			if err != nil {
+				fmt.Println("Failed to delete old avatar:", err)
+			}
 		}
 	}
 
@@ -123,9 +131,11 @@ func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHea
 		}
 		bannerURL = b
 
-		err := s.files.DeleteFile(oldBanner)
-		if err != nil {
-			fmt.Println("Failed to delete old banner:", err)
+		if oldBanner != "" {
+			err := s.files.DeleteFile(oldBanner)
+			if err != nil {
+				fmt.Println("Failed to delete old banner:", err)
+			}
 		}
 	}
 
@@ -330,11 +340,15 @@ func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFr
 	}
 
 	rolesByServer := make(map[string][]db.GetRolesFromServersRow)
+	for _, server := range servers {
+		rolesByServer[server.ID] = []db.GetRolesFromServersRow{}
+	}
 	for _, role := range allRoles {
 		rolesByServer[role.ServerID] = append(rolesByServer[role.ServerID], role)
 	}
 
 	result := make(map[string]types.ServerWithCategories)
+	members := make([]types.Member, 0)
 	for _, server := range servers {
 		categoryMap := make(map[string]types.CategoryWithChannels)
 		for _, category := range categoriesByServer[server.ID] {
@@ -352,6 +366,7 @@ func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFr
 		result[server.ID] = types.ServerWithCategories{
 			server,
 			categoryMap,
+			members,
 			rolesByServer[server.ID],
 		}
 	}

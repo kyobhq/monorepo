@@ -128,7 +128,7 @@ func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParam
 		serverID = server.ID
 	}
 
-	server, err := s.db.JoinServer(ctx, serverID, user.ID)
+	server, err := s.db.JoinServer(ctx, serverID, user.ID, body.Position)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,

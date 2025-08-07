@@ -12,6 +12,7 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import UserProfile from 'ui/UserProfile/UserProfile.svelte';
 	import UserSettingsDialog from 'ui/Dialog/UserSettingsDialog/UserSettingsDialog.svelte';
+	import ServerSettingsDialog from 'ui/Dialog/ServerSettingsDialog/ServerSettingsDialog.svelte';
 
 	let { children } = $props();
 
@@ -45,4 +46,5 @@
 <DestructiveDialog />
 <ChannelSettingsDialog />
 <UserSettingsDialog />
+<ServerSettingsDialog />
 <UserProfile />

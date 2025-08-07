@@ -42,7 +42,7 @@ type Service interface {
 	CreateServer(ctx context.Context, ownerID string, body *types.CreateServerParams, avatarURL *string) (*db.Server, error)
 	CheckInvite(ctx context.Context, inviteCode string) (string, error)
 	CreateInvite(ctx context.Context, userID, serverID string) (string, error)
-	JoinServer(ctx context.Context, serverID string, userID string) (db.JoinServerRow, error)
+	JoinServer(ctx context.Context, serverID string, userID string, position int) (db.JoinServerRow, error)
 	GetServer(ctx context.Context, serverID string) (db.Server, error)
 	UpdateServerAvatarNBanner(ctx context.Context, serverID string, body *types.UpdateServerAvatarParams) error
 	UpdateServerProfile(ctx context.Context, serverID string, body *types.UpdateServerProfileParams) error
@@ -245,11 +245,12 @@ func (s *service) CreateInvite(ctx context.Context, userID, serverID string) (st
 	return invite.(string), nil
 }
 
-func (s *service) JoinServer(ctx context.Context, serverID string, userID string) (db.JoinServerRow, error) {
+func (s *service) JoinServer(ctx context.Context, serverID string, userID string, position int) (db.JoinServerRow, error) {
 	return s.queries.JoinServer(ctx, db.JoinServerParams{
-		ID:       serverID,
+		ID:       cuid2.Generate(),
 		UserID:   userID,
 		ServerID: serverID,
+		Position: int32(position),
 	})
 }
 

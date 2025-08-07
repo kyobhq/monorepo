@@ -39,6 +39,7 @@ export function extractFirstNParagraphs(htmlString: string, n = 3) {
 }
 
 export function generateTextWithExt(content: JSONContent) {
+  if (!content) return ''
   return generateText(content, [
     StarterKit.configure({
       gapcursor: false,

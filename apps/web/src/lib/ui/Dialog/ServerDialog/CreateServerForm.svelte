@@ -32,7 +32,9 @@
 						const server: Server = {
 							...s,
 							categories: {},
-							main_color: '#121214'
+							main_color: '#121214',
+							members: [],
+							roles: []
 						};
 
 						serverStore.addServer(server);

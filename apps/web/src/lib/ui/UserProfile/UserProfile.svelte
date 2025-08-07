@@ -35,7 +35,7 @@
 				class="relative z-[2] h-full overflow-hidden bg-main-975 select-none pt-[6rem] pb-5 px-3.5 highlight-border"
 				style="background-image: url({user.banner}); background-size: cover; background-position: center;"
 			>
-				<div class="absolute left-0 top-0 w-full h-full bg-main-975/85 backdrop-blur-3xl"></div>
+				<div class="absolute left-0 top-0 w-full h-full bg-main-975/85 backdrop-blur-xl"></div>
 				<figure class="absolute z-[1] top-0 left-0 h-[7.5rem] w-full">
 					<img
 						src={user.banner}
