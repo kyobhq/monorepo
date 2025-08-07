@@ -42,7 +42,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	protected.GET("/ws/:user_id", ws.Setup)
 
 	user := handlers.NewUserHandlers(s.userSvc)
-	// protected.GET("/users/:user_id", user.GetUser)
+	protected.GET("/users/:user_id", user.GetUserProfile)
 	protected.GET("/users/setup", user.Setup)
 	protected.PATCH("/users/email", user.UpdateEmail)
 	protected.PATCH("/users/password", user.UpdatePassword)
@@ -57,7 +57,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	server := handlers.NewServerHandlers(s.serverSvc)
 	protected.POST("/servers", server.CreateServer)
 	protected.GET("/servers/:server_id", server.GetInformations)
-	protected.POST("/servers/:server_id/join", server.JoinServer)
+	protected.POST("/servers/join", server.JoinServer)
 	protected.POST("/servers/:server_id/leave", server.LeaveServer)
 	protected.POST("/servers/:server_id/invite", server.CreateInvite)
 	protected.DELETE("/servers/invite/:invite_id", server.DeleteInvite)

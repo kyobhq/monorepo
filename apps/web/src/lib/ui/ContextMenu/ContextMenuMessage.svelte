@@ -6,8 +6,11 @@
 	import { backend } from 'stores/backendStore.svelte';
 	import { generateTextWithExt } from 'utils/richInput';
 	import { messageStore } from 'stores/messageStore.svelte';
+	import { userStore } from 'stores/userStore.svelte';
+	import { checkActionPermission } from 'utils/abilities';
 
 	let { message } = $props();
+	const isAuthor = $derived(message.author_id === userStore.user?.id);
 
 	async function deleteMessage() {
 		const res = await backend.deleteMessage(message.id, {
@@ -58,7 +61,11 @@
 		<ContextMenuItem onclick={() => {}} text="Reply" />
 		<ContextMenuItem onclick={handleCopyText} text="Copy Text" />
 		<ContextMenuItem onclick={() => {}} text="Copy Message Link" />
-		<ContextMenuItem onclick={handleEdit} text="Edit Message" />
-		<ContextMenuItem onclick={handleDelete} text="Delete Message" destructive />
+		{#if isAuthor}
+			<ContextMenuItem onclick={handleEdit} text="Edit Message" />
+		{/if}
+		{#if isAuthor || checkActionPermission(page.params.server_id!, 'MANAGE_MESSAGES')}
+			<ContextMenuItem onclick={handleDelete} text="Delete Message" destructive />
+		{/if}
 	{/snippet}
 </ContextMenuSkeleton>

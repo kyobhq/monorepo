@@ -90,9 +90,7 @@ func (h *serverHandler) JoinServer(c *gin.Context) {
 		return
 	}
 
-	serverID := c.Param("server_id")
-
-	server, err := h.domain.JoinServer(c, serverID)
+	server, err := h.domain.JoinServer(c, &body)
 	if err != nil {
 		err.Respond(c)
 		return

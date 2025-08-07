@@ -37,7 +37,7 @@
 		<button
 			bind:this={buttonEl}
 			onclick={() => coreStore.openMyProfile(buttonEl!)}
-			class="flex text-left items-center gap-x-2 hocus:bg-main-800 pr-2.5 border-[0.5px] border-transparent hocus:border-main-600 transition-colors hover:cursor-pointer duration-100 active:bg-main-700"
+			class="flex text-left items-center gap-x-2 active:bg-main-700/65 hocus:bg-main-800 pr-2.5 border-[0.5px] border-transparent hocus:border-main-600 transition-colors hover:cursor-pointer duration-100"
 		>
 			<figure class="relative h-12 w-12 highlight-border">
 				<img src={userStore.user.avatar} alt="" class="w-full h-full object-cover" />

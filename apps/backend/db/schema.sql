@@ -101,6 +101,7 @@ CREATE TABLE public.friends (
 
 CREATE TABLE public.invites (
     id character varying(255) NOT NULL,
+    creator_id character varying(255) NOT NULL,
     server_id character varying(255) NOT NULL,
     invite_id character varying(255) NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -468,6 +469,14 @@ ALTER TABLE ONLY public.friends
 
 ALTER TABLE ONLY public.friends
     ADD CONSTRAINT friends_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: invites invites_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invites
+    ADD CONSTRAINT invites_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --

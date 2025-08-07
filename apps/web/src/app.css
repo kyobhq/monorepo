@@ -45,7 +45,7 @@
 	--color-main-975: var(--ui-main-975);
 }
 
-@custom-variant hocus (&:hover, &:focus-visible);
+@variant hocus (&:hover, &:focus-visible);
 
 html,
 body {
@@ -87,7 +87,7 @@ body {
 }
 
 @utility highlight-border {
-  @apply after:content-normal after:absolute after:inset-0 after:border-[0.5px] after:border-main-50/20 after:transition-colors after:duration-100;
+  @apply after:content-normal after:absolute after:inset-0 after:border-[0.5px] after:border-main-50/20 after:transition-colors after:duration-100 after:z-[1];
 }
 
 .auth-gradient {

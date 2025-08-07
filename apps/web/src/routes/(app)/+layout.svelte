@@ -3,7 +3,7 @@
 	import ServerBar from 'ui/ServerBar/ServerBar.svelte';
 	import { page } from '$app/state';
 	import { serverStore } from 'stores/serverStore.svelte';
-	import CreateServerDialog from 'ui/Dialog/CreateServerDialog.svelte';
+	import ServerDialog from 'ui/Dialog/ServerDialog/ServerDialog.svelte';
 	import CreateCategoryDialog from 'ui/Dialog/CreateCategoryDialog.svelte';
 	import CreateChannelDialog from 'ui/Dialog/CreateChannelDialog.svelte';
 	import DestructiveDialog from 'ui/Dialog/DestructiveDialog.svelte';
@@ -12,6 +12,7 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import UserProfile from 'ui/UserProfile/UserProfile.svelte';
 	import UserSettingsDialog from 'ui/Dialog/UserSettingsDialog/UserSettingsDialog.svelte';
+
 	let { children } = $props();
 
 	const currentTab = $derived(page.url.pathname.split('/')[1]);
@@ -30,7 +31,7 @@
 
 <div class="flex">
 	<SideBar />
-	<main class="flex flex-col w-[calc(100%-19.5rem*2)] h-screen relative">
+	<main class="flex flex-col w-[calc(100%-19.5rem-16rem)] h-screen relative">
 		{@render children()}
 	</main>
 	{#if currentTab === 'servers' && currentServer}
@@ -38,7 +39,7 @@
 	{/if}
 </div>
 
-<CreateServerDialog />
+<ServerDialog />
 <CreateCategoryDialog />
 <CreateChannelDialog />
 <DestructiveDialog />

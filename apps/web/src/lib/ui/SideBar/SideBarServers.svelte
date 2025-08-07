@@ -36,7 +36,7 @@
 	{/if}
 	{#if currentServer}
 		<BarSeparator title={currentServer.name} />
-		<section class="relative flex flex-col gap-y-2 p-2.5">
+		<section class="relative flex flex-col gap-y-2 p-2.5 h-full">
 			<ContextMenuSideBar />
 			{#each Object.values(currentServer.categories).sort((a, b) => a.position - b.position) as category (category.id)}
 				<CollapsibleBox header={category.name} categoryId={category.id}>

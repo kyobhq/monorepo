@@ -79,6 +79,7 @@ export interface User {
 }
 
 export interface Member extends Partial<User> {
+  status: string;
   roles: string[];
 }
 

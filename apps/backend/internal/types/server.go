@@ -21,7 +21,8 @@ type CreateServerParams struct {
 }
 
 type JoinServerParams struct {
-	InviteCode string `json:"invite_code" validate:"required"`
+	InviteID string `json:"invite_id" validate:"omitempty"`
+	ServerID string `json:"server_id" validate:"omitempty"`
 }
 
 type UpdateServerProfileParams struct {
@@ -41,7 +42,21 @@ type ServerWithCategories struct {
 	Roles      []db.GetRolesFromServersRow     `json:"roles"`
 }
 
+type JoinServerWithCategories struct {
+	db.JoinServerRow
+	Categories map[string]CategoryWithChannels `json:"categories"`
+	Roles      []db.GetRolesFromServerRow      `json:"roles"`
+}
+
 type CategoryWithChannels struct {
 	db.ChannelCategory
 	Channels map[string]db.Channel `json:"channels"`
+}
+
+type Member struct {
+	ID          string   `json:"id"`
+	DisplayName string   `json:"display_name"`
+	Avatar      string   `json:"avatar"`
+	Status      string   `json:"status"`
+	Roles       []string `json:"roles"`
 }

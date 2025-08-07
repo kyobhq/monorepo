@@ -28,12 +28,30 @@ export class ServerStore {
     return this.servers[id]
   }
 
+  getMember(userID: string) {
+    return this.members.find(member => member.id === userID)
+  }
+
   addServer(server: Server) {
     this.servers[server.id] = server
   }
 
   getLastPosition() {
     return Object.values(this.servers).length
+  }
+
+  addMember(member: Member) {
+    this.members.push(member)
+  }
+
+  setMemberOnline(memberID: string, status: string) {
+    const idx = this.members.findIndex(member => member.id === memberID)
+    this.members[idx].status = status
+  }
+
+  setMemberOffline(memberID: string) {
+    const idx = this.members.findIndex(member => member.id === memberID)
+    this.members[idx].status = "offline"
   }
 
   deleteServer(serverID: string) {

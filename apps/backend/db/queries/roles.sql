@@ -34,6 +34,9 @@ WHERE s.id = $1
   )
 );
 
+-- name: GetUserRolesFromServers :many
+SELECT sm.server_id, sm.roles FROM server_members sm WHERE sm.user_id = $1 AND sm.server_id = ANY($2::text[]);
+
 -- name: GetRoles :many
 SELECT r.id, r.position, r.name, r.color, r.abilities, array_agg(sm.user_id) FILTER (WHERE sm.user_id IS NOT NULL) AS members
 FROM roles r

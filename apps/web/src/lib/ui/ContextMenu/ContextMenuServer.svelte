@@ -1,0 +1,69 @@
+<script lang="ts">
+	import ContextMenuSkeleton from './ContextMenuSkeleton.svelte';
+	import ContextMenuItem from './ContextMenuItem.svelte';
+	import type { Server } from '$lib/types/types';
+	import { userStore } from 'stores/userStore.svelte';
+	import { backend } from 'stores/backendStore.svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import { serverStore } from 'stores/serverStore.svelte';
+
+	interface Props {
+		server: Server;
+	}
+
+	let { server }: Props = $props();
+	let inviteCreated = $state(false);
+
+	function openSettings() {}
+
+	async function createInvite(e: Event) {
+		e.preventDefault();
+
+		const res = await backend.getInviteLink(server.id);
+		res.match(
+			(inviteLink) => {
+				navigator.clipboard.writeText(inviteLink);
+				inviteCreated = true;
+				setTimeout(() => {
+					inviteCreated = false;
+				}, 1500);
+			},
+			(error) => {
+				console.error(`${error.code}: ${error.message}`);
+			}
+		);
+	}
+
+	async function leaveServer() {
+		const res = await backend.leaveServer(server.id);
+		res.match(
+			() => {
+				serverStore.deleteServer(server.id);
+
+				if (page.params.server_id === server.id) {
+					goto('/servers');
+				}
+			},
+			(error) => {
+				console.error(`${error.code}: ${error.message}`);
+			}
+		);
+	}
+</script>
+
+<ContextMenuSkeleton>
+	{#snippet contextMenuContent()}
+		<ContextMenuItem
+			onclick={createInvite}
+			text={inviteCreated ? 'Check your clipboard!' : 'Get Invite Link'}
+			success={inviteCreated}
+		/>
+		<ContextMenuItem onclick={openSettings} text="Edit Server" />
+		{#if server.owner_id === userStore.user!.id}
+			<ContextMenuItem onclick={() => {}} text="Delete Server" destructive />
+		{:else}
+			<ContextMenuItem onclick={leaveServer} text="Leave Server" destructive />
+		{/if}
+	{/snippet}
+</ContextMenuSkeleton>

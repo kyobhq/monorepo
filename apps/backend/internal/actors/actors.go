@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/anthdm/hollywood/actor"
 	"github.com/anthdm/hollywood/cluster"
@@ -46,7 +47,11 @@ type Service interface {
 
 	StartServerInRegion(serverID, region string) *actor.PID
 
+	StartChannel(serverID, channelID string)
+
 	BroadcastMessageToUser(userPID *actor.PID, message *message.WSMessage)
+
+	GetActiveUsers(serverID string) []string
 }
 
 type service struct {
@@ -100,17 +105,15 @@ func (se *service) Bootstrap() {
 
 	nodeRegion := os.Getenv("REGION")
 	for _, serverID := range serverIDs {
-		if actorPID := se.cluster.GetActiveByID("server/" + serverID + "@" + nodeRegion); actorPID == nil {
-			serverPID := se.StartServerInRegion(serverID, nodeRegion)
+		serverPID := se.StartServerInRegion(serverID, nodeRegion)
 
-			for _, channel := range channels {
-				if channel.ServerID == serverID {
-					se.cluster.Engine().Send(serverPID, &message.StartChannel{
-						Channel: &message.Channel{
-							Id: channel.ID,
-						},
-					})
-				}
+		for _, channel := range channels {
+			if channel.ServerID == serverID {
+				se.cluster.Engine().Send(serverPID, &message.StartChannel{
+					Channel: &message.Channel{
+						Id: channel.ID,
+					},
+				})
 			}
 		}
 	}
@@ -154,7 +157,24 @@ func (se *service) GetAllChannelInstances(serverID, channelID string) []*actor.P
 }
 
 func (se *service) StartServerInRegion(serverID, region string) *actor.PID {
+	actorID := "server/" + serverID + "@" + region
+	if existingPID := se.cluster.GetActiveByID(actorID); existingPID != nil {
+		return existingPID
+	}
+
 	return se.cluster.Activate("server", cluster.NewActivationConfig().WithID(serverID+"@"+region).WithRegion(region))
+}
+
+func (se *service) StartChannel(serverID, channelID string) {
+	serversPID := se.GetAllServerInstances(serverID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.StartChannel{
+			Channel: &message.Channel{
+				Id: channelID,
+			},
+		})
+	}
 }
 
 func (se *service) SendChatMessage(chatMessage *message.NewChatMessage) {
@@ -187,4 +207,19 @@ func (se *service) SendUserStatusMessage(userPID *actor.PID, status *message.Cha
 
 func (se *service) BroadcastMessageToUser(userPID *actor.PID, message *message.WSMessage) {
 	se.cluster.Engine().Send(userPID, message)
+}
+
+func (se *service) GetActiveUsers(serverID string) []string {
+	var allUsersIDs []string
+
+	servers := se.GetAllServerInstances(serverID)
+	for _, server := range servers {
+		response := se.cluster.Engine().Request(server, &message.GetServerUsers{}, 10*time.Second)
+		result, err := response.Result()
+		if err == nil {
+			allUsersIDs = append(allUsersIDs, result.(*message.GetServerUsers).UserIds...)
+		}
+	}
+
+	return allUsersIDs
 }

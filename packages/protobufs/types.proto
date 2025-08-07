@@ -15,10 +15,12 @@ message WSMessage {
 }
 
 message ChangeStatus {
-	string id = 1;
-	string channel_id = 2;
-	string server_id = 3;
-	string status = 4;
+  string type = 1;
+	User user = 2;
+	string channel_id = 3;
+	string server_id = 4;
+	string status = 5;
+  repeated string roles = 6;
 }
 
 message NewChatMessage {

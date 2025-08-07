@@ -2,6 +2,7 @@ package domains
 
 import (
 	db "backend/db/gen_queries"
+	"backend/internal/actors"
 	"backend/internal/database"
 	"backend/internal/permissions"
 	"backend/internal/types"
@@ -21,12 +22,14 @@ type ChannelService interface {
 
 type channelService struct {
 	db          database.Service
+	actors      actors.Service
 	permissions permissions.Service
 }
 
-func NewChannelService(db database.Service, permissions permissions.Service) *channelService {
+func NewChannelService(db database.Service, actors actors.Service, permissions permissions.Service) *channelService {
 	return &channelService{
 		db:          db,
+		actors:      actors,
 		permissions: permissions,
 	}
 }
@@ -53,6 +56,8 @@ func (s *channelService) CreateChannel(c *gin.Context, body *types.CreateChannel
 	if err != nil {
 		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CREATE_CHANNEL", "Failed to create channel.", err)
 	}
+
+	s.actors.StartChannel(body.ServerID, channel.ID)
 
 	return &channel, nil
 }

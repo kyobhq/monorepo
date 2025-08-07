@@ -20,7 +20,7 @@
 
 <DefaultSettingsDialog bind:state={coreStore.userSettingsDialog.open} bind:initialized>
 	<SideBarSettings
-		settings={['My Account', 'Profile']}
+		settings={['My Account', 'Profile', 'Emojis', 'Data & Privacy', 'Voice & Video']}
 		navigationFn={(setting) => (coreStore.userSettingsDialog.section = setting)}
 		activeSection={coreStore.userSettingsDialog.section}
 	/>

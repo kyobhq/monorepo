@@ -11,6 +11,11 @@ SELECT *
 FROM channels
 WHERE server_id = $1 AND active = true;
 
+-- name: GetCategoriesFromServer :many
+SELECT *
+FROM channel_categories
+WHERE server_id = $1;
+
 -- name: GetCategoriesFromServers :many
 SELECT *
 FROM channel_categories

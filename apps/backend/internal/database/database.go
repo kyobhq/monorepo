@@ -31,24 +31,30 @@ type Service interface {
 
 	GetUser(ctx context.Context, input string) (db.User, error)
 	GetUserByID(ctx context.Context, userID string) (db.User, error)
+	GetUserProfile(ctx context.Context, userID string) (db.GetUserProfileRow, error)
 	CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error)
 	UpdateUserAvatarNBanner(ctx context.Context, userID string, avatarURL, bannerURL *string) (db.User, error)
 	UpdateUserEmail(ctx context.Context, userID string, body *types.UpdateEmailParams) (db.User, error)
 	UpdateUserPassword(ctx context.Context, userID string, hashedPassword string) error
 	UpdateUserProfile(ctx context.Context, userID string, body *types.UpdateProfileParams) (db.User, error)
 	GetUserServers(ctx context.Context, userID string) ([]db.GetServersFromUserRow, error)
+	GetServersIDFromUser(ctx context.Context, userID string) ([]string, error)
 	CreateServer(ctx context.Context, ownerID string, body *types.CreateServerParams, avatarURL *string) (*db.Server, error)
 	CheckInvite(ctx context.Context, inviteCode string) (string, error)
-	CreateInvite(ctx context.Context, serverID string) (string, error)
-	JoinServer(ctx context.Context, serverID string, userID string) error
+	CreateInvite(ctx context.Context, userID, serverID string) (string, error)
+	JoinServer(ctx context.Context, serverID string, userID string) (db.JoinServerRow, error)
 	GetServer(ctx context.Context, serverID string) (db.Server, error)
 	UpdateServerAvatarNBanner(ctx context.Context, serverID string, body *types.UpdateServerAvatarParams) error
 	UpdateServerProfile(ctx context.Context, serverID string, body *types.UpdateServerProfileParams) error
 	LeaveServer(ctx context.Context, serverID string, userID string) error
 	DeleteServer(ctx context.Context, serverID string) (pgconn.CommandTag, error)
 	GetChannelsFromServers(ctx context.Context, serverIDs []string) ([]db.Channel, error)
+	GetChannelsFromServer(ctx context.Context, serverID string) ([]db.Channel, error)
 	GetCategoriesFromServers(ctx context.Context, serverIDs []string) ([]db.ChannelCategory, error)
+	GetCategoriesFromServer(ctx context.Context, serverID string) ([]db.ChannelCategory, error)
 	GetRolesFromServers(ctx context.Context, serverIDs []string) ([]db.GetRolesFromServersRow, error)
+	GetRolesFromServer(ctx context.Context, serverID string) ([]db.GetRolesFromServerRow, error)
+	GetUserRolesFromServers(ctx context.Context, userID string, serverIDs []string) ([]db.GetUserRolesFromServersRow, error)
 	CreateCategory(ctx context.Context, body *types.CreateCategoryParams) (db.ChannelCategory, error)
 	PinChannel(ctx context.Context, channelID, userID string, body *types.PinChannelParams) error
 	CreateChannel(ctx context.Context, body *types.CreateChannelParams) (db.Channel, error)
@@ -61,7 +67,7 @@ type Service interface {
 	CreateMessage(ctx context.Context, userID string, body *types.CreateMessageParams) (db.Message, error)
 	GetServers(ctx context.Context) ([]string, error)
 	GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, error)
-	GetServerInformations(ctx context.Context, serverID string) (db.GetServerInformationsRow, error)
+	GetServerInformations(ctx context.Context, serverID string, userIDs []string) (db.GetServerInformationsRow, error)
 	GetMessages(ctx context.Context, channelID string) ([]db.GetMessagesFromChannelRow, error)
 	DeleteMessage(ctx context.Context, messageID string, userID string) error
 	GetMessageAuthor(ctx context.Context, messageID string) (string, error)
@@ -195,7 +201,7 @@ func (s *service) CreateServer(ctx context.Context, ownerID string, body *types.
 		Name:        body.Name,
 		Description: body.Description,
 		Avatar:      pgtype.Text{String: *avatarURL, Valid: true},
-		MainColor:   pgtype.Text{String: "12,14,14", Valid: true},
+		MainColor:   pgtype.Text{String: "#121214", Valid: true},
 		OwnerID:     ownerID,
 		Public:      body.Public,
 	})
@@ -203,7 +209,7 @@ func (s *service) CreateServer(ctx context.Context, ownerID string, body *types.
 		return nil, err
 	}
 
-	err = qtx.JoinServer(ctx, db.JoinServerParams{
+	_, err = qtx.JoinServer(ctx, db.JoinServerParams{
 		ID:       cuid2.Generate(),
 		UserID:   ownerID,
 		ServerID: server.ID,
@@ -216,20 +222,30 @@ func (s *service) CreateServer(ctx context.Context, ownerID string, body *types.
 	return &server, tx.Commit(ctx)
 }
 
+func (s *service) GetServersIDFromUser(ctx context.Context, userID string) ([]string, error) {
+	return s.queries.GetServersIDFromUser(ctx, userID)
+}
+
 func (s *service) CheckInvite(ctx context.Context, inviteCode string) (string, error) {
 	return s.queries.CheckInvite(ctx, inviteCode)
 }
 
-func (s *service) CreateInvite(ctx context.Context, serverID string) (string, error) {
-	return s.queries.CreateInvite(ctx, db.CreateInviteParams{
-		ID:       cuid2.Generate(),
-		ServerID: serverID,
-		InviteID: cuid2.Generate(),
-		ExpireAt: time.Now().Add(time.Hour * 24),
+func (s *service) CreateInvite(ctx context.Context, userID, serverID string) (string, error) {
+	invite, err := s.queries.GetOrCreateInvite(ctx, db.GetOrCreateInviteParams{
+		ID:        cuid2.Generate(),
+		CreatorID: userID,
+		ServerID:  serverID,
+		InviteID:  cuid2.Generate(),
+		ExpireAt:  time.Now().Add(7 * 24 * time.Hour),
 	})
+	if err != nil {
+		return "", err
+	}
+
+	return invite.(string), nil
 }
 
-func (s *service) JoinServer(ctx context.Context, serverID string, userID string) error {
+func (s *service) JoinServer(ctx context.Context, serverID string, userID string) (db.JoinServerRow, error) {
 	return s.queries.JoinServer(ctx, db.JoinServerParams{
 		ID:       serverID,
 		UserID:   userID,
@@ -393,8 +409,11 @@ func (s *service) GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, erro
 	return s.queries.GetChannelsIDs(ctx)
 }
 
-func (s *service) GetServerInformations(ctx context.Context, serverID string) (db.GetServerInformationsRow, error) {
-	return s.queries.GetServerInformations(ctx, serverID)
+func (s *service) GetServerInformations(ctx context.Context, serverID string, userIDs []string) (db.GetServerInformationsRow, error) {
+	return s.queries.GetServerInformations(ctx, db.GetServerInformationsParams{
+		ID:      serverID,
+		Column2: userIDs,
+	})
 }
 
 func (s *service) GetMessages(ctx context.Context, channelID string) ([]db.GetMessagesFromChannelRow, error) {
@@ -432,6 +451,29 @@ func (s *service) GetUserFacts(ctx context.Context, userID string) ([]json.RawMe
 
 func (s *service) GetUserPassword(ctx context.Context, userID string) (string, error) {
 	return s.queries.GetUserPassword(ctx, userID)
+}
+
+func (s *service) GetUserProfile(ctx context.Context, userID string) (db.GetUserProfileRow, error) {
+	return s.queries.GetUserProfile(ctx, userID)
+}
+
+func (s *service) GetChannelsFromServer(ctx context.Context, serverID string) ([]db.Channel, error) {
+	return s.queries.GetChannelsFromServer(ctx, serverID)
+}
+
+func (s *service) GetCategoriesFromServer(ctx context.Context, serverID string) ([]db.ChannelCategory, error) {
+	return s.queries.GetCategoriesFromServer(ctx, serverID)
+}
+
+func (s *service) GetRolesFromServer(ctx context.Context, serverID string) ([]db.GetRolesFromServerRow, error) {
+	return s.queries.GetRolesFromServer(ctx, serverID)
+}
+
+func (s *service) GetUserRolesFromServers(ctx context.Context, userID string, serverIDs []string) ([]db.GetUserRolesFromServersRow, error) {
+	return s.queries.GetUserRolesFromServers(ctx, db.GetUserRolesFromServersParams{
+		UserID:  userID,
+		Column2: serverIDs,
+	})
 }
 
 // Health checks the health of the database connection by pinging the database.

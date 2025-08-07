@@ -218,3 +218,9 @@ export const EditAvatarSchema = v.object({
 });
 
 export interface EditAvatarType extends v.InferInput<typeof EditAvatarSchema> { }
+
+export const JoinServerSchema = v.object({
+  invite_link: v.pipe(v.string(), v.nonEmpty('Please enter an invite link.'))
+});
+
+export interface JoinServerType extends v.InferInput<typeof JoinServerSchema> { }

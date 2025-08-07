@@ -1,9 +1,11 @@
 package actors
 
 import (
+	db "backend/db/gen_queries"
 	"backend/internal/database"
 	messages "backend/proto"
 	"log/slog"
+	"slices"
 
 	"github.com/anthdm/hollywood/actor"
 	"github.com/lxzan/gws"
@@ -49,16 +51,36 @@ func (u *user) Receive(ctx *actor.Context) {
 
 func (u *user) initializeUser(ctx *actor.Context) {
 	userID := GetIDFromPID(ctx.PID())
-	servers, err := u.db.GetUserServers(ctx.Context(), userID)
+	user, err := u.db.GetUserByID(ctx.Context(), userID)
 	if err != nil {
-		slog.Error("failed to initialize user", "err", err)
+		slog.Error("failed to get user", "err", err)
 	}
 
-	for _, server := range servers {
+	serverIDs, err := u.db.GetServersIDFromUser(ctx.Context(), userID)
+	if err != nil {
+		slog.Error("failed to get serverIDs", "err", err)
+	}
+
+	roles, err := u.db.GetUserRolesFromServers(ctx.Context(), userID, serverIDs)
+	if err != nil {
+		slog.Error("failed to get roles", "err", err)
+	}
+
+	for _, serverID := range serverIDs {
+		idx := slices.IndexFunc(roles, func(s db.GetUserRolesFromServersRow) bool {
+			return s.ServerID == serverID
+		})
+
 		connectMessage := &messages.ChangeStatus{
-			Id:       userID,
-			ServerId: server.ID,
+			Type: "connect",
+			User: &messages.User{
+				Id:          user.ID,
+				DisplayName: user.DisplayName,
+				Avatar:      user.Avatar.String,
+			},
+			ServerId: serverID,
 			Status:   "online",
+			Roles:    roles[idx].Roles,
 		}
 
 		u.hub.SendUserStatusMessage(ctx.PID(), connectMessage)
@@ -74,7 +96,9 @@ func (u *user) killUser(ctx *actor.Context) {
 
 	for _, server := range servers {
 		disconnectMessage := &messages.ChangeStatus{
-			Id:       userID,
+			User: &messages.User{
+				Id: userID,
+			},
 			ServerId: server.ID,
 			Status:   "offline",
 		}

@@ -7,16 +7,18 @@ import (
 	"backend/internal/files"
 	"backend/internal/permissions"
 	"backend/internal/types"
+	"backend/proto"
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ServerService interface {
 	CreateServer(ctx *gin.Context, serverAvatar []*multipart.FileHeader, body *types.CreateServerParams) (*db.Server, *types.APIError)
-	JoinServer(ctx *gin.Context, serverID string) (*db.Server, *types.APIError)
+	JoinServer(ctx *gin.Context, body *types.JoinServerParams) (*types.JoinServerWithCategories, *types.APIError)
 	LeaveServer(ctx *gin.Context, serverID string) *types.APIError
 	CreateInvite(ctx *gin.Context, serverID string) (*string, *types.APIError)
 	DeleteInvite(ctx *gin.Context, inviteID string) *types.APIError
@@ -43,7 +45,7 @@ func NewServerService(db database.Service, actors actors.Service, files files.Se
 }
 
 func (s *serverService) CreateServer(ctx *gin.Context, serverAvatar []*multipart.FileHeader, body *types.CreateServerParams) (*db.Server, *types.APIError) {
-	user, exists := ctx.Get("user")
+	u, exists := ctx.Get("user")
 	if !exists {
 		return nil, &types.APIError{
 			Status:  http.StatusUnauthorized,
@@ -57,9 +59,9 @@ func (s *serverService) CreateServer(ctx *gin.Context, serverAvatar []*multipart
 		return nil, perr
 	}
 
-	userID := user.(*db.User).ID
+	user := u.(*db.User)
 
-	server, err := s.db.CreateServer(ctx, userID, body, avatarURL)
+	server, err := s.db.CreateServer(ctx, user.ID, body, avatarURL)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,
@@ -69,11 +71,26 @@ func (s *serverService) CreateServer(ctx *gin.Context, serverAvatar []*multipart
 		}
 	}
 
+	s.actors.StartServerInRegion(server.ID, os.Getenv("REGION"))
+	userPID := s.actors.GetUser(user.ID)
+
+	changeStatus := &proto.ChangeStatus{
+		Type: "connect",
+		User: &proto.User{
+			Id:          user.ID,
+			DisplayName: user.DisplayName,
+			Avatar:      user.Avatar.String,
+		},
+		ServerId: server.ID,
+		Status:   "online",
+	}
+	s.actors.SendUserStatusMessage(userPID, changeStatus)
+
 	return server, nil
 }
 
-func (s *serverService) JoinServer(ctx *gin.Context, serverID string) (*db.Server, *types.APIError) {
-	user, exists := ctx.Get("user")
+func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParams) (*types.JoinServerWithCategories, *types.APIError) {
+	u, exists := ctx.Get("user")
 	if !exists {
 		return nil, &types.APIError{
 			Status:  http.StatusUnauthorized,
@@ -81,20 +98,37 @@ func (s *serverService) JoinServer(ctx *gin.Context, serverID string) (*db.Serve
 			Message: "Unauthorized.",
 		}
 	}
+	user := u.(*db.User)
 
-	server, err := s.db.GetServer(ctx, serverID)
-	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_SERVER",
-			Cause:   err.Error(),
-			Message: "Failed to get server.",
+	var serverID string
+
+	if body.InviteID != "" {
+		id, err := s.db.CheckInvite(ctx, body.InviteID)
+		if err != nil {
+			return nil, &types.APIError{
+				Status:  http.StatusInternalServerError,
+				Code:    "ERR_CHECK_INVITE",
+				Cause:   err.Error(),
+				Message: "Failed to check invite.",
+			}
 		}
+		serverID = id
 	}
 
-	userID := user.(*db.User).ID
+	if body.ServerID != "" {
+		server, err := s.db.GetServer(ctx, body.ServerID)
+		if err != nil {
+			return nil, &types.APIError{
+				Status:  http.StatusInternalServerError,
+				Code:    "ERR_GET_SERVER",
+				Cause:   err.Error(),
+				Message: "Failed to get server.",
+			}
+		}
+		serverID = server.ID
+	}
 
-	err = s.db.JoinServer(ctx, server.ID, userID)
+	server, err := s.db.JoinServer(ctx, serverID, user.ID)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,
@@ -104,7 +138,71 @@ func (s *serverService) JoinServer(ctx *gin.Context, serverID string) (*db.Serve
 		}
 	}
 
-	return &server, nil
+	userPID := s.actors.GetUser(user.ID)
+	changeStatus := &proto.ChangeStatus{
+		Type: "join",
+		User: &proto.User{
+			Id:          user.ID,
+			DisplayName: user.DisplayName,
+			Avatar:      user.Avatar.String,
+		},
+		ServerId: server.ID,
+		Status:   "online",
+	}
+	s.actors.SendUserStatusMessage(userPID, changeStatus)
+
+	categories, err := s.db.GetCategoriesFromServer(ctx, serverID)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_CATEGORIES",
+			Cause:   err.Error(),
+			Message: "Failed to get categories.",
+		}
+	}
+
+	channels, err := s.db.GetChannelsFromServer(ctx, serverID)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_CHANNELS",
+			Cause:   err.Error(),
+			Message: "Failed to get channels.",
+		}
+	}
+
+	roles, err := s.db.GetRolesFromServer(ctx, serverID)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_ROLES",
+			Cause:   err.Error(),
+			Message: "Failed to get roles.",
+		}
+	}
+
+	categoryMap := make(map[string]types.CategoryWithChannels)
+	for _, category := range categories {
+		channelMap := make(map[string]db.Channel)
+		for _, channel := range channels {
+			if channel.CategoryID == category.ID {
+				channelMap[channel.ID] = channel
+			}
+		}
+
+		categoryMap[category.ID] = types.CategoryWithChannels{
+			category,
+			channelMap,
+		}
+	}
+
+	serverWithCategories := &types.JoinServerWithCategories{
+		server,
+		categoryMap,
+		roles,
+	}
+
+	return serverWithCategories, nil
 }
 
 func (s *serverService) LeaveServer(ctx *gin.Context, serverID string) *types.APIError {
@@ -117,7 +215,7 @@ func (s *serverService) LeaveServer(ctx *gin.Context, serverID string) *types.AP
 		}
 	}
 
-	userID := user.(db.User).ID
+	userID := user.(*db.User).ID
 
 	err := s.db.LeaveServer(ctx, serverID, userID)
 	if err != nil {
@@ -133,7 +231,17 @@ func (s *serverService) LeaveServer(ctx *gin.Context, serverID string) *types.AP
 }
 
 func (s *serverService) CreateInvite(ctx *gin.Context, serverID string) (*string, *types.APIError) {
-	inviteID, err := s.db.CreateInvite(ctx, serverID)
+	user, exists := ctx.Get("user")
+	if !exists {
+		return nil, &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := user.(*db.User).ID
+
+	inviteID, err := s.db.CreateInvite(ctx, userID, serverID)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,
@@ -143,7 +251,7 @@ func (s *serverService) CreateInvite(ctx *gin.Context, serverID string) (*string
 		}
 	}
 
-	inviteURL := fmt.Sprintf("%s/invite/%s", "http://localhost:5173", inviteID)
+	inviteURL := fmt.Sprintf("%s/invite/%s", os.Getenv("DOMAIN"), inviteID)
 
 	return &inviteURL, nil
 }
@@ -187,7 +295,8 @@ func (s *serverService) DeleteServer(ctx *gin.Context, serverID string) *types.A
 func (s *serverService) GetInformations(ctx *gin.Context) (*db.GetServerInformationsRow, *types.APIError) {
 	serverID := ctx.Param("server_id")
 
-	serverInformations, err := s.db.GetServerInformations(ctx, serverID)
+	userIDs := s.actors.GetActiveUsers(serverID)
+	serverInformations, err := s.db.GetServerInformations(ctx, serverID, userIDs)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,

@@ -18,7 +18,7 @@
 	</button>
 	{#each Object.values(serverStore.servers).sort((a, b) => a.position - b.position) as server (server.id)}
 		<ServerButton
-			image={server.avatar}
+			{server}
 			onclick={() => goto(`/servers/${server.id}`)}
 			active={page.url.pathname.includes(server.id)}
 		/>

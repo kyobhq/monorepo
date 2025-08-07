@@ -40,7 +40,11 @@ SELECT
             'username', ranked_members.username,
             'display_name', ranked_members.display_name,
             'avatar', ranked_members.avatar,
-            'roles', ranked_members.roles
+            'roles', ranked_members.roles,
+            'status', CASE 
+                WHEN ranked_members.user_id = ANY($2::text[]) THEN 'online'
+                ELSE 'offline'
+            END
         ))
         FROM (
             SELECT 
@@ -89,6 +93,12 @@ FROM roles r
 WHERE r.server_id = ANY($1::text[])
 ORDER BY r.position;
 
+-- name: GetRolesFromServer :many
+SELECT r.id, r.position, r.name, r.color, r.abilities, r.server_id
+FROM roles r
+WHERE r.server_id = $1
+ORDER BY r.position;
+
 -- name: CreateServer :one
 INSERT INTO servers (
   id, owner_id, name, avatar, description, main_color, public
@@ -97,12 +107,19 @@ INSERT INTO servers (
 )
 RETURNING *;
 
--- name: JoinServer :exec
-INSERT INTO server_members (
-  id, user_id, server_id, position
-) VALUES (
-  $1, $2, $3, $4
-);
+-- name: JoinServer :one
+WITH ins AS (
+  INSERT INTO server_members (
+    id, user_id, server_id, position
+  ) VALUES (
+    $1, $2, $3, $4
+  )
+  RETURNING server_id, user_id
+)
+SELECT s.*, sm.roles, sm.position, (SELECT count(id) FROM server_members smc WHERE smc.server_id=s.id) AS member_count
+FROM servers s
+JOIN ins ON s.id = ins.server_id
+JOIN server_members sm ON sm.server_id = s.id AND sm.user_id = ins.user_id;
 
 -- name: LeaveServer :exec
 DELETE FROM server_members WHERE user_id = $1 AND server_id = $2;
@@ -118,3 +135,6 @@ DELETE FROM servers WHERE id = $1 AND owner_id = $2;
 
 -- name: GetServersIDs :many
 SELECT id FROM servers WHERE id <> 'global';
+
+-- name: GetServersIDFromUser :many
+SELECT server_id FROM server_members WHERE user_id = $1;

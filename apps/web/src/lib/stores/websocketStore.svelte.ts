@@ -1,9 +1,11 @@
 import { WSMessageSchema } from "$lib/gen/types_pb";
-import type { Message } from "$lib/types/types";
+import type { Member, Message } from "$lib/types/types";
 import { fromBinary } from "@bufbuild/protobuf";
 import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { channelStore } from "./channelStore.svelte";
 import { page } from "$app/state";
+import { serverStore } from "./serverStore.svelte";
+import { userStore } from "./userStore.svelte";
 
 export class WebsocketStore {
   wsConn = $state<WebSocket>();
@@ -29,10 +31,33 @@ export class WebsocketStore {
         readUnknownFields: false
       });
 
-
       switch (wsMess.content.case) {
+        case "userChangeStatus": {
+          if (!wsMess.content.value) return;
+          if (wsMess.content.value.user?.id === userStore.user?.id) return;
+          if (page.params.server_id !== wsMess.content.value.serverId) return;
+          const value = wsMess.content.value;
+
+          if (value.status === "offline") {
+            serverStore.setMemberOffline(value.user!.id)
+          } else {
+            if (value.type === "connect") serverStore.setMemberOnline(value.user!.id, value.status)
+            if (value.type === "join") {
+              const member: Member = {
+                id: value.user!.id,
+                display_name: value.user!.displayName,
+                avatar: value.user!.avatar,
+                status: value.status,
+                roles: []
+              }
+              serverStore.addMember(member)
+            }
+          }
+        }
+          break;
         case "newChatMessage": {
           if (!wsMess.content.value.message) return;
+          if (wsMess.content.value.message.channelId !== page.params.channel_id) return;
           const message = wsMess.content.value.message;
           const contentStr = new TextDecoder().decode(message.content);
           const attachments = new TextDecoder().decode(message.attachments);
@@ -60,13 +85,14 @@ export class WebsocketStore {
           break;
         case "deleteChatMessage": {
           if (!wsMess.content.value.message) return;
+          if (wsMess.content.value.message.channelId !== page.params.channel_id) return;
           const message = wsMess.content.value.message;
           channelStore.deleteMessage(message.id);
         }
           break;
         case "editChatMessage": {
           if (!wsMess.content.value.message) return;
-          if (!page.url.pathname.includes(wsMess.content.value.message.channelId)) return;
+          if (wsMess.content.value.message.channelId !== page.params.channel_id) return;
 
           const message = wsMess.content.value.message;
           const contentStr = new TextDecoder().decode(message.content);

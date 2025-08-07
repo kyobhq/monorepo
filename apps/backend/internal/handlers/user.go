@@ -20,17 +20,17 @@ func NewUserHandlers(userService domains.UserService) *userHandler {
 	}
 }
 
-// func (h *userHandler) GetUser(c *gin.Context) {
-// 	userID := c.Param("user_id")
-//
-// 	user, err := h.domain.GetUserByID(c, userID)
-// 	if err != nil {
-// 		err.Respond(c)
-// 		return
-// 	}
-//
-// 	c.JSON(http.StatusOK, user)
-// }
+func (h *userHandler) GetUserProfile(c *gin.Context) {
+	userID := c.Param("user_id")
+
+	user, err := h.domain.GetUserProfile(c, userID)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
 
 func (h *userHandler) Setup(c *gin.Context) {
 	setup, err := h.domain.Setup(c)

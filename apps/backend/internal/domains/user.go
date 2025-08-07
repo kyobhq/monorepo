@@ -23,6 +23,7 @@ type UserService interface {
 	UpdateProfile(ctx *gin.Context, body *types.UpdateProfileParams) *types.APIError
 	Setup(ctx *gin.Context) (*types.Setup, *types.APIError)
 	UpdatePassword(ctx *gin.Context, body *types.UpdatePasswordParams) *types.APIError
+	GetUserProfile(ctx *gin.Context, userID string) (*db.GetUserProfileRow, *types.APIError)
 }
 
 type userService struct {
@@ -356,4 +357,18 @@ func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFr
 	}
 
 	return result, nil
+}
+
+func (s *userService) GetUserProfile(ctx *gin.Context, userID string) (*db.GetUserProfileRow, *types.APIError) {
+	user, err := s.db.GetUserProfile(ctx, userID)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_USER_PROFILE",
+			Cause:   err.Error(),
+			Message: "Failed to get user profile.",
+		}
+	}
+
+	return &user, nil
 }

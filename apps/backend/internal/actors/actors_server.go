@@ -55,11 +55,29 @@ func (s *server) Receive(ctx *actor.Context) {
 			UserIds: slices.Collect(maps.Keys(s.users)),
 		})
 	case *messages.ChangeStatus:
+		s.broadcastUserStatus(msg)
 		switch msg.Status {
 		case "online":
-			s.users[msg.Id] = Online
+			s.users[msg.User.Id] = Online
 		case "offline":
-			delete(s.users, msg.Id)
+			delete(s.users, msg.User.Id)
 		}
+	}
+}
+
+func (s *server) broadcastUserStatus(msg *messages.ChangeStatus) {
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_UserChangeStatus{
+			UserChangeStatus: msg,
+		},
+	}
+
+	for userID := range s.users {
+		if userID == msg.User.Id {
+			continue
+		}
+
+		userPID := s.hub.GetUser(userID)
+		s.hub.BroadcastMessageToUser(userPID, message)
 	}
 }
