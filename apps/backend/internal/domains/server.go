@@ -22,8 +22,8 @@ type ServerService interface {
 	LeaveServer(ctx *gin.Context, serverID string) *types.APIError
 	CreateInvite(ctx *gin.Context, serverID string) (*string, *types.APIError)
 	DeleteInvite(ctx *gin.Context, inviteID string) *types.APIError
-	EditProfile(ctx *gin.Context, serverID string, body *types.UpdateServerProfileParams) *types.APIError
-	EditAvatar(ctx *gin.Context, serverID string, body *types.UpdateServerAvatarParams) *types.APIError
+	UpdateProfile(ctx *gin.Context, body *types.UpdateServerProfileParams) *types.APIError
+	UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHeader, banner []*multipart.FileHeader, body *types.UpdateAvatarParams) (*string, *string, *types.APIError)
 	DeleteServer(ctx *gin.Context, serverID string) *types.APIError
 	GetInformations(ctx *gin.Context) (*db.GetServerInformationsRow, *types.APIError)
 }
@@ -256,7 +256,18 @@ func (s *serverService) CreateInvite(ctx *gin.Context, serverID string) (*string
 	return &inviteURL, nil
 }
 
-func (s *serverService) EditProfile(ctx *gin.Context, serverID string, body *types.UpdateServerProfileParams) *types.APIError {
+func (s *serverService) UpdateProfile(ctx *gin.Context, body *types.UpdateServerProfileParams) *types.APIError {
+	serverID := ctx.Param("server_id")
+
+	if allowed := s.permissions.CheckPermission(ctx, serverID, types.ManageServer); !allowed {
+		return &types.APIError{
+			Status:  http.StatusForbidden,
+			Code:    "ERR_FORBIDDEN",
+			Message: "You are not allowed to edit this server.",
+			Cause:   "",
+		}
+	}
+
 	err := s.db.UpdateServerProfile(ctx, serverID, body)
 	if err != nil {
 		return &types.APIError{
@@ -313,6 +324,78 @@ func (s *serverService) DeleteInvite(ctx *gin.Context, inviteID string) *types.A
 	return nil
 }
 
-func (s *serverService) EditAvatar(ctx *gin.Context, serverID string, body *types.UpdateServerAvatarParams) *types.APIError {
-	return nil
+func (s *serverService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHeader, banner []*multipart.FileHeader, body *types.UpdateAvatarParams) (*string, *string, *types.APIError) {
+	serverID := ctx.Param("server_id")
+
+	if allowed := s.permissions.CheckPermission(ctx, serverID, types.ManageServer); !allowed {
+		return nil, nil, &types.APIError{
+			Status:  http.StatusForbidden,
+			Code:    "ERR_FORBIDDEN",
+			Message: "You are not allowed to edit this server.",
+			Cause:   "",
+		}
+	}
+
+	server, err := s.db.GetServer(ctx, serverID)
+	if err != nil {
+		return nil, nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_SERVER",
+			Message: "Failed to get server.",
+			Cause:   err.Error(),
+		}
+	}
+
+	var oldAvatar, oldBanner string
+
+	if server.Avatar.String != "" {
+		oldAvatar = server.Avatar.String[len(os.Getenv("CDN_URL"))+1:]
+	}
+	if server.Banner.String != "" {
+		oldBanner = server.Banner.String[len(os.Getenv("CDN_URL"))+1:]
+	}
+
+	var avatarURL, bannerURL *string
+
+	if len(avatar) > 0 {
+		a, perr := s.files.ProcessAndUploadAvatar(server.ID, "avatar", avatar[0], body.CropAvatar, 1<<20)
+		if perr != nil {
+			return nil, nil, perr
+		}
+		avatarURL = a
+
+		if oldAvatar != "" {
+			err := s.files.DeleteFile(oldAvatar)
+			if err != nil {
+				fmt.Println("Failed to delete old avatar:", err)
+			}
+		}
+	}
+
+	if len(banner) > 0 {
+		b, perr := s.files.ProcessAndUploadAvatar(server.ID, "banner", banner[0], body.CropBanner, 1<<20)
+		if perr != nil {
+			return nil, nil, perr
+		}
+		bannerURL = b
+
+		if oldBanner != "" {
+			err := s.files.DeleteFile(oldBanner)
+			if err != nil {
+				fmt.Println("Failed to delete old banner:", err)
+			}
+		}
+	}
+
+	err = s.db.UpdateServerAvatarNBanner(ctx, serverID, avatarURL, bannerURL)
+	if err != nil {
+		return nil, nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_UPDATE_SERVER_AVATAR",
+			Message: "Failed to update server avatar/banner.",
+			Cause:   err.Error(),
+		}
+	}
+
+	return avatarURL, bannerURL, nil
 }

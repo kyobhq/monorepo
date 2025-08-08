@@ -30,7 +30,7 @@
 		const ids =
 			editor
 				.getText()
-				.match(/<@(\d+)>/g)
+				.match(/<@(.*)>/g)
 				?.map((match) => match.slice(2, -1)) || [];
 
 		const payload: CreateMessageType = {

@@ -39,7 +39,7 @@ func (h *chatHandler) CreateMessage(c *gin.Context) {
 		return
 	}
 
-	files := c.Request.MultipartForm.File["attachments"]
+	files := c.Request.MultipartForm.File["attachments[]"]
 
 	if len(files) > 0 {
 		if err := validation.ValidateFiles(files, validation.DefaultFileConfig); err != nil {
@@ -50,9 +50,9 @@ func (h *chatHandler) CreateMessage(c *gin.Context) {
 
 	body.ChannelID = c.Request.FormValue("channel_id")
 	body.ServerID = c.Request.FormValue("server_id")
-	body.MentionsUsers = c.Request.Form["mentions_users"]
-	body.MentionsChannels = c.Request.Form["mentions_channels"]
-	body.MentionsRoles = c.Request.Form["mentions_roles"]
+	body.MentionsUsers = c.Request.Form["mentions_users[]"]
+	body.MentionsChannels = c.Request.Form["mentions_channels[]"]
+	body.MentionsRoles = c.Request.Form["mentions_roles[]"]
 	contentJSON := c.Request.FormValue("content")
 	if err := json.Unmarshal([]byte(contentJSON), &body.Content); err != nil {
 		types.NewAPIError(http.StatusBadRequest, "ERR_UNMARSHAL_MESSAGE_CONTENT", "Failed to unmarshal message content.", err).Respond(c)

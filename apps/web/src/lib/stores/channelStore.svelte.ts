@@ -8,8 +8,8 @@ class ChannelStore {
 
   getFirstChannel(serverID: string) {
     const server = serverStore.getServer(serverID)
-    const firstCategory = Object.values(server?.categories || {})[0]
-    const firstChannel = Object.values(firstCategory?.channels || {})[0]
+    const firstCategory = Object.values(server?.categories || {}).find(category => category.position === 0)
+    const firstChannel = Object.values(firstCategory?.channels || {}).find(chan => chan.position === 0)
     return firstChannel?.id || null
   }
 

@@ -26,5 +26,5 @@
 			class="bg-main-50 pointer-events-none block size-[20px] shrink-0 transition-transform data-[state=checked]:translate-x-8 data-[state=unchecked]:translate-x-[0.1rem]"
 		/>
 	</Switch.Root>
-	{label}
+	<span class="select-none">{label}</span>
 </label>

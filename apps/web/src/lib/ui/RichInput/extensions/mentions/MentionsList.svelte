@@ -83,7 +83,7 @@
 	<div
 		bind:this={scrollableMenu}
 		class={[
-			'bg-main-900 inner-main-800 z-[10] flex max-h-[20rem] flex-col gap-y-1 overflow-y-auto px-1 py-1',
+			'bg-main-900 border-[0.5px] border-main-700 z-[10] flex max-h-[20rem] flex-col gap-y-1 overflow-y-auto px-1 py-1',
 			classes
 		]}
 	>
@@ -91,7 +91,7 @@
 			<button
 				class={[
 					'flex w-full items-center gap-x-1.5 px-2 py-1 text-left',
-					idx === selectedIndex ? 'bg-accent-100/20 text-accent-50' : 'hover:bg-accent-100/20'
+					idx === selectedIndex ? 'bg-main-800 text-accent-50' : 'hover:bg-accent-100/20'
 				]}
 				onclick={() => (selectedIndex = idx)}
 			>

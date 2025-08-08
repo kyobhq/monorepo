@@ -44,7 +44,7 @@ type Service interface {
 	CreateInvite(ctx context.Context, userID, serverID string) (string, error)
 	JoinServer(ctx context.Context, serverID string, userID string, position int) (db.JoinServerRow, error)
 	GetServer(ctx context.Context, serverID string) (db.Server, error)
-	UpdateServerAvatarNBanner(ctx context.Context, serverID string, body *types.UpdateServerAvatarParams) error
+	UpdateServerAvatarNBanner(ctx context.Context, serverID string, avatar, bannerURL *string) error
 	UpdateServerProfile(ctx context.Context, serverID string, body *types.UpdateServerProfileParams) error
 	LeaveServer(ctx context.Context, serverID string, userID string) error
 	DeleteServer(ctx context.Context, serverID string) (pgconn.CommandTag, error)
@@ -231,11 +231,16 @@ func (s *service) CheckInvite(ctx context.Context, inviteCode string) (string, e
 }
 
 func (s *service) CreateInvite(ctx context.Context, userID, serverID string) (string, error) {
+	generateInviteCode, err := cuid2.Init(cuid2.WithLength(8))
+	if err != nil {
+		return "", err
+	}
+
 	invite, err := s.queries.GetOrCreateInvite(ctx, db.GetOrCreateInviteParams{
 		ID:        cuid2.Generate(),
 		CreatorID: userID,
 		ServerID:  serverID,
-		InviteID:  cuid2.Generate(),
+		InviteID:  generateInviteCode(),
 		ExpireAt:  time.Now().Add(7 * 24 * time.Hour),
 	})
 	if err != nil {
@@ -254,16 +259,26 @@ func (s *service) JoinServer(ctx context.Context, serverID string, userID string
 	})
 }
 
-func (s *service) UpdateServerAvatarNBanner(ctx context.Context, serverID string, body *types.UpdateServerAvatarParams) error {
-	avatarURL := pgtype.Text{String: body.Avatar, Valid: true}
-	bannerURL := pgtype.Text{String: body.Banner, Valid: true}
-	mainColor := pgtype.Text{String: body.MainColor, Valid: true}
+func (s *service) UpdateServerAvatarNBanner(ctx context.Context, serverID string, avatarURL, bannerURL *string) error {
+	var avatar pgtype.Text
+	var banner pgtype.Text
+
+	if avatarURL != nil {
+		avatar = pgtype.Text{String: *avatarURL, Valid: true}
+	} else {
+		avatar = pgtype.Text{Valid: false}
+	}
+
+	if bannerURL != nil {
+		banner = pgtype.Text{String: *bannerURL, Valid: true}
+	} else {
+		banner = pgtype.Text{Valid: false}
+	}
 
 	return s.queries.UpdateServerAvatarNBanner(ctx, db.UpdateServerAvatarNBannerParams{
-		ID:        serverID,
-		Avatar:    avatarURL,
-		Banner:    bannerURL,
-		MainColor: mainColor,
+		ID:     serverID,
+		Avatar: avatar,
+		Banner: banner,
 	})
 }
 
@@ -272,6 +287,7 @@ func (s *service) UpdateServerProfile(ctx context.Context, serverID string, body
 		ID:          serverID,
 		Name:        body.Name,
 		Description: body.Description,
+		Public:      body.Public,
 	})
 }
 

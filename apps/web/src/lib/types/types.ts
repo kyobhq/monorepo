@@ -6,8 +6,21 @@ export const ChannelTypes = {
 } as const;
 export type ChannelTypes = (typeof ChannelTypes)[keyof typeof ChannelTypes];
 
-export const ABILITIES = ['ADMIN', 'MANAGE_CHANNELS', 'MANAGE_ROLES', 'MANAGE_SERVER', 'MANAGE_EXPRESSIONS', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 'BAN', 'KICK', 'MUTE', 'ATTACH_FILES', 'MANAGE_MESSAGES'] as const
-export type AbilitiesType = typeof ABILITIES[number]
+export const ABILITIES = [
+  'ADMIN',
+  'MANAGE_CHANNELS',
+  'MANAGE_ROLES',
+  'MANAGE_SERVER',
+  'MANAGE_EXPRESSIONS',
+  'CHANGE_NICKNAME',
+  'MANAGE_NICKNAMES',
+  'BAN',
+  'KICK',
+  'MUTE',
+  'ATTACH_FILES',
+  'MANAGE_MESSAGES'
+] as const;
+export type AbilitiesType = (typeof ABILITIES)[number];
 
 export interface Channel {
   id: string;
@@ -43,16 +56,25 @@ export interface Server {
   categories: Record<string, Category>;
   public: boolean;
   members: Member[];
-  roles: Role[]
+  roles: Role[];
+  invites: Invite[];
+}
+
+export interface Invite {
+  id: string
+  creator: Partial<User>
+  server_id: string
+  invite_id: string
+  expire_at: string
 }
 
 export interface Role {
   id: string;
   idx: number;
-  name: string
-  color: string
-  abilities: string[]
-  members: string[]
+  name: string;
+  color: string;
+  abilities: string[];
+  members: string[];
 }
 
 export interface Fact {
@@ -82,6 +104,8 @@ export interface User {
 
 export interface Member extends Partial<User> {
   status: string;
+  joined_kyob: string;
+  joined_server: string;
   roles: string[];
 }
 
@@ -89,6 +113,7 @@ export interface ServerInformations {
   member_count: number;
   members: Member[];
   roles: Role[];
+  invites: Invite[];
 }
 
 export interface Friend extends Partial<User> {
@@ -148,10 +173,9 @@ export interface Emoji {
 }
 
 export interface ContextMenuTarget {
-  name: string
-  author?: string
+  name: string;
+  author?: string;
 }
-
 
 export interface Category {
   id: string;

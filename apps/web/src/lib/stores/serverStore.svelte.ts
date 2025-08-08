@@ -1,82 +1,105 @@
-import type { Member, Role, Server } from '$lib/types/types';
+import type { EditServerType } from '$lib/types/schemas';
+import type { Invite, Member, Role, Server } from '$lib/types/types';
 
 export class ServerStore {
-	servers = $state<Record<string, Server>>({});
-	memberCount = $state<number>(0);
-	cached = $state<Record<string, boolean>>({});
+  servers = $state<Record<string, Server>>({});
+  memberCount = $state<number>(0);
+  cached = $state<Record<string, boolean>>({});
 
-	safeServerOperation<T>(serverID: string, operation: (server: Server) => T, fallback: T): T {
-		const server = this.servers[serverID];
-		if (!server) {
-			return fallback;
-		}
+  safeServerOperation<T>(serverID: string, operation: (server: Server) => T, fallback: T): T {
+    const server = this.servers[serverID];
+    if (!server) {
+      return fallback;
+    }
 
-		try {
-			return operation(server);
-		} catch (error) {
-			console.warn(`Server operation failed for ${serverID}:`, error);
-			return fallback;
-		}
-	}
+    try {
+      return operation(server);
+    } catch (error) {
+      console.warn(`Server operation failed for ${serverID}:`, error);
+      return fallback;
+    }
+  }
 
-	getServer(id: string) {
-		return this.servers[id];
-	}
+  getServer(id: string) {
+    return this.servers[id];
+  }
 
-	getMember(serverID: string, userID: string) {
-		return this.servers[serverID].members.find((member) => member.id === userID);
-	}
+  getMember(serverID: string, userID: string) {
+    return this.servers[serverID].members.find((member) => member.id === userID);
+  }
 
-	setMembers(serverID: string, members: Member[]) {
-		this.servers[serverID].members = members;
-	}
+  setMembers(serverID: string, members: Member[]) {
+    this.servers[serverID].members = members;
+  }
 
-	getMembers(serverID: string) {
-		return this.servers[serverID].members;
-	}
+  getMembers(serverID: string) {
+    return this.servers[serverID].members;
+  }
 
-	setRoles(serverID: string, roles: Role[]) {
-		this.servers[serverID].roles = roles || [];
-	}
+  setRoles(serverID: string, roles: Role[]) {
+    this.servers[serverID].roles = roles || [];
+  }
 
-	getRoles(serverID: string) {
-		return this.servers[serverID].roles;
-	}
+  getRoles(serverID: string) {
+    return this.servers[serverID].roles;
+  }
 
-	addServer(server: Server) {
-		this.servers[server.id] = server;
-	}
+  setInvites(serverID: string, invites: Invite[]) {
+    this.servers[serverID].invites = invites || [];
+  }
 
-	getLastPosition() {
-		return Object.values(this.servers).length;
-	}
+  getInvites(serverID: string) {
+    return this.servers[serverID].invites
+  }
 
-	addMember(serverID: string, member: Member) {
-		this.servers[serverID].members.push(member);
-	}
+  addServer(server: Server) {
+    this.servers[server.id] = server;
+  }
 
-	setMemberOnline(serverID: string, memberID: string, status: string) {
-		const member = this.servers[serverID].members.find((member) => member.id === memberID);
-		if (member) member.status = status;
-	}
+  getLastPosition() {
+    return Object.values(this.servers).length;
+  }
 
-	setMemberOffline(serverID: string, memberID: string) {
-		const member = this.servers[serverID].members.find((member) => member.id === memberID);
-		if (member) member.status = 'offline';
-	}
+  addMember(serverID: string, member: Member) {
+    this.servers[serverID].members.push(member);
+  }
 
-	deleteServer(serverID: string) {
-		delete serverStore.servers[serverID];
-		delete this.cached[serverID];
-	}
+  setMemberOnline(serverID: string, memberID: string, status: string) {
+    const member = this.servers[serverID].members.find((member) => member.id === memberID);
+    if (member) member.status = status;
+  }
 
-	isServerInfoCached(serverID: string): boolean {
-		return this.cached[serverID] === true;
-	}
+  setMemberOffline(serverID: string, memberID: string) {
+    const member = this.servers[serverID].members.find((member) => member.id === memberID);
+    if (member) member.status = 'offline';
+  }
 
-	markServerInfoCached(serverID: string) {
-		this.cached[serverID] = true;
-	}
+  deleteServer(serverID: string) {
+    delete serverStore.servers[serverID];
+    delete this.cached[serverID];
+  }
+
+  isServerInfoCached(serverID: string): boolean {
+    return this.cached[serverID] === true;
+  }
+
+  markServerInfoCached(serverID: string) {
+    this.cached[serverID] = true;
+  }
+
+  updateProfile(serverID: string, profile: EditServerType) {
+    const server = this.servers[serverID]
+    if (profile.name) server.name = profile.name
+    if (profile.description) server.description = profile.description
+    if (profile.public) server.public = profile.public
+  }
+
+  updateAvatar(serverID: string, avatar?: string, banner?: string) {
+    const server = this.servers[serverID]
+
+    if (avatar) server.avatar = avatar
+    if (banner) server.banner = banner
+  }
 }
 
 export const serverStore = new ServerStore();

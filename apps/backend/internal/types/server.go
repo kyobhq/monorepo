@@ -29,6 +29,7 @@ type JoinServerParams struct {
 type UpdateServerProfileParams struct {
 	Name        string          `json:"name" validate:"omitempty,min=1,max=20"`
 	Description json.RawMessage `json:"description" validate:"omitempty"`
+	Public      bool            `json:"public" validate:"omitempty"`
 }
 
 type UpdateServerAvatarParams struct {

@@ -19,6 +19,11 @@
 
   --ui-accent-select-fg: #F0F0FF;
   --ui-accent-select-bg: #F0F0FF33;
+
+  --ui-accent-mention: #00968926;
+  --ui-accent-mention-hover: #0096894D;
+  
+  --ui-mention: #E37D3D;
 }
 
 .light {
@@ -43,6 +48,7 @@
 	--color-main-900: var(--ui-main-900);
 	--color-main-950: var(--ui-main-950);
 	--color-main-975: var(--ui-main-975);
+  --color-mention: var(--ui-mention);
 }
 
 @variant hocus (&:hover, &:focus-visible);
@@ -136,4 +142,28 @@ body {
     var(--user-color-98) 14rem,
     var(--user-color) 100%
   );
+}
+
+.editor-mention {
+	background-color: var(--ui-accent-mention);
+	color: var(--ui-accent);
+	padding: 2px 7px 2px 5px;
+	margin: 1px 4px 0px 4px;
+}
+
+.mention {
+	background-color: var(--ui-accent-mention);
+	color: var(--ui-accent);
+	padding: 1px 7px;
+	display: inline-flex;
+	align-items: center;
+	position: relative;
+  margin: 0 2px;
+	transition: background-color 75ms ease-out;
+	font-size: 16px;
+}
+
+.mention:hover {
+	background-color: var(--ui-accent-mention-hover);
+	cursor: pointer;
 }

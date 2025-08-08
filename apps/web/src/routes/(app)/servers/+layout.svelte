@@ -20,6 +20,7 @@
 			(server) => {
 				serverStore.setMembers(page.params.server_id!, server.members);
 				serverStore.setRoles(page.params.server_id!, server.roles);
+				serverStore.setInvites(page.params.server_id!, server.invites);
 				serverStore.memberCount = server.member_count;
 				serverStore.markServerInfoCached(page.params.server_id!);
 			},
@@ -38,15 +39,7 @@
 		if (currentServerId === serverId || serverStore.isServerInfoCached(serverId)) return;
 
 		currentServerId = serverId;
-		const schedule = (cb: () => void) =>
-			(window as any).requestIdleCallback
-				? (window as any).requestIdleCallback(cb)
-				: setTimeout(cb, 0);
-		// Defer server info fetch to avoid blocking initial message fetch/render
-		schedule(() => {
-			// fire-and-forget; no need to await here
-			getServerInformations();
-		});
+		getServerInformations();
 	});
 </script>
 

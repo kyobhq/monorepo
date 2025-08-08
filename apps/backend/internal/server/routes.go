@@ -61,8 +61,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	protected.POST("/servers/:server_id/leave", server.LeaveServer)
 	protected.POST("/servers/:server_id/invite", server.CreateInvite)
 	protected.DELETE("/servers/invite/:invite_id", server.DeleteInvite)
-	protected.PATCH("/servers/:server_id/profile", server.EditProfile)
-	protected.PATCH("/servers/:server_id/avatar", server.EditAvatar)
+	protected.PATCH("/servers/:server_id/profile", server.UpdateProfile)
+	protected.PATCH("/servers/:server_id/avatar", server.UpdateAvatar)
 	protected.DELETE("/servers/:server_id", server.DeleteServer)
 
 	channel := handlers.NewChannelHandlers(s.channelSvc)

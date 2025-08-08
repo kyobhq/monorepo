@@ -20,6 +20,7 @@ import type {
   EditChannelType,
   EditMessageType,
   EditPasswordType,
+  EditServerType,
   EditUserType,
   PinChannelType
 } from '$lib/types/schemas';
@@ -178,6 +179,24 @@ export class BackendStore {
     });
   }
 
+  updateServerAvatarAndBanner(
+    serverID: string,
+    cropAvatarPixels: any,
+    cropBannerPixels: any,
+    body: EditAvatarType
+  ): ResultAsync<{ avatar: string; banner: string }, APIError> {
+    const formData = new FormData();
+    if (body.avatar) formData.append('avatar', body.avatar);
+    if (body.banner) formData.append('banner', body.banner);
+    if (cropAvatarPixels) formData.append('crop_avatar', JSON.stringify(cropAvatarPixels));
+    if (cropBannerPixels) formData.append('crop_banner', JSON.stringify(cropBannerPixels));
+
+    return this.makeRequest<{ avatar: string; banner: string }>(`servers/${serverID}/avatar`, {
+      method: 'patch',
+      body: formData
+    });
+  }
+
   getUserProfile(userID: string): ResultAsync<User, APIError> {
     return this.makeRequest<User>(`users/${userID}`);
   }
@@ -202,6 +221,10 @@ export class BackendStore {
 
   leaveServer(serverID: string): ResultAsync<void, APIError> {
     return this.makeRequest<void>(`servers/${serverID}/leave`, { method: 'post' });
+  }
+
+  editServerProfile(serverID: string, body: EditServerType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`servers/${serverID}/profile`, { method: "patch", json: body })
   }
 }
 

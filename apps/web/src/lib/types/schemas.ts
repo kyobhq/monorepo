@@ -224,3 +224,15 @@ export const JoinServerSchema = v.object({
 });
 
 export interface JoinServerType extends v.InferInput<typeof JoinServerSchema> { }
+
+export const EditServerSchema = v.object({
+  name: v.pipe(
+    v.string(),
+    v.maxLength(20, 'The length must be equal or below 20 characters.'),
+    v.nonEmpty('Please enter a name for your realm.')
+  ),
+  description: v.any(),
+  public: v.boolean()
+})
+
+export interface EditServerType extends v.InferInput<typeof EditServerSchema> { }

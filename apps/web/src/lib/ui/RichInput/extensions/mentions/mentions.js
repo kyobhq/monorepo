@@ -3,6 +3,7 @@ import Mention from '@tiptap/extension-mention';
 import { PluginKey } from '@tiptap/pm/state';
 import { serverStore } from 'stores/serverStore.svelte';
 import { editorStore } from 'stores/editorStore.svelte';
+import { page } from '$app/state';
 
 const MentionExtended = Mention.extend({
   addPasteRules() {
@@ -10,8 +11,10 @@ const MentionExtended = Mention.extend({
       new PasteRule({
         find: /<@(\d+)>/g,
         handler: ({ state, range, match }) => {
+          if (!page.params.server_id) return;
+
           const userId = match[1];
-          const user = serverStore.getMemberById(userId);
+          const user = serverStore.getMember(page.params.server_id, userId);
 
           const attributes = {
             'user-id': userId,
@@ -58,10 +61,10 @@ export const CustomMention = MentionExtended.configure({
       char: '@',
       pluginKey: new PluginKey('at'),
       items: ({ query }) => {
+        if (!page.params.server_id) return [];
         const res = [];
-        let users = [];
 
-        for (const user of users) {
+        for (const user of serverStore.getMembers(page.params.server_id)) {
           if (
             user?.username?.toLowerCase().includes(query.toLowerCase()) ||
             user?.display_name?.toLowerCase().includes(query.toLowerCase())

@@ -31,7 +31,8 @@
 							...s,
 							main_color: '#121214',
 							members: [],
-							roles: []
+							roles: [],
+							invites: []
 						};
 
 						serverStore.addServer(server);

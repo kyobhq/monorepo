@@ -121,12 +121,22 @@ func (s *chatService) DeleteMessage(ctx *gin.Context, params *types.DeleteMessag
 	messageID := ctx.Param("message_id")
 
 	if allowed := s.permissions.CheckPermission(ctx, params.ServerID, types.ManageMessages, messageID, params.AuthorID); !allowed {
-		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "You are not allowed to delete this message", nil)
+		return &types.APIError{
+			Status:  http.StatusForbidden,
+			Code:    "ERR_FORBIDDEN",
+			Message: "You are not allowed to delete this message.",
+			Cause:   "",
+		}
 	}
 
 	err := s.db.DeleteMessage(ctx, messageID, params.AuthorID)
 	if err != nil {
-		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_MESSAGE", "Failed to delete message", err)
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_DELETE_MESSAGE",
+			Message: "Failed to delete message.",
+			Cause:   err.Error(),
+		}
 	}
 
 	s.actors.DeleteMessage(&proto.DeleteChatMessage{

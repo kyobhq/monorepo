@@ -41,6 +41,8 @@ SELECT
             'display_name', ranked_members.display_name,
             'avatar', ranked_members.avatar,
             'roles', ranked_members.roles,
+            'joined_server', ranked_members.joined_server,
+            'joined_kyob', ranked_members.joined_kyob,
             'status', CASE 
                 WHEN ranked_members.user_id = ANY($2::text[]) THEN 'online'
                 ELSE 'offline'
@@ -52,13 +54,15 @@ SELECT
                 u.username,
                 u.display_name,
                 u.avatar,
+                u.created_at as joined_kyob,
                 sm.roles,
+                sm.created_at as joined_server,
                 COALESCE(MIN(r.position), 999999) as min_role_position
             FROM server_members sm
             JOIN users u ON u.id = sm.user_id
             LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
             WHERE sm.server_id = s.id
-            GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles
+            GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles, sm.created_at
             ORDER BY min_role_position, u.username
             LIMIT 50
         ) ranked_members
@@ -74,6 +78,22 @@ SELECT
         FROM roles r
         WHERE r.server_id = s.id
     ) as roles,
+    (
+        SELECT json_agg(json_build_object(
+            'id', i.id,
+            'creator', json_build_object(
+                'display_name', u.display_name,
+                'username', u.username,
+                'avatar', u.avatar
+            ),
+            'server_id', i.server_id,
+            'invite_id', i.invite_id,
+            'expire_at', i.expire_at
+        ))
+        FROM invites i
+        LEFT JOIN users u ON i.creator_id = u.id
+        WHERE i.server_id = s.id
+    ) as invites,
     (
         SELECT count(id)
         FROM server_members smc
@@ -121,10 +141,15 @@ JOIN servers s ON s.id = ins.server_id;
 DELETE FROM server_members WHERE user_id = $1 AND server_id = $2;
 
 -- name: UpdateServerAvatarNBanner :exec
-UPDATE servers SET avatar = $1, banner = $2, main_color = $3 WHERE id = $4 AND owner_id = $5;
+UPDATE servers
+  set 
+    avatar = COALESCE($2, avatar),
+    banner = COALESCE($3, banner),
+    updated_at = now()
+WHERE id = $1;
 
 -- name: UpdateServerProfile :exec
-UPDATE servers SET name = $1, description = $2 WHERE id = $3 AND owner_id = $4;
+UPDATE servers SET name = $1, description = $2, public = $3, updated_at = now() WHERE id = $4;
 
 -- name: DeleteServer :execresult
 DELETE FROM servers WHERE id = $1 AND owner_id = $2;
