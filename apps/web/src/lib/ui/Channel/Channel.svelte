@@ -28,7 +28,7 @@
 <button
 	{onclick}
 	class={[
-		'relative flex items-center w-full gap-x-2 hover:cursor-pointer transition-colors duration-75 py-2 px-2.5',
+		'relative flex items-center w-full gap-x-2 hover:cursor-pointer transition-colors duration-75 py-2 px-2.5 rounded-sm',
 		active ? 'text-main-50 bg-main-900' : 'hocus:bg-main-900 hocus:text-main-200 text-main-300'
 	]}
 >

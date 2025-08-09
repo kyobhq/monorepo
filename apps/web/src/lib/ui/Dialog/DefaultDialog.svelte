@@ -50,7 +50,7 @@
 									<button
 										onclick={() => (currentTab = tab)}
 										class={[
-											'border-[0.5px] px-2.5 py-1.5 w-fit transition-colors duration-100 hover:cursor-pointer',
+											'border-[0.5px] px-2.5 py-1.5 w-fit transition-colors duration-100 hover:cursor-pointer rounded-[2px] first:rounded-tl-md last:rounded-tr-md',
 											currentTab === tab
 												? 'bg-main-800/70 border-main-500'
 												: 'bg-main-950 border-main-700 hocus:bg-main-900 hocus:border-main-600'
@@ -61,14 +61,19 @@
 								{/each}
 							</div>
 						{/if}
-						<div class="bg-main-950 border-[0.5px] border-main-700">
+						<div
+							class={[
+								'bg-main-950 border-[0.5px] border-main-700 rounded-md',
+								tabs && 'rounded-tl-[2px]'
+							]}
+						>
 							<div class="border-b-main-800 relative mb-8 w-full border-b py-5 px-4">
 								<p class="font-semibold text-xl">{title}</p>
 								<p class="text-main-400 text-sm">{subtitle}</p>
 
 								<Dialog.Close
 									type="button"
-									class="text-main-400 h-8 w-8 hocus:bg-main-900 hocus:text-main-50 absolute top-5 right-5 transition-colors hover:cursor-pointer border-[0.5px] border-main-700 aspect-square flex justify-center items-center duration-75"
+									class="text-main-400 h-8 w-8 hocus:bg-main-900 hocus:text-main-50 absolute top-5 right-5 transition-colors hover:cursor-pointer border-[0.5px] border-main-700 aspect-square flex justify-center items-center duration-75 rounded-sm"
 								>
 									<CloseIcon height={18} width={18} />
 								</Dialog.Close>

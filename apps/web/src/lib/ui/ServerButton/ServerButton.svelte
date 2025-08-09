@@ -13,13 +13,13 @@
 
 <button
 	class={[
-		'h-13 w-13 aspect-square object-cover relative after:content-normal after:absolute after:inset-0 after:transition after:pointer-events-none',
+		'h-13 w-13 aspect-square object-cover relative after:content-normal after:absolute after:inset-0 after:transition after:pointer-events-none rounded-md after:rounded-[inherit]',
 		active
 			? 'after:inner-active'
 			: 'after:inner-main-700 hocus:after:inner-active hover:cursor-pointer'
 	]}
 	{onclick}
 >
-	<img src={server.avatar} alt="server-icon" class="h-full w-full" />
+	<img src={server.avatar} alt="server-icon" class="h-full w-full rounded-[inherit]" />
 	<ContextMenuServer {server} />
 </button>

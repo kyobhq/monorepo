@@ -19,7 +19,7 @@
 	});
 </script>
 
-<div class="flex items-center p-1 border-[0.5px] border-main-700 w-fit relative">
+<div class="flex items-center p-1 border-[0.5px] border-main-700 w-fit relative rounded-md">
 	{#each tabs as tab, idx (idx)}
 		{@const Icon = tab.Icon}
 
@@ -41,7 +41,7 @@
 	{/each}
 
 	<div
-		class="absolute top-1 left-1 h-[calc(100%-0.5rem)] aspect-square bg-main-900 transition"
+		class="absolute top-1 left-1 h-[calc(100%-0.5rem)] aspect-square bg-main-900 transition rounded-[3px]"
 		style="transform: translateX({left}px)"
 	></div>
 </div>

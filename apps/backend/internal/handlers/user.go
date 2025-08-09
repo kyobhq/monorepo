@@ -109,7 +109,10 @@ func (h *userHandler) UpdateAvatar(c *gin.Context) {
 
 	avatar := c.Request.MultipartForm.File["avatar"]
 	if len(avatar) > 0 {
-		if err := validation.ValidateFiles(avatar, validation.DefaultFileConfig); err != nil {
+		if err := validation.ValidateFiles(avatar, validation.FileValidationConfig{
+			MaxSize:  10 * 1024 * 1024,
+			MaxFiles: 1,
+		}); err != nil {
 			err.Respond(c)
 			return
 		}
@@ -117,7 +120,10 @@ func (h *userHandler) UpdateAvatar(c *gin.Context) {
 
 	banner := c.Request.MultipartForm.File["banner"]
 	if len(banner) > 0 {
-		if err := validation.ValidateFiles(banner, validation.DefaultFileConfig); err != nil {
+		if err := validation.ValidateFiles(banner, validation.FileValidationConfig{
+			MaxSize:  10 * 1024 * 1024,
+			MaxFiles: 1,
+		}); err != nil {
 			err.Respond(c)
 			return
 		}

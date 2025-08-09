@@ -81,7 +81,7 @@
 
 <div
 	class={[
-		'pointer-events-auto bg-main-900 border-[0.5px] border-main-800 placeholder:text-main-400 hocus:bg-main-800 hocus:border-main-600 mt-1.5 transition-colors duration-100 focus:ring-0 [&>.tiptap]:px-3 [&>.tiptap]:py-2 [&>.tiptap]:min-h-[5rem]',
+		'pointer-events-auto bg-main-900 border-[0.5px] border-main-800 placeholder:text-main-400 hocus:bg-main-800 hocus:border-main-600 mt-1.5 transition-colors duration-100 focus:ring-0 [&>.tiptap]:px-3 [&>.tiptap]:py-2 [&>.tiptap]:min-h-[5rem] rounded-sm',
 		classes
 	]}
 	bind:this={element}

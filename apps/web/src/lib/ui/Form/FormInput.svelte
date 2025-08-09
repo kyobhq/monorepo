@@ -55,7 +55,7 @@
 			bind:value={inputValue}
 			{placeholder}
 			class={[
-				'bg-main-900 border-[0.5px] border-main-800 placeholder:text-main-400 hocus:bg-main-800 hocus:border-main-600 px-3 py-2 mt-1.5 transition-colors duration-100 focus:ring-0',
+				'bg-main-900 border-[0.5px] border-main-800 placeholder:text-main-400 hocus:bg-main-800 hocus:border-main-600 px-3 py-2 mt-1.5 transition-colors duration-100 focus:ring-0 rounded-sm',
 				error ? 'border-red-400' : 'border-main-800 hocus:border-main-700',
 				inputClass
 			]}

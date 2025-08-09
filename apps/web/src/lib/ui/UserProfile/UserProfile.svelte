@@ -32,7 +32,7 @@
 			customAnchor={coreStore.profile.el}
 		>
 			<div
-				class="relative z-[2] h-full overflow-hidden bg-main-975 select-none pt-[6rem] pb-5 px-3.5 highlight-border"
+				class="relative z-[2] h-full overflow-hidden bg-main-975 select-none pt-[6rem] pb-5 px-3.5 highlight-border rounded-md"
 				style="background-image: url({user.banner}); background-size: cover; background-position: center;"
 			>
 				<div class="absolute left-0 top-0 w-full h-full bg-main-975/85 backdrop-blur-xl"></div>

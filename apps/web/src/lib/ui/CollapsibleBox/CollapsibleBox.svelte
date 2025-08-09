@@ -29,7 +29,7 @@
 </script>
 
 <div
-	class="border-[0.5px] border-main-400"
+	class="border-[0.5px] border-main-400 rounded-md overflow-hidden"
 	style="
     background-color: {color ? getBackgroundColor(color) : 'var(--ui-main-950)'}; 
     border-color: {color ? getBorderColor(color) : 'var(--ui-main-700)'};"

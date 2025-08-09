@@ -9,7 +9,7 @@
 	let { user }: Props = $props();
 </script>
 
-<figure class="relative z-[4] h-16 w-16 highlight-border">
+<figure class="relative z-[4] h-16 w-16 highlight-border rounded-sm overflow-hidden">
 	<img
 		src={user.avatar}
 		alt="{user.username}'s avatar"

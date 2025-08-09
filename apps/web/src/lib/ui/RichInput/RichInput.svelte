@@ -113,11 +113,11 @@
 		/>
 	{/if}
 	<div class="flex gap-x-1">
-		<button class={icon}>
+		<button class={[icon, 'rounded-r-[2px] rounded-l-md']}>
 			<PlusIcon height={22} width={22} />
 		</button>
 		<div
-			class="bg-main-900 border-[0.5px] border-main-700 relative flex w-[calc(100%-3.5rem*2-0.625rem)] flex-col transition duration-100 focus-within:border-main-500 hocus:bg-main-800/70"
+			class="bg-main-900 border-[0.5px] border-main-700 relative flex w-[calc(100%-3.5rem*2-0.625rem)] flex-col transition duration-100 focus-within:border-main-500 hocus:bg-main-800/70 rounded-[2px]"
 		>
 			<!-- {#if attachments.length > 0} -->
 			<!-- 	<Attachments bind:attachments /> -->
@@ -127,7 +127,7 @@
 				<div class="max-h-[10rem] w-full" bind:this={element}></div>
 			</div>
 		</div>
-		<button class={icon}>
+		<button class={[icon, 'rounded-l-[2px] rounded-r-md']}>
 			<EmojiIcon height={22} width={22} />
 		</button>
 	</div>

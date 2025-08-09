@@ -52,7 +52,7 @@
 <button
 	{type}
 	class={[
-		'px-3 py-1.5 bg-accent-darker border-[0.5px]  transition-colors hover:cursor-pointer relative',
+		'px-3 py-1.5 bg-accent-darker border-[0.5px]  transition-colors hover:cursor-pointer relative rounded-sm',
 		isError ? 'bg-red-500/20  border-red-400 hocus:bg-red-400/30' : 'border-accent hocus:bg-accent'
 	]}
 	disabled={isSubmitted || isSubmitting || isEmpty}
@@ -65,21 +65,21 @@
 			<LoadingIcon height={20} width={20} />
 		</div>
 	{:else if isSubmitted && isError}
-			<div
-				class="absolute inset-0 flex justify-center items-center text-red-400"
-				in:fly={{ duration: 200, delay: 200, y: 5 }}
-				out:fly={{ duration: 200, y: 5 }}
-			>
-				<PlusIcon height={20} width={20} class="rotate-45" />
-			</div>
+		<div
+			class="absolute inset-0 flex justify-center items-center text-red-400"
+			in:fly={{ duration: 200, delay: 200, y: 5 }}
+			out:fly={{ duration: 200, y: 5 }}
+		>
+			<PlusIcon height={20} width={20} class="rotate-45" />
+		</div>
 	{:else if isSubmitted}
-			<div
-				class="absolute inset-0 flex justify-center items-center"
-				in:fly={{ duration: 200, delay: 200, y: 5 }}
-				out:fly={{ duration: 200, y: 5 }}
-			>
-				<Check height={20} width={20} />
-			</div>
+		<div
+			class="absolute inset-0 flex justify-center items-center"
+			in:fly={{ duration: 200, delay: 200, y: 5 }}
+			out:fly={{ duration: 200, y: 5 }}
+		>
+			<Check height={20} width={20} />
+		</div>
 	{/if}
 
 	<span

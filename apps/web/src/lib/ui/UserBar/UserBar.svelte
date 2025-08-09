@@ -23,7 +23,7 @@
 	}
 
 	const buttonIcon =
-		'p-1 border-[0.5px] border-transparent transition-colors duration-100 hover:cursor-pointer flex items-center justify-center';
+		'p-1 border-[0.5px] border-transparent transition-colors duration-100 hover:cursor-pointer flex items-center justify-center rounded-sm';
 	const buttonIconNormal =
 		'text-main-500 hocus:bg-main-800 hocus:border-main-600 active:bg-main-700';
 	const buttonIconDestructive =
@@ -32,14 +32,14 @@
 
 {#if userStore.user}
 	<div
-		class="absolute w-[calc(100%-1.25rem)] bg-main-900 border-[0.5px] border-main-700 bottom-2.5 py-[3.5px] pl-[3.5px] pr-2.5 left-1/2 -translate-x-1/2 flex justify-between"
+		class="absolute w-[calc(100%-1.25rem)] bg-main-900 border-[0.5px] border-main-700 bottom-2.5 py-[3.5px] pl-[3.5px] pr-2.5 left-1/2 -translate-x-1/2 flex justify-between rounded-md"
 	>
 		<button
 			bind:this={buttonEl}
 			onclick={() => coreStore.openMyProfile(buttonEl!)}
-			class="flex text-left items-center gap-x-2 active:bg-main-700/65 hocus:bg-main-800 pr-2.5 border-[0.5px] border-transparent hocus:border-main-600 transition-colors hover:cursor-pointer duration-100"
+			class="flex text-left items-center gap-x-2 active:bg-main-700/65 hocus:bg-main-800 pr-2.5 border-[0.5px] border-transparent hocus:border-main-600 transition-colors hover:cursor-pointer duration-100 rounded-sm"
 		>
-			<figure class="relative h-12 w-12 highlight-border">
+			<figure class="relative h-12 w-12 highlight-border rounded-sm overflow-hidden">
 				<img src={userStore.user.avatar} alt="" class="w-full h-full object-cover" />
 			</figure>
 			<div class="flex flex-col gap-y-0.5">

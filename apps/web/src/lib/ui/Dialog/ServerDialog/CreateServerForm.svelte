@@ -78,7 +78,7 @@
 	<div class="flex items-center justify-between px-8">
 		<div
 			class={[
-				'group relative h-[85px] w-[85px] overflow-hidden text-transparent transition-colors hover:cursor-pointer border-[0.5px]',
+				'group relative h-[85px] w-[85px] overflow-hidden text-transparent transition-colors hover:cursor-pointer border-[0.5px] rounded-sm overflow-hidden',
 				$errors.avatar
 					? 'hocus:bg-red-400/25 border-red-400 hocus:inner-red-400/40 bg-red-400/15'
 					: 'border-main-800 bg-main-950 hocus:bg-main-900'

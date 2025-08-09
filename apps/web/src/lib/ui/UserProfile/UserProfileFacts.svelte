@@ -37,7 +37,7 @@
 
 {#if user.facts.length! > 0}
 	<p class="text-white/45 mix-blend-plus-lighter text-sm mt-4 font-medium relative z-[4]">Facts</p>
-	{#each user.facts as fact, idx}
+	{#each user.facts as fact, idx (idx)}
 		{@const Icon = getIconForFact(fact.label)}
 
 		<div class={['flex items-center gap-x-1.5', idx === 0 ? 'mt-1.5' : 'mt-2']}>
