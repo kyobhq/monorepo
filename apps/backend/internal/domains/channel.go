@@ -57,7 +57,7 @@ func (s *channelService) CreateChannel(c *gin.Context, body *types.CreateChannel
 		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CREATE_CHANNEL", "Failed to create channel.", err)
 	}
 
-	s.actors.StartChannel(body.ServerID, channel.ID)
+	s.actors.StartChannel(channel)
 
 	return &channel, nil
 }
@@ -87,6 +87,8 @@ func (s *channelService) DeleteChannel(c *gin.Context, body *types.DeleteChannel
 	if err := s.db.DeleteChannel(c, channelID); err != nil {
 		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_CHANNEL", "Failed to delete channel.", err)
 	}
+
+	s.actors.KillChannel(body, channelID)
 
 	return nil
 }

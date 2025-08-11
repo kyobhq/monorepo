@@ -49,7 +49,9 @@ func (s *server) Receive(ctx *actor.Context) {
 			"err", msg.Err,
 		)
 	case *messages.StartChannel:
-		ctx.SpawnChild(newChannel(s.hub), "channel", actor.WithID(msg.Channel.Id))
+		s.startChannel(ctx, msg)
+	case *messages.KillChannel:
+		s.killChannel(ctx, msg)
 	case *messages.GetServerUsers:
 		ctx.Respond(&messages.GetServerUsers{
 			UserIds: slices.Collect(maps.Keys(s.users)),
@@ -62,6 +64,35 @@ func (s *server) Receive(ctx *actor.Context) {
 		case "offline":
 			delete(s.users, msg.User.Id)
 		}
+	}
+}
+
+func (s *server) startChannel(ctx *actor.Context, msg *messages.StartChannel) {
+	ctx.SpawnChild(newChannel(s.hub), "channel", actor.WithID(msg.Channel.Id))
+
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_StartChannel{
+			StartChannel: msg,
+		},
+	}
+
+	for userID := range s.users {
+		s.hub.BroadcastMessageToUser(s.hub.GetUser(userID), message)
+	}
+}
+
+func (s *server) killChannel(ctx *actor.Context, msg *messages.KillChannel) {
+	channelPID := ctx.PID().Child("channel/" + msg.Channel.Id)
+	ctx.Engine().Poison(channelPID)
+
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_KillChannel{
+			KillChannel: msg,
+		},
+	}
+
+	for userID := range s.users {
+		s.hub.BroadcastMessageToUser(s.hub.GetUser(userID), message)
 	}
 }
 

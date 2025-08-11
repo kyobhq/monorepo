@@ -75,13 +75,15 @@ message User {
 message Channel {
 	string id = 1;
 	string server_id = 2;
-	string name = 3;
-	string description = 4;
-	string type = 5;
-	bool e2ee = 6;
-	repeated string users = 7;
-	repeated string roles = 8;
-	bool active = 9;
+  string category_id = 3;
+	string name = 4;
+	string description = 5;
+	string type = 6;
+	bool e2ee = 7;
+	repeated string users = 8;
+	repeated string roles = 9;
+	bool active = 10;
+  int32 position = 11;
 }
 
 message UserLinksRow {

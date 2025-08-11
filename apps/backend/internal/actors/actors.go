@@ -1,7 +1,9 @@
 package actors
 
 import (
+	db "backend/db/gen_queries"
 	"backend/internal/database"
+	"backend/internal/types"
 	message "backend/proto"
 	"context"
 	"fmt"
@@ -47,7 +49,9 @@ type Service interface {
 
 	StartServerInRegion(serverID, region string) *actor.PID
 
-	StartChannel(serverID, channelID string)
+	StartChannel(channel db.Channel)
+
+	KillChannel(body *types.DeleteChannelParams, channelID string)
 
 	BroadcastMessageToUser(userPID *actor.PID, message *message.WSMessage)
 
@@ -165,13 +169,37 @@ func (se *service) StartServerInRegion(serverID, region string) *actor.PID {
 	return se.cluster.Activate("server", cluster.NewActivationConfig().WithID(serverID+"@"+region).WithRegion(region))
 }
 
-func (se *service) StartChannel(serverID, channelID string) {
-	serversPID := se.GetAllServerInstances(serverID)
+func (se *service) StartChannel(channel db.Channel) {
+	serversPID := se.GetAllServerInstances(channel.ServerID)
 
 	for _, serverPID := range serversPID {
 		se.cluster.Engine().Send(serverPID, &message.StartChannel{
 			Channel: &message.Channel{
-				Id: channelID,
+				Id:          channel.ID,
+				ServerId:    channel.ServerID,
+				CategoryId:  channel.CategoryID,
+				Name:        channel.Name,
+				Description: channel.Description.String,
+				Type:        channel.Type,
+				E2Ee:        channel.E2ee,
+				Users:       channel.Users,
+				Roles:       channel.Roles,
+				Position:    channel.Position,
+				Active:      channel.Active,
+			},
+		})
+	}
+}
+
+func (se *service) KillChannel(body *types.DeleteChannelParams, channelID string) {
+	serversPID := se.GetAllServerInstances(body.ServerID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.KillChannel{
+			Channel: &message.Channel{
+				Id:         channelID,
+				ServerId:   body.ServerID,
+				CategoryId: body.CategoryID,
 			},
 		})
 	}

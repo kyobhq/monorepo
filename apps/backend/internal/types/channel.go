@@ -35,7 +35,8 @@ type PinChannelParams struct {
 }
 
 type DeleteChannelParams struct {
-	ServerID string `json:"server_id" validate:"required"`
+	ServerID   string `json:"server_id" validate:"required"`
+	CategoryID string `json:"category_id" validate:"required"`
 }
 
 type DeleteCategoryParams struct {

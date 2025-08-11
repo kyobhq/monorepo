@@ -37,7 +37,7 @@ export interface Channel {
   messages?: Message[];
   users?: string[];
   roles?: string[];
-  voice_users: {
+  voice_users?: {
     user_id: string;
     deafen: boolean;
     mute: boolean;

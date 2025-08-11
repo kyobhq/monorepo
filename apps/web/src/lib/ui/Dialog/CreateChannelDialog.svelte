@@ -25,18 +25,15 @@
 					coreStore.channelDialog.category_id
 				);
 				form.data.type = form.data.e2ee ? 'textual-e2ee' : 'textual';
+				coreStore.channelDialog.open = false;
 
 				const res = await backend.createChannel(form.data);
 				res.match(
-					(channel) => {
-						channelStore.addChannel(channel);
-					},
+					() => {},
 					(error) => {
 						console.error(`${error.code}: ${error.message}`);
 					}
 				);
-
-				coreStore.channelDialog.open = false;
 			}
 		}
 	});

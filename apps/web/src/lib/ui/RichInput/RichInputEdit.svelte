@@ -35,6 +35,7 @@
 				subtitle: 'Are you sure you want to delete this message?',
 				buttonText: 'Delete',
 				onclick: async () => {
+					coreStore.destructiveDialog.open = false;
 					const res = await backend.deleteMessage(messageId, {
 						server_id: page.params.server_id!,
 						channel_id: page.params.channel_id!,
@@ -42,9 +43,7 @@
 					});
 
 					res.match(
-						() => {
-							coreStore.destructiveDialog.open = false;
-						},
+						() => {},
 						(error) => {
 							console.error(`${error.code}: ${error.message}`);
 						}

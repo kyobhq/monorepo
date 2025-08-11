@@ -7,6 +7,7 @@
 
 	interface Props {
 		id: string;
+		categoryId: string;
 		type: ChannelTypes;
 		name: string;
 		serverName?: string;
@@ -14,7 +15,7 @@
 		active?: boolean;
 	}
 
-	const { id, type, name, serverName, onclick, active }: Props = $props();
+	const { id, categoryId, type, name, serverName, onclick, active }: Props = $props();
 
 	const ICONS = {
 		textual: HashChat,
@@ -41,5 +42,5 @@
 			</span>
 		{/if}
 	</div>
-	<ContextMenuChannel channelId={id} />
+	<ContextMenuChannel {categoryId} channelId={id} />
 </button>

@@ -44,6 +44,7 @@
 						{#each Object.values(category.channels).sort((a, b) => a.position - b.position) as channel (channel.id)}
 							<Channel
 								id={channel.id}
+								categoryId={category.id}
 								type={channel.type}
 								name={channel.name}
 								onclick={() => goto(`/servers/${channel.server_id}/channels/${channel.id}`)}

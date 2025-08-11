@@ -6,7 +6,7 @@
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
 
-	let { channelId } = $props();
+	let { categoryId, channelId } = $props();
 
 	function handleDelete() {
 		if (!page.params.server_id) return;
@@ -20,11 +20,10 @@
 			subtitle: 'All content in this channel will be permanently deleted.',
 			buttonText: 'Delete channel',
 			onclick: async () => {
-				const res = await backend.deleteChannel(page.params.server_id!, channelId);
+				coreStore.destructiveDialog.open = false;
+				const res = await backend.deleteChannel(page.params.server_id!, categoryId, channelId);
 				res.match(
-					() => {
-						coreStore.destructiveDialog.open = false;
-					},
+					() => {},
 					(error) => {
 						console.error(`${error.code}: ${error.message}`);
 					}

@@ -108,10 +108,10 @@ export class BackendStore {
     return this.makeRequest<void>('channels/pin', { method: 'post', json: body });
   }
 
-  deleteChannel(serverID: string, channelID: string): ResultAsync<void, APIError> {
+  deleteChannel(serverID: string, categoryID: string, channelID: string): ResultAsync<void, APIError> {
     return this.makeRequest<void>(`channels/${channelID}`, {
       method: 'delete',
-      json: { server_id: serverID }
+      json: { server_id: serverID, category_id: categoryID }
     });
   }
 
@@ -235,7 +235,6 @@ export class BackendStore {
       formData.append('emojis[]', body.emojis[i]);
       formData.append('shortcodes[]', body.shortcodes[i]);
     }
-    console.log(formData);
 
     return this.makeRequest<Emoji[]>(`users/emojis`, { method: 'post', body: formData });
   }
