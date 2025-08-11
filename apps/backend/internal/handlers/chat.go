@@ -64,7 +64,7 @@ func (h *chatHandler) CreateMessage(c *gin.Context) {
 		return
 	}
 
-	if derr := h.domain.CreateMessage(c, &body); derr != nil {
+	if derr := h.domain.CreateMessage(c, files, &body); derr != nil {
 		derr.Respond(c)
 		return
 	}

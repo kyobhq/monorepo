@@ -26,6 +26,7 @@ type UpdateProfileParams struct {
 type Setup struct {
 	User    *db.User                        `json:"user"`
 	Servers map[string]ServerWithCategories `json:"servers"`
+	Emojis  []db.GetEmojisRow               `json:"emojis"`
 }
 
 type UpdatePasswordParams struct {
@@ -42,4 +43,18 @@ type Link struct {
 type Fact struct {
 	Label string `json:"label" validate:"omitempty,min=1,max=20"`
 	Value string `json:"value" validate:"omitempty,min=1,max=20"`
+}
+
+type UploadEmojiParams struct {
+	Shortcodes []string `validate:"required,max=20,dive,emoji_shortcode" json:"shortcodes"`
+}
+
+type UpdateEmojiParams struct {
+	Shortcode string `validate:"required,max=20,emoji_shortcode" json:"shortcode"`
+}
+
+type EmojiResponse struct {
+	ID        string `json:"id"`
+	Shortcode string `json:"shortcode"`
+	URL       string `json:"url"`
 }

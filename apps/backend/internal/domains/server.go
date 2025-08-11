@@ -54,7 +54,7 @@ func (s *serverService) CreateServer(ctx *gin.Context, serverAvatar []*multipart
 		}
 	}
 
-	avatarURL, perr := s.files.ProcessAndUploadImage(serverAvatar[0], body.Crop, 1<<20)
+	avatarURL, perr := s.files.ProcessAndUploadImage(serverAvatar[0], body.Crop)
 	if perr != nil {
 		return nil, perr
 	}
@@ -358,7 +358,7 @@ func (s *serverService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileH
 	var avatarURL, bannerURL *string
 
 	if len(avatar) > 0 {
-		a, perr := s.files.ProcessAndUploadAvatar(server.ID, "avatar", avatar[0], body.CropAvatar, 1<<20)
+		a, perr := s.files.ProcessAndUploadAvatar(server.ID, "avatar", avatar[0], body.CropAvatar)
 		if perr != nil {
 			return nil, nil, perr
 		}
@@ -373,7 +373,7 @@ func (s *serverService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileH
 	}
 
 	if len(banner) > 0 {
-		b, perr := s.files.ProcessAndUploadAvatar(server.ID, "banner", banner[0], body.CropBanner, 1<<20)
+		b, perr := s.files.ProcessAndUploadAvatar(server.ID, "banner", banner[0], body.CropBanner)
 		if perr != nil {
 			return nil, nil, perr
 		}

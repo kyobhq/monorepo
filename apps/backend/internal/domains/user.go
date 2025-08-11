@@ -14,6 +14,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nrednav/cuid2"
 )
 
 type UserService interface {
@@ -24,6 +25,9 @@ type UserService interface {
 	Setup(ctx *gin.Context) (*types.Setup, *types.APIError)
 	UpdatePassword(ctx *gin.Context, body *types.UpdatePasswordParams) *types.APIError
 	GetUserProfile(ctx *gin.Context, userID string) (*db.GetUserProfileRow, *types.APIError)
+	UploadEmojis(ctx *gin.Context, emojis []*multipart.FileHeader, shortcodes []string, body *types.UploadEmojiParams) (*[]types.EmojiResponse, *types.APIError)
+	UpdateEmoji(ctx *gin.Context, body *types.UpdateEmojiParams) *types.APIError
+	DeleteEmoji(ctx *gin.Context) *types.APIError
 }
 
 type userService struct {
@@ -110,7 +114,7 @@ func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHea
 	var avatarURL, bannerURL *string
 
 	if len(avatar) > 0 {
-		a, perr := s.files.ProcessAndUploadAvatar(user.ID, "avatar", avatar[0], body.CropAvatar, 1<<20)
+		a, perr := s.files.ProcessAndUploadAvatar(user.ID, "avatar", avatar[0], body.CropAvatar)
 		if perr != nil {
 			return nil, nil, perr
 		}
@@ -125,7 +129,7 @@ func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHea
 	}
 
 	if len(banner) > 0 {
-		b, perr := s.files.ProcessAndUploadAvatar(user.ID, "banner", banner[0], body.CropBanner, 1<<20)
+		b, perr := s.files.ProcessAndUploadAvatar(user.ID, "banner", banner[0], body.CropBanner)
 		if perr != nil {
 			return nil, nil, perr
 		}
@@ -279,6 +283,16 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 	}
 	user := u.(*db.User)
 
+	emojis, err := s.db.GetEmojis(ctx, user.ID)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_EMOJIS",
+			Cause:   err.Error(),
+			Message: "Failed to get user's emojis.",
+		}
+	}
+
 	servers, err := s.db.GetUserServers(ctx, user.ID)
 	if err != nil {
 		return nil, &types.APIError{
@@ -290,6 +304,7 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 	}
 
 	res.User = user
+	res.Emojis = emojis
 	res.Servers = make(map[string]types.ServerWithCategories)
 	if len(servers) > 0 {
 		serversMap, err := s.processServers(ctx, servers)
@@ -386,4 +401,101 @@ func (s *userService) GetUserProfile(ctx *gin.Context, userID string) (*db.GetUs
 	}
 
 	return &user, nil
+}
+
+func (s *userService) UploadEmojis(ctx *gin.Context, emojis []*multipart.FileHeader, shortcodes []string, body *types.UploadEmojiParams) (*[]types.EmojiResponse, *types.APIError) {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return nil, &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := u.(*db.User).ID
+
+	emojisURLs, err := s.files.ProcessAndUploadEmojis(emojis)
+	if err != nil {
+		return nil, err
+	}
+
+	var emojisToUpload []db.CreateEmojiParams
+	var emojisResponse []types.EmojiResponse
+
+	for i, url := range emojisURLs {
+		emojiID := cuid2.Generate()
+		emojisToUpload = append(emojisToUpload, db.CreateEmojiParams{
+			ID:        emojiID,
+			UserID:    userID,
+			Shortcode: body.Shortcodes[i],
+			Url:       url,
+		})
+
+		emojisResponse = append(emojisResponse, types.EmojiResponse{
+			ID:        emojiID,
+			Shortcode: body.Shortcodes[i],
+			URL:       url,
+		})
+	}
+
+	if err := s.db.UploadEmojis(ctx, userID, emojisToUpload); err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_UPLOAD_EMOJIS",
+			Cause:   err.Error(),
+			Message: "Failed to upload emojis.",
+		}
+	}
+
+	return &emojisResponse, nil
+}
+
+func (s *userService) UpdateEmoji(ctx *gin.Context, body *types.UpdateEmojiParams) *types.APIError {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+
+	userID := u.(*db.User).ID
+	emojiID := ctx.Param("emoji_id")
+
+	if err := s.db.UpdateEmoji(ctx, emojiID, userID, body); err != nil {
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_UPDATE_EMOJI",
+			Cause:   err.Error(),
+			Message: "Failed to update emoji.",
+		}
+	}
+
+	return nil
+}
+
+func (s *userService) DeleteEmoji(ctx *gin.Context) *types.APIError {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+
+	userID := u.(*db.User).ID
+	emojiID := ctx.Param("emoji_id")
+
+	if err := s.db.DeleteEmoji(ctx, emojiID, userID); err != nil {
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_DELETE_EMOJI",
+			Cause:   err.Error(),
+			Message: "Failed to delete emoji.",
+		}
+	}
+
+	return nil
 }

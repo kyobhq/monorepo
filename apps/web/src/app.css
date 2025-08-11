@@ -93,7 +93,7 @@ body {
 }
 
 @utility highlight-border {
-  @apply after:content-normal after:absolute after:inset-0 after:border-[0.5px] after:border-main-50/10 after:transition-colors after:duration-100 after:z-[1] after:rounded-[inherit] after:mix-blend-lighten;
+  @apply after:content-normal after:absolute after:inset-0 after:border after:border-main-50/10 after:transition-colors after:duration-100 after:z-[1] after:rounded-[inherit] after:mix-blend-lighten;
 }
 
 .auth-gradient {

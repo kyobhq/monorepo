@@ -4,6 +4,7 @@ import ky, { type Input, type Options } from 'ky';
 import type {
   Category,
   Channel,
+  Emoji,
   Message,
   Server,
   ServerInformations,
@@ -11,6 +12,7 @@ import type {
   User
 } from '$lib/types/types';
 import type {
+  AddEmojisType,
   CreateCategoryType,
   CreateChannelType,
   CreateMessageType,
@@ -224,7 +226,26 @@ export class BackendStore {
   }
 
   editServerProfile(serverID: string, body: EditServerType): ResultAsync<void, APIError> {
-    return this.makeRequest<void>(`servers/${serverID}/profile`, { method: "patch", json: body })
+    return this.makeRequest<void>(`servers/${serverID}/profile`, { method: 'patch', json: body });
+  }
+
+  uploadEmojis(body: AddEmojisType): ResultAsync<Emoji[], APIError> {
+    const formData = new FormData();
+    for (let i = 0; i < body.emojis.length; ++i) {
+      formData.append('emojis[]', body.emojis[i]);
+      formData.append('shortcodes[]', body.shortcodes[i]);
+    }
+    console.log(formData);
+
+    return this.makeRequest<Emoji[]>(`users/emojis`, { method: 'post', body: formData });
+  }
+
+  updateEmoji(id: string, shortcode: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`users/emojis/${id}`, { method: 'patch', json: { shortcode } });
+  }
+
+  deleteEmoji(id: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`users/emojis/${id}`, { method: 'delete' });
   }
 }
 

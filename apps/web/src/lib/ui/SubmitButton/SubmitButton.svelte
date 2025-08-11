@@ -11,6 +11,7 @@
 		isComplete: boolean;
 		isEmpty?: boolean;
 		isError?: boolean;
+		class?: string;
 	}
 
 	let {
@@ -19,7 +20,8 @@
 		isSubmitting = $bindable(),
 		isComplete = $bindable(),
 		isEmpty = $bindable(),
-		isError = $bindable()
+		isError = $bindable(),
+		class: classes
 	}: Props = $props();
 
 	let wasSubmitting = $state(false);
@@ -52,8 +54,9 @@
 <button
 	{type}
 	class={[
-		'px-3 py-1.5 bg-accent-darker border-[0.5px]  transition-colors hover:cursor-pointer relative rounded-sm',
-		isError ? 'bg-red-500/20  border-red-400 hocus:bg-red-400/30' : 'border-accent hocus:bg-accent'
+		'px-3 py-1.5 bg-accent-darker border-[0.5px]  transition-colors hover:cursor-pointer relative rounded-sm w-fit',
+		isError ? 'bg-red-500/20  border-red-400 hocus:bg-red-400/30' : 'border-accent hocus:bg-accent',
+		classes
 	]}
 	disabled={isSubmitted || isSubmitting || isEmpty}
 >

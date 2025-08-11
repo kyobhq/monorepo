@@ -24,9 +24,10 @@ import (
 
 type Service interface {
 	UploadFile(key string, mimeType string, fileData io.Reader, fileName string) error
-	ProcessAndUploadFiles(files []*multipart.FileHeader, maxSize int64) ([]byte, *types.APIError)
-	ProcessAndUploadImage(imageToUpload *multipart.FileHeader, crop types.Crop, maxSize int64) (*string, *types.APIError)
-	ProcessAndUploadAvatar(userID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop, maxSize int64) (*string, *types.APIError)
+	ProcessAndUploadFiles(files []*multipart.FileHeader) ([]byte, *types.APIError)
+	ProcessAndUploadEmojis(files []*multipart.FileHeader) ([]string, *types.APIError)
+	ProcessAndUploadImage(imageToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError)
+	ProcessAndUploadAvatar(userID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError)
 	DeleteFile(key string) error
 }
 
@@ -62,7 +63,7 @@ func New() Service {
 	}
 }
 
-func (s *service) ProcessAndUploadFiles(filesToUpload []*multipart.FileHeader, maxSize int64) ([]byte, *types.APIError) {
+func (s *service) ProcessAndUploadFiles(filesToUpload []*multipart.FileHeader) ([]byte, *types.APIError) {
 	var files []File
 
 	for _, fileHeader := range filesToUpload {
@@ -153,7 +154,80 @@ func (s *service) ProcessAndUploadFiles(filesToUpload []*multipart.FileHeader, m
 	return res, nil
 }
 
-func (s *service) ProcessAndUploadImage(imageToUpload *multipart.FileHeader, crop types.Crop, maxSize int64) (*string, *types.APIError) {
+func (s *service) ProcessAndUploadEmojis(emojisToUpload []*multipart.FileHeader) ([]string, *types.APIError) {
+	var emojis []string
+
+	for _, fileHeader := range emojisToUpload {
+		file, err := fileHeader.Open()
+		if err != nil {
+			return nil, &types.APIError{
+				Status:  http.StatusInternalServerError,
+				Code:    "ERR_OPEN_FILE",
+				Cause:   err.Error(),
+				Message: "Failed to open file.",
+			}
+		}
+		defer file.Close()
+
+		buffer := make([]byte, 512)
+		n, err := file.Read(buffer)
+		if err != nil && err != io.EOF {
+			return nil, &types.APIError{
+				Status:  http.StatusInternalServerError,
+				Code:    "ERR_READ_FILE",
+				Cause:   err.Error(),
+				Message: "Failed to read file.",
+			}
+		}
+
+		mimeType := http.DetectContentType(buffer[:n])
+		if !strings.Contains(mimeType, "image") {
+			return nil, &types.APIError{
+				Status:  http.StatusBadRequest,
+				Code:    "ERR_INVALID_MIME_TYPE",
+				Message: "Invalid mime type.",
+			}
+		}
+
+		if seeker, ok := file.(io.Seeker); ok {
+			seeker.Seek(0, io.SeekStart)
+		}
+
+		var key string
+		var fileData io.Reader = file
+
+		key = fmt.Sprintf("emoji-%s.webp", cuid2.Generate())
+
+		emojiData, err := processEmoji(file)
+		if err != nil {
+			return nil, &types.APIError{
+				Status:  http.StatusInternalServerError,
+				Code:    "ERR_PROCESS_EMOJI",
+				Cause:   err.Error(),
+				Message: "Failed to process the emoji.",
+			}
+		}
+
+		fileData = bytes.NewReader(emojiData)
+		if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
+			return nil, &types.APIError{
+				Status:  http.StatusInternalServerError,
+				Code:    "ERR_UPLOAD_EMOJI",
+				Cause:   err.Error(),
+				Message: "Failed to upload emoji.",
+			}
+		}
+		defer file.Close()
+
+		fileURL := fmt.Sprintf("%s/%s", s.cdnURL, key)
+
+		emojis = append(emojis, fileURL)
+	}
+
+	return emojis, nil
+}
+
+func (s *service) ProcessAndUploadImage(imageToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError) {
 	file, err := imageToUpload.Open()
 	if err != nil {
 		return nil, &types.APIError{
@@ -221,7 +295,7 @@ func (s *service) ProcessAndUploadImage(imageToUpload *multipart.FileHeader, cro
 	return &fileURL, nil
 }
 
-func (s *service) ProcessAndUploadAvatar(userID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop, maxSize int64) (*string, *types.APIError) {
+func (s *service) ProcessAndUploadAvatar(userID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError) {
 	file, err := avatarToUpload.Open()
 	if err != nil {
 		return nil, &types.APIError{
@@ -400,6 +474,38 @@ func bytesToHuman(bytes int64) string {
 	} else {
 		return fmt.Sprintf("%.2f %s", value, units[exp])
 	}
+}
+
+func processEmoji(file multipart.File) ([]byte, error) {
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file content: %w", err)
+	}
+
+	intSet := vips.IntParameter{}
+	intSet.Set(-1)
+
+	params := vips.NewImportParams()
+	params.NumPages = intSet
+
+	image, err := vips.LoadImageFromBuffer(fileBytes, params)
+	if err != nil {
+		return nil, err
+	}
+	defer image.Close()
+
+	webp := vips.NewWebpExportParams()
+	webp.Lossless = false
+	webp.NearLossless = false
+	webp.Quality = 85
+	webp.StripMetadata = true
+
+	buf, _, err := image.ExportWebp(webp)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf, nil
 }
 
 func cropImage(file multipart.File, crop types.Crop) ([]byte, error) {

@@ -7,6 +7,8 @@
 	import { onMount } from 'svelte';
 	import { MESSAGE_EXTENSIONS } from 'ui/RichInput/richInputConfig';
 	import RichInputEdit from 'ui/RichInput/RichInputEdit.svelte';
+	import MessageAttachments from './MessageAttachments.svelte';
+	import { generateTextWithExt } from 'utils/richInput';
 
 	interface Props {
 		server: Server;
@@ -19,6 +21,7 @@
 
 	let messageEl = $state<HTMLElement>();
 	const html = $derived.by(() => generateHTML(message.content, MESSAGE_EXTENSIONS));
+	const messageLength = $derived.by(() => generateTextWithExt(message.content).length);
 	let mentioned = $derived(userStore.user && message.mentions_users?.includes(userStore.user.id));
 
 	function handleMention(e: MouseEvent) {
@@ -45,19 +48,26 @@
 	});
 </script>
 
-<div
-	bind:this={messageEl}
-	class={[
-		'border-[0.5px] py-1.5 px-3 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-md',
-		message.author.id === userStore.user?.id
-			? 'bg-main-900 border-main-700'
-			: 'bg-main-950 border-main-800',
-		mentioned && 'border-mention! text-mention! bg-mention/20!'
-	]}
->
-	{#if messageStore.editMessage?.id === message.id}
-		<RichInputEdit {server} {channel} bind:onClickSave />
-	{:else}
-		{@html html}
+<div class="flex flex-col gap-y-1.5">
+	{#if messageLength > 0}
+		<div
+			bind:this={messageEl}
+			class={[
+				'border-[0.5px] py-1.5 px-3 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-md',
+				message.author.id === userStore.user?.id
+					? 'bg-main-900 border-main-700'
+					: 'bg-main-950 border-main-800',
+				mentioned && 'border-mention! text-mention! bg-mention/20!'
+			]}
+		>
+			{#if messageStore.editMessage?.id === message.id}
+				<RichInputEdit {server} {channel} bind:onClickSave />
+			{:else}
+				{@html html}
+			{/if}
+		</div>
+	{/if}
+	{#if message.attachments?.length > 0}
+		<MessageAttachments attachments={message.attachments} />
 	{/if}
 </div>

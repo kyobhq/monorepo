@@ -236,3 +236,19 @@ export const EditServerSchema = v.object({
 })
 
 export interface EditServerType extends v.InferInput<typeof EditServerSchema> { }
+
+export const AddEmojisSchema = v.object({
+  emojis: v.array(
+    v.pipe(
+      v.file('Please select an image file.'),
+      v.mimeType(
+        ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif'],
+        'Please select a JPEG, PNG, GIF, WEBP or AVIF file.'
+      ),
+      v.maxSize(1024 * 1024 * 1, 'Please select a file smaller than 1 MB.')
+    )
+  ),
+  shortcodes: v.array(v.string())
+});
+
+export interface AddEmojisType extends v.InferInput<typeof AddEmojisSchema> { }

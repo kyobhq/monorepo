@@ -46,7 +46,7 @@ func NewServer() *http.Server {
 	permissionsService := permissions.New(databaseService, brokerService)
 
 	authService := domains.NewAuthService(databaseService, brokerService)
-	chatService := domains.NewChatService(actorsService, databaseService, permissionsService)
+	chatService := domains.NewChatService(actorsService, databaseService, filesService, permissionsService)
 	userService := domains.NewUserService(databaseService, brokerService, filesService)
 	channelService := domains.NewChannelService(databaseService, actorsService, permissionsService)
 	friendService := domains.NewFriendService(databaseService)

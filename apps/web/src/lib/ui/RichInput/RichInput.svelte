@@ -11,6 +11,8 @@
 	import type { CreateMessageType } from '$lib/types/schemas';
 	import { backend } from 'stores/backendStore.svelte';
 	import { Placeholder } from '@tiptap/extensions';
+	import AttachmentsButton from './attachments/AttachmentsButton.svelte';
+	import Attachments from './attachments/Attachments.svelte';
 
 	interface Props {
 		server: Server;
@@ -25,7 +27,8 @@
 	let attachments = $state<File[]>([]);
 
 	async function prepareMessage(message: any) {
-		if (editor.getText().trim().length <= 0 || editor.getText().length > 2500) return;
+		if (editor.getText().length > 2500) return;
+		if (editor.getText().trim().length <= 0 && attachments.length <= 0) return;
 		const everyone = editor.getText().includes('@everyone');
 		const ids =
 			editor
@@ -112,17 +115,14 @@
 			class="w-full"
 		/>
 	{/if}
+	{#if attachments.length > 0}
+		<Attachments bind:attachments />
+	{/if}
 	<div class="flex gap-x-1">
-		<button class={[icon, 'rounded-r-[2px] rounded-l-md']}>
-			<PlusIcon height={22} width={22} />
-		</button>
+		<AttachmentsButton bind:attachments />
 		<div
 			class="bg-main-900 border-[0.5px] border-main-700 relative flex w-[calc(100%-3.5rem*2-0.625rem)] flex-col transition duration-100 focus-within:border-main-500 hocus:bg-main-800/70 rounded-[2px]"
 		>
-			<!-- {#if attachments.length > 0} -->
-			<!-- 	<Attachments bind:attachments /> -->
-			<!-- {/if} -->
-
 			<div class="flex w-full">
 				<div class="max-h-[10rem] w-full" bind:this={element}></div>
 			</div>

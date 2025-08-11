@@ -18,6 +18,7 @@
 		identityRes.match(
 			(setup) => {
 				userStore.user = setup.user;
+				userStore.emojis = setup.emojis;
 				serverStore.servers = setup.servers;
 				ws.init(setup.user.id);
 				userStore.setupComplete = true;

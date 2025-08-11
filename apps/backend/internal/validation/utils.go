@@ -74,7 +74,7 @@ type FileValidationConfig struct {
 }
 
 var DefaultFileConfig = FileValidationConfig{
-	MaxSize:  5 * 1024 * 1024, // 5MB
+	MaxSize:  10 * 1024 * 1024, // 10MB
 	MaxFiles: 10,
 }
 

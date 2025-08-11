@@ -75,6 +75,10 @@ type Service interface {
 	GetUserLinks(ctx context.Context, userID string) ([]json.RawMessage, error)
 	GetUserFacts(ctx context.Context, userID string) ([]json.RawMessage, error)
 	GetUserPassword(ctx context.Context, userID string) (string, error)
+	UploadEmojis(ctx context.Context, userID string, emojis []db.CreateEmojiParams) error
+	GetEmojis(ctx context.Context, userID string) ([]db.GetEmojisRow, error)
+	UpdateEmoji(ctx context.Context, emojiID string, userID string, body *types.UpdateEmojiParams) error
+	DeleteEmoji(ctx context.Context, emojiID string, userID string) error
 }
 
 type service struct {
@@ -490,6 +494,33 @@ func (s *service) GetUserRolesFromServers(ctx context.Context, userID string, se
 	return s.queries.GetUserRolesFromServers(ctx, db.GetUserRolesFromServersParams{
 		UserID:  userID,
 		Column2: serverIDs,
+	})
+}
+
+func (s *service) UploadEmojis(ctx context.Context, userID string, emojis []db.CreateEmojiParams) error {
+	if _, err := s.queries.CreateEmoji(ctx, emojis); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) GetEmojis(ctx context.Context, userID string) ([]db.GetEmojisRow, error) {
+	return s.queries.GetEmojis(ctx, userID)
+}
+
+func (s *service) DeleteEmoji(ctx context.Context, emojiID string, userID string) error {
+	return s.queries.DeleteEmoji(ctx, db.DeleteEmojiParams{
+		ID:     emojiID,
+		UserID: userID,
+	})
+}
+
+func (s *service) UpdateEmoji(ctx context.Context, emojiID string, userID string, body *types.UpdateEmojiParams) error {
+	return s.queries.UpdateEmoji(ctx, db.UpdateEmojiParams{
+		ID:        emojiID,
+		UserID:    userID,
+		Shortcode: body.Shortcode,
 	})
 }
 

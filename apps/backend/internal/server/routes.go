@@ -48,6 +48,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	protected.PATCH("/users/password", user.UpdatePassword)
 	protected.PATCH("/users/profile", user.UpdateProfile)
 	protected.PATCH("/users/avatar", user.UpdateAvatar)
+	protected.POST("/users/emojis", user.UploadEmojis)
+	protected.PATCH("/users/emojis/:emoji_id", user.UpdateEmojis)
+	protected.DELETE("/users/emojis/:emoji_id", user.DeleteEmoji)
 
 	friend := handlers.NewFriendHandlers(s.friendSvc)
 	protected.POST("/friends/:receiver_id", friend.SendRequest)

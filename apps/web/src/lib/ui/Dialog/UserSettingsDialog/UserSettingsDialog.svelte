@@ -7,6 +7,7 @@
 	import UserSettingsEmail from './UserSettingsEmail.svelte';
 	import Separator from '../Separator.svelte';
 	import UserSettingsAvatar from './UserSettingsAvatar.svelte';
+	import UserSettingsEmojis from './UserSettingsEmojis.svelte';
 
 	let initialized = $state(false);
 	let container = $state<HTMLDivElement>();
@@ -45,6 +46,8 @@
 		{:else if coreStore.userSettingsDialog.section === 'Profile'}
 			<UserSettingsAvatar />
 			<UserSettingsProfile />
+		{:else if coreStore.userSettingsDialog.section === 'Emojis'}
+			<UserSettingsEmojis />
 		{/if}
 	</div>
 </DefaultSettingsDialog>
