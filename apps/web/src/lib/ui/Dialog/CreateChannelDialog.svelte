@@ -9,7 +9,6 @@
 	import DialogFooter from './DialogFooter.svelte';
 	import { page } from '$app/state';
 	import Switch from 'ui/Switch/Switch.svelte';
-	import { onMount } from 'svelte';
 	import { channelStore } from 'stores/channelStore.svelte';
 
 	const { form, errors, enhance } = superForm(defaults(valibot(CreateChannelSchema)), {
@@ -18,13 +17,13 @@
 		validators: valibot(CreateChannelSchema),
 		async onUpdate({ form }) {
 			if (form.valid) {
+				form.data.type = form.data.e2ee ? 'textual-e2ee' : 'textual';
 				form.data.server_id = page.params.server_id || '';
 				form.data.category_id = coreStore.channelDialog.category_id;
 				form.data.position = channelStore.getChannelsLastPositionInCategory(
 					page.params.server_id || '',
 					coreStore.channelDialog.category_id
 				);
-				form.data.type = form.data.e2ee ? 'textual-e2ee' : 'textual';
 				coreStore.channelDialog.open = false;
 
 				const res = await backend.createChannel(form.data);
@@ -38,8 +37,10 @@
 		}
 	});
 
-	onMount(() => {
-		$form.type = 'textual';
+	$effect(() => {
+		if (!$form.type || $form.type === '') {
+			$form.type = 'textual';
+		}
 	});
 </script>
 

@@ -10,7 +10,9 @@ message WSMessage {
     EditChatMessage edit_chat_message = 3;
     DeleteChatMessage delete_chat_message = 4;
     StartChannel start_channel = 5;
-    KillChannel kill_channel = 6;
+    StartCategory start_category = 6;
+    KillChannel kill_channel = 7;
+    KillCategory kill_category = 8;
   }
 }
 
@@ -43,6 +45,16 @@ message KillChannel {
 	Channel channel = 1;
 }
 
+message StartCategory {
+  Category category = 1;
+}
+
+message KillCategory {
+  string server_id = 1;
+  string category_id = 2;
+  repeated string channels_ids = 3;
+}
+
 message Message {
 	string id = 1;
 	User author = 2;
@@ -72,6 +84,18 @@ message User {
 	google.protobuf.Timestamp updated_at = 12;
 }
 
+message Category {
+	string id = 1;
+	int32 position = 2;
+	string server_id = 3;
+	string name = 4;
+	repeated string  users = 5;
+	repeated string  roles = 6;
+	bool e2ee = 7;
+	google.protobuf.Timestamp created_at = 8;
+	google.protobuf.Timestamp updated_at = 9;
+}
+
 message Channel {
 	string id = 1;
 	string server_id = 2;
@@ -84,6 +108,8 @@ message Channel {
 	repeated string roles = 9;
 	bool active = 10;
   int32 position = 11;
+	google.protobuf.Timestamp created_at = 12;
+	google.protobuf.Timestamp updated_at = 13;
 }
 
 message UserLinksRow {

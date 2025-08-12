@@ -44,6 +44,8 @@ func (s *channelService) CreateCategory(c *gin.Context, body *types.CreateCatego
 		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CREATE_CATEGORY", "Failed to create category.", err)
 	}
 
+	s.actors.StartCategory(category)
+
 	return &category, nil
 }
 
@@ -103,6 +105,8 @@ func (s *channelService) DeleteCategory(c *gin.Context, body *types.DeleteCatego
 	if err := s.db.DeleteCategory(c, categoryID); err != nil {
 		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_CATEGORY", "Failed to delete category.", err)
 	}
+
+	s.actors.KillCategory(body, categoryID)
 
 	return nil
 }

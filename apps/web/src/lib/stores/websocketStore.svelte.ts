@@ -1,11 +1,13 @@
 import { WSMessageSchema } from '$lib/gen/types_pb';
-import type { Channel, ChannelTypes, Member, Message } from '$lib/types/types';
+import type { Category, Channel, ChannelTypes, Member, Message } from '$lib/types/types';
 import { fromBinary } from '@bufbuild/protobuf';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { channelStore } from './channelStore.svelte';
 import { page } from '$app/state';
 import { serverStore } from './serverStore.svelte';
 import { userStore } from './userStore.svelte';
+import { categoryStore } from './categoryStore.svelte';
+import { goto } from '$app/navigation';
 
 export class WebsocketStore {
   wsConn = $state<WebSocket>();
@@ -114,6 +116,25 @@ export class WebsocketStore {
             channelStore.editMessage(editMessage);
           }
           break;
+        case 'startCategory':
+          {
+            if (!wsMess.content.value.category) return;
+            const category = wsMess.content.value.category;
+
+            const newCategory: Category = {
+              id: category.id,
+              server_id: category.serverId,
+              name: category.name,
+              position: category.position,
+              users: category.users,
+              roles: category.roles,
+              e2ee: category.e2ee,
+              channels: {}
+            }
+
+            categoryStore.addCategory(newCategory)
+          }
+          break;
         case 'startChannel':
           {
             if (!wsMess.content.value.channel) return;
@@ -135,10 +156,29 @@ export class WebsocketStore {
             channelStore.addChannel(newChannel)
           }
           break;
+        case 'killCategory':
+          {
+            if (!wsMess.content.value) return;
+            const value = wsMess.content.value
+            const channels = channelStore.getCategoryChannels(value.serverId, value.categoryId)
+
+            if (channels.find(chan => chan.id === page.params.channel_id)) {
+              const firstChan = channelStore.getFirstChannel(value.serverId)
+              if (firstChan) goto(`/servers/${value.serverId}/channels/${firstChan}`)
+            }
+
+            categoryStore.deleteCategory(value.serverId, value.categoryId)
+          }
+          break;
         case 'killChannel':
           {
             if (!wsMess.content.value.channel) return;
             const channel = wsMess.content.value.channel;
+
+            if (channel.id === page.params.channel_id) {
+              const firstChan = channelStore.getFirstChannel(channel.serverId)
+              if (firstChan) goto(`/servers/${channel.serverId}/channels/${firstChan}`)
+            }
 
             channelStore.deleteChannel(channel.serverId, channel.categoryId, channel.id);
           }

@@ -13,6 +13,14 @@ class ChannelStore {
     return firstChannel?.id || null
   }
 
+  getCategoryChannels(serverID: string, categoryID: string): Channel[] {
+    const server = serverStore.getServer(serverID)
+    if (!server?.categories) return [];
+    const category = categoryStore.getCategory(serverID, categoryID)
+
+    return Object.values(category?.channels || []);
+  }
+
   getChannel(serverID: string, channelID: string) {
     const server = serverStore.getServer(serverID)
     if (!server?.categories) return null;

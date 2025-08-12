@@ -40,5 +40,6 @@ type DeleteChannelParams struct {
 }
 
 type DeleteCategoryParams struct {
-	ServerID string `json:"server_id" validate:"required"`
+	ServerID    string   `json:"server_id" validate:"required"`
+	ChannelsIDs []string `json:"channels_ids" validate:"omitempty"`
 }

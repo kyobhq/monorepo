@@ -48,6 +48,10 @@ func (s *server) Receive(ctx *actor.Context) {
 			"id", ctx.PID().GetID(),
 			"err", msg.Err,
 		)
+	case *messages.StartCategory:
+		s.startCategory(msg)
+	case *messages.KillCategory:
+		s.killCategory(ctx, msg)
 	case *messages.StartChannel:
 		s.startChannel(ctx, msg)
 	case *messages.KillChannel:
@@ -64,6 +68,18 @@ func (s *server) Receive(ctx *actor.Context) {
 		case "offline":
 			delete(s.users, msg.User.Id)
 		}
+	}
+}
+
+func (s *server) startCategory(msg *messages.StartCategory) {
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_StartCategory{
+			StartCategory: msg,
+		},
+	}
+
+	for userID := range s.users {
+		s.hub.BroadcastMessageToUser(s.hub.GetUser(userID), message)
 	}
 }
 
@@ -88,6 +104,26 @@ func (s *server) killChannel(ctx *actor.Context, msg *messages.KillChannel) {
 	message := &messages.WSMessage{
 		Content: &messages.WSMessage_KillChannel{
 			KillChannel: msg,
+		},
+	}
+
+	for userID := range s.users {
+		s.hub.BroadcastMessageToUser(s.hub.GetUser(userID), message)
+	}
+}
+
+func (s *server) killCategory(ctx *actor.Context, msg *messages.KillCategory) {
+	for _, channelID := range msg.ChannelsIds {
+		channelPID := ctx.PID().Child("channel/" + channelID)
+		ctx.Engine().Poison(channelPID)
+	}
+
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_KillCategory{
+			KillCategory: &messages.KillCategory{
+				ServerId:   msg.ServerId,
+				CategoryId: msg.CategoryId,
+			},
 		},
 	}
 

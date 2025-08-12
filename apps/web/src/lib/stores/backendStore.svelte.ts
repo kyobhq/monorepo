@@ -26,6 +26,7 @@ import type {
   EditUserType,
   PinChannelType
 } from '$lib/types/schemas';
+import { channelStore } from './channelStore.svelte';
 
 const client = ky.create({
   prefixUrl: `${import.meta.env.VITE_API_URL}/protected`,
@@ -116,9 +117,10 @@ export class BackendStore {
   }
 
   deleteCategory(serverID: string, categoryID: string): ResultAsync<void, APIError> {
+    const channels = channelStore.getCategoryChannels(serverID, categoryID)
     return this.makeRequest<void>(`channels/category/${categoryID}`, {
       method: 'delete',
-      json: { server_id: serverID }
+      json: { server_id: serverID, channels_ids: channels.map(chan => chan.id) }
     });
   }
 

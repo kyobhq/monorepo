@@ -14,8 +14,8 @@ class CategoryStore {
     }, 0)
   }
 
-  addCategory(serverID: string, category: Category) {
-    serverStore.safeServerOperation(serverID, (server) => {
+  addCategory(category: Category) {
+    serverStore.safeServerOperation(category.server_id, (server) => {
       server.categories[category.id] = category
       return true
     }, false)

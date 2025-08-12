@@ -15,6 +15,7 @@ import (
 	"github.com/anthdm/hollywood/actor"
 	"github.com/anthdm/hollywood/cluster"
 	"github.com/lxzan/gws"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Engine int
@@ -49,9 +50,13 @@ type Service interface {
 
 	StartServerInRegion(serverID, region string) *actor.PID
 
+	StartCategory(category db.ChannelCategory)
+
 	StartChannel(channel db.Channel)
 
 	KillChannel(body *types.DeleteChannelParams, channelID string)
+
+	KillCategory(body *types.DeleteCategoryParams, categoryID string)
 
 	BroadcastMessageToUser(userPID *actor.PID, message *message.WSMessage)
 
@@ -169,6 +174,26 @@ func (se *service) StartServerInRegion(serverID, region string) *actor.PID {
 	return se.cluster.Activate("server", cluster.NewActivationConfig().WithID(serverID+"@"+region).WithRegion(region))
 }
 
+func (se *service) StartCategory(category db.ChannelCategory) {
+	serversPID := se.GetAllServerInstances(category.ServerID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.StartCategory{
+			Category: &message.Category{
+				Id:        category.ID,
+				Position:  category.Position,
+				ServerId:  category.ServerID,
+				Name:      category.Name,
+				Users:     category.Users,
+				Roles:     category.Roles,
+				E2Ee:      category.E2ee,
+				CreatedAt: timestamppb.New(category.CreatedAt),
+				UpdatedAt: timestamppb.New(category.UpdatedAt),
+			},
+		})
+	}
+}
+
 func (se *service) StartChannel(channel db.Channel) {
 	serversPID := se.GetAllServerInstances(channel.ServerID)
 
@@ -186,7 +211,21 @@ func (se *service) StartChannel(channel db.Channel) {
 				Roles:       channel.Roles,
 				Position:    channel.Position,
 				Active:      channel.Active,
+				CreatedAt:   timestamppb.New(channel.CreatedAt),
+				UpdatedAt:   timestamppb.New(channel.UpdatedAt),
 			},
+		})
+	}
+}
+
+func (se *service) KillCategory(body *types.DeleteCategoryParams, categoryID string) {
+	serversPID := se.GetAllServerInstances(body.ServerID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.KillCategory{
+			ServerId:    body.ServerID,
+			CategoryId:  categoryID,
+			ChannelsIds: body.ChannelsIDs,
 		})
 	}
 }

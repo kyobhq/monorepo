@@ -8,7 +8,6 @@
 	import DefaultDialog from './DefaultDialog.svelte';
 	import DialogFooter from './DialogFooter.svelte';
 	import { page } from '$app/state';
-	import type { Category } from '$lib/types/types';
 	import { categoryStore } from 'stores/categoryStore.svelte';
 
 	const { form, errors, enhance } = superForm(defaults(valibot(CreateCategorySchema)), {
@@ -23,14 +22,7 @@
 
 				const res = await backend.createCategory(form.data);
 				res.match(
-					(category) => {
-						const newCategory: Category = {
-							...category,
-							channels: {}
-						};
-
-						categoryStore.addCategory(newCategory.server_id, newCategory);
-					},
+					() => {},
 					(error) => {
 						console.error(`${error.code}: ${error.message}`);
 					}
