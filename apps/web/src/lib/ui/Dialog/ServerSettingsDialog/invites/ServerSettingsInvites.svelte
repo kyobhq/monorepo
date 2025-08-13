@@ -30,7 +30,7 @@
 		</thead>
 		<tbody>
 			{#if invites && invites.length > 0}
-				{#each invites as invite}
+				{#each invites as invite (invite.id)}
 					<tr class="border-b border-main-800 transition-colors duration-150 hover:bg-main-850">
 						<td class="px-4 py-3 align-middle">
 							<div class="flex items-center gap-3">

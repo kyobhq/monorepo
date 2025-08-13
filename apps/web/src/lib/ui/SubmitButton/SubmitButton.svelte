@@ -7,20 +7,24 @@
 	interface Props {
 		type?: 'button' | 'submit';
 		text: string;
+		fn?: () => void;
 		isSubmitting: boolean;
 		isComplete: boolean;
 		isEmpty?: boolean;
 		isError?: boolean;
 		class?: string;
+		destructive?: boolean;
 	}
 
 	let {
 		type = 'submit',
 		text,
+		fn,
 		isSubmitting = $bindable(),
 		isComplete = $bindable(),
 		isEmpty = $bindable(),
 		isError = $bindable(),
+		destructive = false,
 		class: classes
 	}: Props = $props();
 
@@ -53,9 +57,13 @@
 
 <button
 	{type}
+	onclick={type === 'button' ? fn : null}
 	class={[
 		'px-3 py-1.5 bg-accent-darker border-[0.5px]  transition-colors hover:cursor-pointer relative rounded-sm w-fit',
-		isError ? 'bg-red-500/20  border-red-400 hocus:bg-red-400/30' : 'border-accent hocus:bg-accent',
+		destructive
+			? 'bg-red-500/20  border-red-400 hover:bg-red-400/30'
+			: 'border-accent hover:bg-accent',
+		isError ? 'bg-red-500/20  border-red-400 hover:bg-red-400/30' : 'border-accent hover:bg-accent',
 		classes
 	]}
 	disabled={isSubmitted || isSubmitting || isEmpty}

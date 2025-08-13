@@ -4,7 +4,7 @@
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
 	import FormInput from 'ui/Form/FormInput.svelte';
-	import DialogFooter from '../DialogFooter.svelte';
+	import DialogFooter from '../DialogFooter/DialogFooter.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
 	import type { Server } from '$lib/types/types';
 	import { coreStore } from 'stores/coreStore.svelte';

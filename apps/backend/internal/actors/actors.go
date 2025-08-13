@@ -61,6 +61,16 @@ type Service interface {
 	BroadcastMessageToUser(userPID *actor.PID, message *message.WSMessage)
 
 	GetActiveUsers(serverID string) []string
+
+	CreateOrEditRole(role db.Role)
+
+	RemoveRole(body *types.DeleteRoleParams)
+
+	MoveRole(body *types.MoveRoleMemberParams)
+
+	AddRoleMember(body *types.ChangeRoleMemberParams)
+
+	RemoveRoleMember(body *types.ChangeRoleMemberParams)
 }
 
 type service struct {
@@ -262,6 +272,85 @@ func (se *service) DeleteMessage(chatMessage *message.DeleteChatMessage) {
 	channels := se.GetAllChannelInstances(chatMessage.Message.ServerId, chatMessage.Message.ChannelId)
 	for _, channelPID := range channels {
 		se.cluster.Engine().Send(channelPID, chatMessage)
+	}
+}
+
+func (se *service) CreateOrEditRole(role db.Role) {
+	serversPID := se.GetAllServerInstances(role.ServerID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.CreateOrEditRole{
+			Role: &message.Role{
+				Id:        role.ID,
+				ServerId:  role.ServerID,
+				Position:  role.Position,
+				Name:      role.Name,
+				Color:     role.Color,
+				Abilities: role.Abilities,
+				CreatedAt: timestamppb.New(role.CreatedAt),
+				UpdatedAt: timestamppb.New(role.UpdatedAt),
+			},
+		})
+	}
+}
+
+func (se *service) RemoveRole(body *types.DeleteRoleParams) {
+	serversPID := se.GetAllServerInstances(body.ServerID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.RemoveRole{
+			Role: &message.Role{
+				Id:       body.RoleID,
+				ServerId: body.ServerID,
+			},
+		})
+	}
+}
+
+func (se *service) MoveRole(body *types.MoveRoleMemberParams) {
+	serversPID := se.GetAllServerInstances(body.ServerID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.MoveRole{
+			MovedRole: &message.Role{
+				Id:       body.MovedRoleID,
+				ServerId: body.ServerID,
+			},
+			TargetRole: &message.Role{
+				Id:       body.TargetRoleID,
+				ServerId: body.ServerID,
+			},
+			From: int32(body.From),
+			To:   int32(body.To),
+		})
+	}
+}
+
+func (se *service) AddRoleMember(body *types.ChangeRoleMemberParams) {
+	serversPID := se.GetAllServerInstances(body.ServerID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.AddRoleMember{
+			UserId: body.UserID,
+			Role: &message.Role{
+				Id:       body.RoleID,
+				ServerId: body.ServerID,
+			},
+		})
+	}
+}
+
+func (se *service) RemoveRoleMember(body *types.ChangeRoleMemberParams) {
+	serversPID := se.GetAllServerInstances(body.ServerID)
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.RemoveRoleMember{
+			UserId: body.UserID,
+			Role: &message.Role{
+				Id:       body.RoleID,
+				ServerId: body.ServerID,
+			},
+		})
 	}
 }
 

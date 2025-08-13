@@ -34,7 +34,7 @@
 		</thead>
 		<tbody>
 			{#if members && members.length > 0}
-				{#each members as member}
+				{#each members as member (member.id)}
 					<tr class="border-b border-main-800 transition-colors duration-150 hover:bg-main-850">
 						<td class="px-4 py-3 align-middle">
 							<div class="flex items-center gap-3">

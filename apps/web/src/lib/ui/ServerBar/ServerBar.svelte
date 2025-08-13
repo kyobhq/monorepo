@@ -16,30 +16,30 @@
 
 		if (roles.length === 0) {
 			return {
-				Members: members
+				default: members
 			};
 		}
 
 		let roleGroups: Record<string, Member[]> = {};
 
 		for (const role of roles) {
-			roleGroups[role.name] = [];
+			roleGroups[role.id] = [];
 		}
-		roleGroups['Members'] = [];
+		roleGroups['default'] = [];
 
 		for (const member of members) {
 			let hasRole = false;
 
 			for (const role of roles) {
-				if (member.roles.includes(role.id)) {
-					roleGroups[role.name].push(member);
+				if (member.roles?.includes(role.id)) {
+					roleGroups[role.id].push(member);
 					hasRole = true;
 					break;
 				}
 			}
 
 			if (!hasRole) {
-				roleGroups['Members'].push(member);
+				roleGroups['default'].push(member);
 			}
 		}
 
@@ -60,15 +60,23 @@
 	</section>
 	<BarSeparator title={`Members - ${serverStore.memberCount}`} />
 	<div class="flex flex-col gap-y-2 p-2.5">
-		{#each Object.keys(membersPerRole) as role, idx (idx)}
-			<CollapsibleBox header={role} canCollapse={false}>
-				{#each membersPerRole[role] as member (member.id)}
+		{#each Object.keys(membersPerRole) as roleID, idx (idx)}
+			{@const role = serverStore.getRole(page.params.server_id || '', roleID)!}
+			<CollapsibleBox header={role.name} canCollapse={false} color={role.color}>
+				{#each membersPerRole[roleID] as member (member.id)}
 					{@const isCurrentUser = member.id === userStore.user!.id}
 					{@const displayName = isCurrentUser ? userStore.user!.display_name : member.display_name!}
 					{@const avatar = isCurrentUser ? userStore.user!.avatar : member.avatar!}
 					{@const status = isCurrentUser ? 'online' : member.status}
 
-					<UserLine id={member.id!} {status} name={displayName} {avatar} hoverable />
+					<UserLine
+						id={member.id!}
+						{status}
+						name={displayName}
+						{avatar}
+						hoverable
+						color={role.color}
+					/>
 				{/each}
 			</CollapsibleBox>
 		{/each}

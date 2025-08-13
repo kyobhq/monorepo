@@ -1,4 +1,5 @@
 <script lang="ts">
+	import 'what-input';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import '../app.css';

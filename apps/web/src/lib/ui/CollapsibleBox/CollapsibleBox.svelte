@@ -41,7 +41,7 @@
 		class={[
 			'relative w-full flex items-center justify-start py-1.5 px-2.5 text-main-300 text-sm',
 			!isCollapsed && 'border-b-[0.5px]',
-			canCollapse && 'hover:cursor-pointer hocus:bg-main-900 transition-colors duration-75'
+			canCollapse && 'hover:cursor-pointer hover:bg-main-900 transition-colors duration-75'
 		]}
 	>
 		{header}

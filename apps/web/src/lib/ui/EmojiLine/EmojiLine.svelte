@@ -66,7 +66,7 @@
 </script>
 
 <li
-	class="group hocus:bg-main-800 hocus:border-main-700 focus-within:bg-main-800 focus-within:border-main-700 border-b-main-800 flex items-center justify-between border border-t-transparent border-r-transparent border-l-transparent p-4 transition-colors"
+	class="group hover:bg-main-800 hover:border-main-700 focus-within:bg-main-800 focus-within:border-main-700 border-b-main-800 flex items-center justify-between border border-t-transparent border-r-transparent border-l-transparent p-4 transition-colors"
 >
 	<div class="flex items-center gap-x-2">
 		<img src={url} alt={shortcode} class="h-[32px] w-[32px] object-contain" />
@@ -89,7 +89,7 @@
 
 	<button
 		type="button"
-		class="inner-red-400/20 hocus:inner-red-400/40 hocus:bg-red-400/25 group-hocus:opacity-100 bg-red-400/15 p-1 text-red-400 opacity-0 transition hover:cursor-pointer rounded-sm"
+		class="inner-red-400/20 hover:inner-red-400/40 hover:bg-red-400/25 group-hover:opacity-100 bg-red-400/15 p-1 text-red-400 opacity-0 transition hover:cursor-pointer rounded-sm"
 		aria-label="Delete emoji"
 		onclick={() => deleteFunction(id, idx)}
 	>

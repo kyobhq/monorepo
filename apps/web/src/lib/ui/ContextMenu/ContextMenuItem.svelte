@@ -2,7 +2,7 @@
 	import { ContextMenu } from 'bits-ui';
 
 	interface Props {
-		onclick: () => void;
+		onclick: any;
 		text: string;
 		destructive?: boolean;
 		success?: boolean;
@@ -13,10 +13,10 @@
 
 <ContextMenu.Item
 	class={[
-		'flex px-2.5 py-1.5 hover:cursor-pointer transition-colors duration-75 select-none text-sm',
-		!destructive && !success && 'hocus:bg-main-800',
-		destructive && 'text-red-400 hocus:bg-red-400/20',
-		success && 'text-green-400 hocus:bg-green-400/20'
+		'flex px-2.5 py-1.5 hover:cursor-pointer transition-colors duration-75 select-none text-sm rounded-sm',
+		!destructive && !success && 'hover:bg-main-800',
+		destructive && 'text-red-400 hover:bg-red-400/20',
+		success && 'text-green-400 hover:bg-green-400/20'
 	]}
 	{onclick}
 >

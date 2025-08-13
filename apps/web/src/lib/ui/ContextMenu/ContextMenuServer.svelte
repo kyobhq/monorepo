@@ -8,6 +8,7 @@
 	import { goto } from '$app/navigation';
 	import { serverStore } from 'stores/serverStore.svelte';
 	import { coreStore } from 'stores/coreStore.svelte';
+	import { hasPermissions } from 'utils/permissions';
 
 	interface Props {
 		server: Server;
@@ -61,12 +62,16 @@
 
 <ContextMenuSkeleton>
 	{#snippet contextMenuContent()}
-		<ContextMenuItem
-			onclick={createInvite}
-			text={inviteCreated ? 'Check your clipboard!' : 'Get Invite Link'}
-			success={inviteCreated}
-		/>
-		<ContextMenuItem onclick={openSettings} text="Edit Server" />
+		{#if hasPermissions(server.id, 'CREATE_INVITE')}
+			<ContextMenuItem
+				onclick={createInvite}
+				text={inviteCreated ? 'Check your clipboard!' : 'Get Invite Link'}
+				success={inviteCreated}
+			/>
+		{/if}
+		{#if hasPermissions(server.id, 'MANAGE_SERVER', 'MANAGE_ROLES')}
+			<ContextMenuItem onclick={openSettings} text="Edit Server" />
+		{/if}
 		{#if server.owner_id === userStore.user!.id}
 			<ContextMenuItem onclick={() => {}} text="Delete Server" destructive />
 		{:else}

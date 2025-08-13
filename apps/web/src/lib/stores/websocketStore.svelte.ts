@@ -1,5 +1,5 @@
 import { WSMessageSchema } from '$lib/gen/types_pb';
-import type { Category, Channel, ChannelTypes, Member, Message } from '$lib/types/types';
+import type { Category, Channel, ChannelTypes, Member, Message, Role } from '$lib/types/types';
 import { fromBinary } from '@bufbuild/protobuf';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { channelStore } from './channelStore.svelte';
@@ -130,9 +130,9 @@ export class WebsocketStore {
               roles: category.roles,
               e2ee: category.e2ee,
               channels: {}
-            }
+            };
 
-            categoryStore.addCategory(newCategory)
+            categoryStore.addCategory(newCategory);
           }
           break;
         case 'startChannel':
@@ -150,24 +150,24 @@ export class WebsocketStore {
               roles: channel.roles,
               type: channel.type as ChannelTypes,
               position: channel.position,
-              unread: false,
-            }
+              unread: false
+            };
 
-            channelStore.addChannel(newChannel)
+            channelStore.addChannel(newChannel);
           }
           break;
         case 'killCategory':
           {
             if (!wsMess.content.value) return;
-            const value = wsMess.content.value
-            const channels = channelStore.getCategoryChannels(value.serverId, value.categoryId)
+            const value = wsMess.content.value;
+            const channels = channelStore.getCategoryChannels(value.serverId, value.categoryId);
 
-            if (channels.find(chan => chan.id === page.params.channel_id)) {
-              const firstChan = channelStore.getFirstChannel(value.serverId)
-              if (firstChan) goto(`/servers/${value.serverId}/channels/${firstChan}`)
+            if (channels.find((chan) => chan.id === page.params.channel_id)) {
+              const firstChan = channelStore.getFirstChannel(value.serverId);
+              if (firstChan) goto(`/servers/${value.serverId}/channels/${firstChan}`);
             }
 
-            categoryStore.deleteCategory(value.serverId, value.categoryId)
+            categoryStore.deleteCategory(value.serverId, value.categoryId);
           }
           break;
         case 'killChannel':
@@ -176,11 +176,94 @@ export class WebsocketStore {
             const channel = wsMess.content.value.channel;
 
             if (channel.id === page.params.channel_id) {
-              const firstChan = channelStore.getFirstChannel(channel.serverId)
-              if (firstChan) goto(`/servers/${channel.serverId}/channels/${firstChan}`)
+              const firstChan = channelStore.getFirstChannel(channel.serverId);
+              if (firstChan) goto(`/servers/${channel.serverId}/channels/${firstChan}`);
             }
 
             channelStore.deleteChannel(channel.serverId, channel.categoryId, channel.id);
+          }
+          break;
+        case 'createOrEditRole':
+          {
+            if (!wsMess.content.value.role) return;
+            const role = wsMess.content.value.role;
+            const newRole: Role = {
+              id: role.id,
+              members: [],
+              name: role.name,
+              color: role.color,
+              abilities: role.abilities,
+              position: role.position
+            };
+
+            const existingRole = serverStore.getRole(role.serverId, role.id);
+            if (existingRole) {
+              serverStore.editRole(role.serverId, newRole);
+            } else {
+              serverStore.addRole(role.serverId, newRole);
+            }
+          }
+          break;
+        case 'addRoleMember':
+          {
+            if (!wsMess.content.value.userId || !wsMess.content.value.role) return;
+            const userId = wsMess.content.value.userId;
+            const role = wsMess.content.value.role;
+
+            const member = serverStore.getMember(role.serverId, userId);
+            if (member) member.roles.push(role.id);
+
+            if (userId === userStore.user!.id) {
+              serverStore.servers[role.serverId].user_roles.push(role.id);
+            }
+          }
+          break;
+        case 'removeRoleMember':
+          {
+            if (!wsMess.content.value.userId || !wsMess.content.value.role) return;
+            const userId = wsMess.content.value.userId;
+            const role = wsMess.content.value.role;
+
+            const member = serverStore.getMember(role.serverId, userId);
+            if (member) {
+              member.roles = member.roles.filter((roleID) => roleID !== role.id);
+            }
+
+            if (userId === userStore.user!.id) {
+              serverStore.servers[role.serverId].user_roles = serverStore.servers[
+                role.serverId
+              ].user_roles.filter((roleID) => roleID !== role.id);
+            }
+          }
+          break;
+        case 'removeRole':
+          {
+            if (!wsMess.content.value.role) return;
+            const role = wsMess.content.value.role;
+            serverStore.deleteRole(role.serverId, role.id);
+          }
+          break;
+        case 'moveRole':
+          {
+            if (!wsMess.content.value) return;
+            const movedRoleID = wsMess.content.value.movedRole?.id;
+            const targetRoleID = wsMess.content.value.targetRole?.id;
+            const serverID = wsMess.content.value.movedRole?.serverId;
+            if (!movedRoleID || !targetRoleID || !serverID) return;
+
+            const fromPos = wsMess.content.value.from;
+            const toPos = wsMess.content.value.to;
+
+            const roles = serverStore.getRoles(serverID);
+            const movedRole = serverStore.getRole(serverID, movedRoleID);
+            const targetRole = serverStore.getRole(serverID, targetRoleID);
+
+            if (movedRole && targetRole) {
+              movedRole.position = toPos;
+              targetRole.position = fromPos;
+            }
+
+            roles.sort((a, b) => a.position - b.position);
           }
           break;
       }

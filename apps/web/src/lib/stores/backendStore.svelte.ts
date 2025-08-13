@@ -6,6 +6,7 @@ import type {
   Channel,
   Emoji,
   Message,
+  Role,
   Server,
   ServerInformations,
   Setup,
@@ -16,6 +17,7 @@ import type {
   CreateCategoryType,
   CreateChannelType,
   CreateMessageType,
+  CreateOrUpdateRoleType,
   CreateServerType,
   DeleteMessageType,
   EditAvatarType,
@@ -27,6 +29,7 @@ import type {
   PinChannelType
 } from '$lib/types/schemas';
 import { channelStore } from './channelStore.svelte';
+import { SvelteMap } from 'svelte/reactivity';
 
 const client = ky.create({
   prefixUrl: `${import.meta.env.VITE_API_URL}/protected`,
@@ -37,19 +40,53 @@ const client = ky.create({
 });
 
 export class BackendStore {
+  private pendingRequests = new SvelteMap<string, AbortController>();
+
   private makeRequest<T>(endpoint: Input, options?: Options): ResultAsync<T, APIError> {
+    const method = options?.method || 'get';
+    const bodyKey = options?.json
+      ? JSON.stringify(options.json)
+      : options?.body
+        ? String(options.body)
+        : '';
+    const requestKey = `${method.toUpperCase()}:${String(endpoint)}:${bodyKey}`;
+
+    if (this.pendingRequests.has(requestKey)) {
+      this.pendingRequests.get(requestKey)?.abort();
+    }
+
+    const controller = new AbortController();
+    this.pendingRequests.set(requestKey, controller);
+
     const shouldTrace =
       import.meta.env.DEV &&
       typeof localStorage !== 'undefined' &&
       localStorage.getItem('traceApi') === '1';
     const startAt = shouldTrace ? performance.now() : 0;
 
-    return ResultAsync.fromPromise(client(endpoint, options), (error: unknown) => ({
-      status: 0,
-      code: 'NETWORK_ERROR',
-      cause: 'Network request failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    })).andThen((res) => {
+    return ResultAsync.fromPromise(
+      client(endpoint, { ...options, signal: controller.signal }),
+      (error: unknown) => {
+        this.pendingRequests.delete(requestKey);
+
+        if (error instanceof Error && error.name === 'AbortError') {
+          return {
+            status: 0,
+            code: 'REQUEST_ABORTED',
+            cause: 'Request was aborted',
+            message: 'Request cancelled by newer request'
+          };
+        }
+
+        return {
+          status: 0,
+          code: 'NETWORK_ERROR',
+          cause: 'Network request failed',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    ).andThen((res) => {
+      this.pendingRequests.delete(requestKey);
       const afterFetchAt = shouldTrace ? performance.now() : 0;
       return ResultAsync.fromPromise(res.json(), () => ({
         status: res.status,
@@ -109,7 +146,11 @@ export class BackendStore {
     return this.makeRequest<void>('channels/pin', { method: 'post', json: body });
   }
 
-  deleteChannel(serverID: string, categoryID: string, channelID: string): ResultAsync<void, APIError> {
+  deleteChannel(
+    serverID: string,
+    categoryID: string,
+    channelID: string
+  ): ResultAsync<void, APIError> {
     return this.makeRequest<void>(`channels/${channelID}`, {
       method: 'delete',
       json: { server_id: serverID, category_id: categoryID }
@@ -117,10 +158,10 @@ export class BackendStore {
   }
 
   deleteCategory(serverID: string, categoryID: string): ResultAsync<void, APIError> {
-    const channels = channelStore.getCategoryChannels(serverID, categoryID)
+    const channels = channelStore.getCategoryChannels(serverID, categoryID);
     return this.makeRequest<void>(`channels/category/${categoryID}`, {
       method: 'delete',
-      json: { server_id: serverID, channels_ids: channels.map(chan => chan.id) }
+      json: { server_id: serverID, channels_ids: channels.map((chan) => chan.id) }
     });
   }
 
@@ -247,6 +288,53 @@ export class BackendStore {
 
   deleteEmoji(id: string): ResultAsync<void, APIError> {
     return this.makeRequest<void>(`users/emojis/${id}`, { method: 'delete' });
+  }
+
+  createOrUpdateRole(serverID: string, body: CreateOrUpdateRoleType): ResultAsync<Role, APIError> {
+    return this.makeRequest<Role>(`roles`, {
+      method: 'post',
+      json: { ...body, server_id: serverID }
+    });
+  }
+
+  deleteRole(serverID: string, roleID: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`roles`, {
+      method: 'delete',
+      json: { server_id: serverID, role_id: roleID }
+    });
+  }
+
+  addRoleMember(serverID: string, roleID: string, userID: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`roles/add_member`, {
+      method: 'patch',
+      json: { server_id: serverID, role_id: roleID, user_id: userID }
+    });
+  }
+
+  removeRoleMember(serverID: string, roleID: string, userID: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`roles/remove_member`, {
+      method: 'patch',
+      json: { server_id: serverID, role_id: roleID, user_id: userID }
+    });
+  }
+
+  moveRole(
+    serverID: string,
+    targetRoleID: string,
+    movedRoleID: string,
+    from: number,
+    to: number
+  ): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`roles/move`, {
+      method: 'patch',
+      json: {
+        server_id: serverID,
+        target_role_id: targetRoleID,
+        moved_role_id: movedRoleID,
+        from: from,
+        to: to
+      }
+    });
   }
 }
 

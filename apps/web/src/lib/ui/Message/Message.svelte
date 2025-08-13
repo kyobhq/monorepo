@@ -24,11 +24,11 @@
 </script>
 
 <div
-	class="flex gap-x-2.5 items-end hocus:bg-main-950/50 px-6 py-1.5 transition-colors duration-75 relative"
+	class="flex gap-x-2.5 items-end hover:bg-main-950/50 px-6 py-1.5 transition-colors duration-75 relative"
 >
 	<button
 		bind:this={avatarEl}
-		class="h-12 w-12 relative highlight-border mb-1 select-none shrink-0 hocus:after:border-main-50/75 hover:cursor-pointer rounded-md overflow-hidden"
+		class="h-12 w-12 relative highlight-border mb-1 select-none shrink-0 hover:after:border-main-50/75 hover:cursor-pointer rounded-md overflow-hidden"
 		onclick={() => {
 			if (author.id === userStore.user!.id) {
 				coreStore.openMyProfile(avatarEl!, 'right');

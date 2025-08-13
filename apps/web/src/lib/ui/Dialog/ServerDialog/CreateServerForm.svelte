@@ -9,7 +9,7 @@
 	import { valibot } from 'sveltekit-superforms/adapters';
 	import FormInput from 'ui/Form/FormInput.svelte';
 	import Switch from 'ui/Switch/Switch.svelte';
-	import DialogFooter from '../DialogFooter.svelte';
+	import DialogFooter from '../DialogFooter/DialogFooter.svelte';
 	import { goto } from '$app/navigation';
 
 	let avatar = $state<string | undefined>();
@@ -80,8 +80,8 @@
 			class={[
 				'group relative h-[85px] w-[85px] overflow-hidden text-transparent transition-colors hover:cursor-pointer border-[0.5px] rounded-sm overflow-hidden',
 				$errors.avatar
-					? 'hocus:bg-red-400/25 border-red-400 hocus:inner-red-400/40 bg-red-400/15'
-					: 'border-main-800 bg-main-950 hocus:bg-main-900'
+					? 'hover:bg-red-400/25 border-red-400 hover:inner-red-400/40 bg-red-400/15'
+					: 'border-main-800 bg-main-950 hover:bg-main-900'
 			]}
 		>
 			<input

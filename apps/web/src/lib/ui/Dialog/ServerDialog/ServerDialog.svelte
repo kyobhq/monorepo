@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { coreStore } from 'stores/coreStore.svelte';
-	import DefaultDialog from '../DefaultDialog.svelte';
+	import DefaultDialog from '../DefaultDialog/DefaultDialog.svelte';
 	import CreateServerForm from './CreateServerForm.svelte';
 	import JoinServerForm from './JoinServerForm.svelte';
 

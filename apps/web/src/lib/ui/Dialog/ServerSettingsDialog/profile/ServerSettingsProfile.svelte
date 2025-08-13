@@ -10,6 +10,7 @@
 	import { logErr } from 'utils/print';
 	import { serverStore } from 'stores/serverStore.svelte';
 	import { generateTextWithExt } from 'utils/richInput';
+	import { hasPermissions, isOwner } from 'utils/permissions';
 
 	let { server }: { server: Server } = $props();
 	let initialized = $state(false);
@@ -77,12 +78,14 @@
 		class="w-full"
 	/>
 
-	<Switch
-		active={$form.public}
-		action={() => ($form.public = true)}
-		reverse={() => ($form.public = false)}
-		label="Public server"
-	/>
+	{#if isOwner()}
+		<Switch
+			active={$form.public}
+			action={() => ($form.public = true)}
+			reverse={() => ($form.public = false)}
+			label="Public server"
+		/>
+	{/if}
 
 	{#if initialized && changes}
 		<SaveBar bind:isSubmitting bind:isButtonComplete />

@@ -53,7 +53,7 @@
 											'border-[0.5px] px-2.5 py-1.5 w-fit transition-colors duration-100 hover:cursor-pointer rounded-[2px] first:rounded-tl-md last:rounded-tr-md',
 											currentTab === tab
 												? 'bg-main-800/70 border-main-500'
-												: 'bg-main-950 border-main-700 hocus:bg-main-900 hocus:border-main-600'
+												: 'bg-main-950 border-main-700 hover:bg-main-900 hover:border-main-600'
 										]}
 									>
 										{tab}
@@ -73,7 +73,7 @@
 
 								<Dialog.Close
 									type="button"
-									class="text-main-400 h-8 w-8 hocus:bg-main-900 hocus:text-main-50 absolute top-5 right-5 transition-colors hover:cursor-pointer border-[0.5px] border-main-700 aspect-square flex justify-center items-center duration-75 rounded-sm"
+									class="text-main-400 h-8 w-8 hover:bg-main-900 hover:text-main-50 absolute top-5 right-5 transition-colors hover:cursor-pointer border-[0.5px] border-main-700 aspect-square flex justify-center items-center duration-75 rounded-sm"
 								>
 									<CloseIcon height={18} width={18} />
 								</Dialog.Close>

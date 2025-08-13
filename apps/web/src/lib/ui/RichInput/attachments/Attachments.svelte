@@ -38,7 +38,7 @@
 
 {#snippet closeButton(attachment: File, idx: number)}
 	<button
-		class="hocus:border-red-400 hocus:bg-red-400/40 absolute top-1 right-1 border border-red-400/50 bg-red-400/20 transition-colors duration-100 hover:cursor-pointer z-[2] rounded-sm"
+		class="hover:border-red-400 hover:bg-red-400/40 absolute top-1 right-1 border border-red-400/50 bg-red-400/20 transition-colors duration-100 hover:cursor-pointer z-[2] rounded-sm"
 		onclick={() => removeAttachment(attachment, idx)}
 	>
 		<PlusIcon height={16} width={16} class="text-red-400 rotate-45" />

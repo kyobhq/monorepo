@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -47,7 +46,7 @@ type Service interface {
 	UpdateServerAvatarNBanner(ctx context.Context, serverID string, avatar, bannerURL *string) error
 	UpdateServerProfile(ctx context.Context, serverID string, body *types.UpdateServerProfileParams) error
 	LeaveServer(ctx context.Context, serverID string, userID string) error
-	DeleteServer(ctx context.Context, serverID string) (pgconn.CommandTag, error)
+	DeleteServer(ctx context.Context, userID, serverID string) error
 	GetChannelsFromServers(ctx context.Context, serverIDs []string) ([]db.Channel, error)
 	GetChannelsFromServer(ctx context.Context, serverID string) ([]db.Channel, error)
 	GetCategoriesFromServers(ctx context.Context, serverIDs []string) ([]db.ChannelCategory, error)
@@ -60,14 +59,18 @@ type Service interface {
 	CreateChannel(ctx context.Context, body *types.CreateChannelParams) (db.Channel, error)
 	DeleteChannel(ctx context.Context, channelID string) error
 	DeleteCategory(ctx context.Context, categoryID string) error
-	CreateRole(ctx context.Context, body *types.CreateRoleParams) (db.Role, error)
+	UpsertRole(ctx context.Context, body *types.CreateRoleParams) (db.Role, error)
+	DeleteRole(ctx context.Context, body *types.DeleteRoleParams) error
+	AddRoleMember(ctx context.Context, body *types.ChangeRoleMemberParams) error
+	RemoveRoleMember(ctx context.Context, body *types.ChangeRoleMemberParams) error
+	MoveRole(ctx context.Context, body *types.MoveRoleMemberParams) error
 	CheckPermission(ctx context.Context, serverID, userID string, ability types.Ability) (bool, error)
 	GetServerAbilities(ctx context.Context, serverID, userID string) ([]string, error)
 	UpdateChannelInformations(ctx context.Context, channelID string, body *types.EditChannelParams) error
 	CreateMessage(ctx context.Context, userID string, body *types.CreateMessageParams) (db.Message, error)
 	GetServers(ctx context.Context) ([]string, error)
 	GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, error)
-	GetServerInformations(ctx context.Context, serverID string, userIDs []string) (db.GetServerInformationsRow, error)
+	GetServerInformations(ctx context.Context, userID, serverID string, userIDs []string) (db.GetServerInformationsRow, error)
 	GetMessages(ctx context.Context, channelID string) ([]db.GetMessagesFromChannelRow, error)
 	DeleteMessage(ctx context.Context, messageID string, userID string) error
 	GetMessageAuthor(ctx context.Context, messageID string) (string, error)
@@ -306,9 +309,10 @@ func (s *service) LeaveServer(ctx context.Context, serverID string, userID strin
 	})
 }
 
-func (s *service) DeleteServer(ctx context.Context, serverID string) (pgconn.CommandTag, error) {
+func (s *service) DeleteServer(ctx context.Context, userID, serverID string) error {
 	return s.queries.DeleteServer(ctx, db.DeleteServerParams{
-		ID: serverID,
+		ID:      serverID,
+		OwnerID: userID,
 	})
 }
 
@@ -369,15 +373,77 @@ func (s *service) DeleteCategory(ctx context.Context, categoryID string) error {
 	return s.queries.DeleteCategory(ctx, categoryID)
 }
 
-func (s *service) CreateRole(ctx context.Context, body *types.CreateRoleParams) (db.Role, error) {
-	return s.queries.CreateRole(ctx, db.CreateRoleParams{
-		ID:        cuid2.Generate(),
+func (s *service) UpsertRole(ctx context.Context, body *types.CreateRoleParams) (db.Role, error) {
+	return s.queries.UpsertRole(ctx, db.UpsertRoleParams{
+		ID:        body.RoleID,
 		Position:  int32(body.Position),
 		ServerID:  body.ServerID,
 		Name:      body.Name,
 		Color:     body.Color,
 		Abilities: body.Abilities,
 	})
+}
+
+func (s *service) DeleteRole(ctx context.Context, body *types.DeleteRoleParams) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.queries.WithTx(tx)
+
+	if err = qtx.DeleteRole(ctx, body.RoleID); err != nil {
+		return err
+	}
+
+	if err = qtx.RemoveRoleFromAllMembers(ctx, body.RoleID); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}
+
+func (s *service) AddRoleMember(ctx context.Context, body *types.ChangeRoleMemberParams) error {
+	return s.queries.GiveRole(ctx, db.GiveRoleParams{
+		ServerID:    body.ServerID,
+		UserID:      body.UserID,
+		ArrayAppend: body.RoleID,
+	})
+}
+
+func (s *service) RemoveRoleMember(ctx context.Context, body *types.ChangeRoleMemberParams) error {
+	return s.queries.RemoveRoleMember(ctx, db.RemoveRoleMemberParams{
+		ServerID:    body.ServerID,
+		UserID:      body.UserID,
+		ArrayRemove: body.RoleID,
+	})
+}
+
+func (s *service) MoveRole(ctx context.Context, body *types.MoveRoleMemberParams) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.queries.WithTx(tx)
+
+	if err := qtx.MoveRole(ctx, db.MoveRoleParams{
+		ID:       body.MovedRoleID,
+		Position: int32(body.To),
+	}); err != nil {
+		return err
+	}
+
+	if err := qtx.MoveRole(ctx, db.MoveRoleParams{
+		ID:       body.TargetRoleID,
+		Position: int32(body.From),
+	}); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (s *service) CheckPermission(ctx context.Context, serverID, userID string, ability types.Ability) (bool, error) {
@@ -430,10 +496,11 @@ func (s *service) GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, erro
 	return s.queries.GetChannelsIDs(ctx)
 }
 
-func (s *service) GetServerInformations(ctx context.Context, serverID string, userIDs []string) (db.GetServerInformationsRow, error) {
+func (s *service) GetServerInformations(ctx context.Context, userID, serverID string, userIDs []string) (db.GetServerInformationsRow, error) {
 	return s.queries.GetServerInformations(ctx, db.GetServerInformationsParams{
 		ID:      serverID,
 		Column2: userIDs,
+		UserID:  userID,
 	})
 }
 

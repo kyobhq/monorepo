@@ -14,17 +14,17 @@
 </script>
 
 <button
-	class="group border-main-700 bg-main-800 hocus:bg-accent-100/15 hocus:border-accent-100 relative flex items-center gap-x-3 border py-2 pr-5 pl-3 text-left transition-colors select-none hover:cursor-pointer"
+	class="group border-main-700 bg-main-800 hover:bg-accent-100/15 hover:border-accent-100 relative flex items-center gap-x-3 border py-2 pr-5 pl-3 text-left transition-colors select-none hover:cursor-pointer"
 	onclick={download}
 >
 	<FileIcon
 		height={36}
 		width={36}
-		class="text-accent-200 group-hocus:text-accent-100 transition-colors"
+		class="text-accent-200 group-hover:text-accent-100 transition-colors"
 	/>
 	<div class="flex flex-col">
-		<p class="group-hocus:text-accent-50 transition-colors">{file.file_name}</p>
-		<span class="text-main-300 group-hocus:text-accent-50/70 text-xs transition-colors">
+		<p class="group-hover:text-accent-50 transition-colors">{file.file_name}</p>
+		<span class="text-main-300 group-hover:text-accent-50/70 text-xs transition-colors">
 			{file.file_size}
 		</span>
 	</div>

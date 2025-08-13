@@ -18,7 +18,7 @@
 </script>
 
 <label
-	class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-900 hocus:bg-main-800/80 border-[0.5px] border-main-700 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer transition-colors duration-75 rounded-r-[2px] rounded-l-md"
+	class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-900 hover:bg-main-800/80 border-[0.5px] border-main-700 aspect-square text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 rounded-r-[2px] rounded-l-md"
 	for="file-attachement"
 >
 	<input

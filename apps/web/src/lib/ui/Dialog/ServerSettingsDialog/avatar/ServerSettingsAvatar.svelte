@@ -156,7 +156,7 @@
 					onchange={(e) => onFile(e, 'banner')}
 					class="absolute inset-0 text-transparent peer z-[4] hover:cursor-pointer"
 				/>
-				<figure class="highlight-border w-full h-full peer-hocus:after:border-main-50/75">
+				<figure class="highlight-border w-full h-full peer-hover:after:border-main-50/75">
 					<img class="w-full h-full object-cover select-none" src={server.banner} alt="" />
 				</figure>
 			{/if}
@@ -186,7 +186,7 @@
 					onchange={(e) => onFile(e, 'avatar')}
 					class="absolute inset-0 text-transparent peer z-[4] hover:cursor-pointer"
 				/>
-				<figure class="highlight-border w-full h-full peer-hocus:after:border-main-50/75">
+				<figure class="highlight-border w-full h-full peer-hover:after:border-main-50/75">
 					<img class="w-full h-full object-cover select-none" src={server.avatar} alt="" />
 				</figure>
 			{/if}

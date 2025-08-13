@@ -31,7 +31,7 @@
 
 <button
 	bind:this={memberEl}
-	style="--hover-color: {getHoverColor(color ?? '#ADADB8')}"
+	style="--hover-color: {color ? getHoverColor(color) : 'var(--ui-main-900)'}"
 	class={[
 		'flex items-center gap-x-2.5 p-1 pr-2.5 transition-colors duration-75 select-none rounded-sm',
 		hoverable && `hover:cursor-pointer hover:bg-[var(--hover-color)]`,

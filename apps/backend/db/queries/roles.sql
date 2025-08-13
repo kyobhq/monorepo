@@ -1,9 +1,14 @@
--- name: CreateRole :one
+-- name: UpsertRole :one
 INSERT INTO roles (
   id, position, server_id, name, color, abilities
 ) VALUES (
   $1, $2, $3, $4, $5, $6
 )
+ON CONFLICT (id) 
+DO UPDATE SET 
+  name = EXCLUDED.name,
+  color = EXCLUDED.color,
+  abilities = EXCLUDED.abilities
 RETURNING *;
 
 -- name: GetUserAbilities :one

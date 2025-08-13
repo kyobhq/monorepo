@@ -49,7 +49,7 @@ func (s *service) CheckPermission(ctx *gin.Context, serverID string, ability typ
 	}
 
 	abilities := s.getAbilities(ctx, serverID, userID)
-	return slices.Contains(abilities, string(ability)) || slices.Contains(abilities, "OWNER")
+	return slices.Contains(abilities, string(ability)) || slices.Contains(abilities, "OWNER") || slices.Contains(abilities, "ADMINISTRATOR")
 }
 
 func (s *service) getAbilities(ctx context.Context, serverID, userID string) []string {

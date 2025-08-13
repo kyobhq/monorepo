@@ -5,11 +5,9 @@
 	import { categoryStore } from 'stores/categoryStore.svelte';
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
-	import { serverStore } from 'stores/serverStore.svelte';
-	import { userStore } from 'stores/userStore.svelte';
+	import { hasPermissions } from 'utils/permissions';
 
 	let { categoryId } = $props();
-	let currentServer = $derived(serverStore.getServer(page.params.server_id!));
 
 	function openChannelDialog() {
 		coreStore.channelDialog = {
@@ -43,7 +41,7 @@
 	}
 </script>
 
-{#if currentServer.owner_id === userStore.user?.id}
+{#if hasPermissions(page.params.server_id!, 'MANAGE_CHANNELS')}
 	<ContextMenuSkeleton>
 		{#snippet contextMenuContent()}
 			<ContextMenuItem onclick={openChannelDialog} text="Create channel" />

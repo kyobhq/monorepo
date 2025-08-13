@@ -67,12 +67,18 @@ importers:
       neverthrow:
         specifier: ^8.2.0
         version: 8.2.0
+      svelte-awesome-color-picker:
+        specifier: ^4.0.2
+        version: 4.0.2(svelte@5.37.0)
       svelte-easy-crop:
         specifier: ^4.0.1
         version: 4.0.1(svelte@5.37.0)
       tailwindcss:
         specifier: ^4.1.11
         version: 4.1.11
+      what-input:
+        specifier: ^5.2.12
+        version: 5.2.12
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.5
@@ -1155,6 +1161,9 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
+  colord@2.9.3:
+    resolution: {integrity: sha512-jeC1axXpnb0/2nn/Y1LPuLdgXBLH7aDcHu4KEKfqw3CUhX7ZpfBSlPKyqXE6btIgEzfWtrX3/tyBCaCvXvMkOw==}
+
   commander@11.1.0:
     resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
     engines: {node: '>=16'}
@@ -2004,6 +2013,16 @@ packages:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
 
+  svelte-awesome-color-picker@4.0.2:
+    resolution: {integrity: sha512-Ez72goMMNmw6sZhB1/BXEA8984lEkudPrdlNS+y3nHm2Lnk1w4nwy5NFyWPxTP7nFnLxhIqyV3VuJVG4PokKwg==}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  svelte-awesome-slider@2.0.0:
+    resolution: {integrity: sha512-YBkOdYm1Feaqsn2JkJBRs+Kc/X3Qy/3GuVmI7GmoYDjBaHkjx9uH4khTuED22z57Hg3gGWeDhp/clIjWDdLNaw==}
+    peerDependencies:
+      svelte: ^5.0.0
+
   svelte-check@4.3.0:
     resolution: {integrity: sha512-Iz8dFXzBNAM7XlEIsUjUGQhbEE+Pvv9odb9+0+ITTgFWZBGeJRRYqHUUglwe2EkLD5LIsQaAc4IUJyvtKuOO5w==}
     engines: {node: '>= 18.0.0'}
@@ -2215,6 +2234,9 @@ packages:
 
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
+
+  what-input@5.2.12:
+    resolution: {integrity: sha512-3yrSa7nGSXGJS6wZeSkO6VNm95pB1mZ9i3wFzC1hhY7mn4/afue/MvXz04OXNdBC8bfo4AB4RRd3Dem9jXM58Q==}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -3158,6 +3180,8 @@ snapshots:
 
   color-name@1.1.4: {}
 
+  colord@2.9.3: {}
+
   commander@11.1.0: {}
 
   comment-json@4.2.5:
@@ -3949,6 +3973,16 @@ snapshots:
     dependencies:
       has-flag: 4.0.0
 
+  svelte-awesome-color-picker@4.0.2(svelte@5.37.0):
+    dependencies:
+      colord: 2.9.3
+      svelte: 5.37.0
+      svelte-awesome-slider: 2.0.0(svelte@5.37.0)
+
+  svelte-awesome-slider@2.0.0(svelte@5.37.0):
+    dependencies:
+      svelte: 5.37.0
+
   svelte-check@4.3.0(picomatch@4.0.3)(svelte@5.37.0)(typescript@5.8.3):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.29
@@ -4154,6 +4188,8 @@ snapshots:
   w3c-keyname@2.2.8: {}
 
   webpack-virtual-modules@0.6.2: {}
+
+  what-input@5.2.12: {}
 
   which@2.0.2:
     dependencies:

@@ -34,7 +34,7 @@
 				width={18}
 				class={[
 					'transition-colors duration-100',
-					activeTab?.includes(tab.href) ? 'text-main-50' : 'text-main-300 group-hocus:text-main-100'
+					activeTab?.includes(tab.href) ? 'text-main-50' : 'text-main-300 group-hover:text-main-100'
 				]}
 			/>
 		</button>

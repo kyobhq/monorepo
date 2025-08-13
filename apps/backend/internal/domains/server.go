@@ -282,7 +282,17 @@ func (s *serverService) UpdateProfile(ctx *gin.Context, body *types.UpdateServer
 }
 
 func (s *serverService) DeleteServer(ctx *gin.Context, serverID string) *types.APIError {
-	pgconn, err := s.db.DeleteServer(ctx, serverID)
+	user, exists := ctx.Get("user")
+	if !exists {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := user.(*db.User).ID
+
+	err := s.db.DeleteServer(ctx, userID, serverID)
 	if err != nil {
 		return &types.APIError{
 			Status:  http.StatusInternalServerError,
@@ -292,22 +302,23 @@ func (s *serverService) DeleteServer(ctx *gin.Context, serverID string) *types.A
 		}
 	}
 
-	if pgconn.RowsAffected() == 0 {
-		return &types.APIError{
-			Status:  http.StatusNotFound,
-			Code:    "ERR_SERVER_NOT_FOUND",
-			Message: "Server not found.",
-		}
-	}
-
 	return nil
 }
 
 func (s *serverService) GetInformations(ctx *gin.Context) (*db.GetServerInformationsRow, *types.APIError) {
+	user, exists := ctx.Get("user")
+	if !exists {
+		return nil, &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := user.(*db.User).ID
 	serverID := ctx.Param("server_id")
 
 	userIDs := s.actors.GetActiveUsers(serverID)
-	serverInformations, err := s.db.GetServerInformations(ctx, serverID, userIDs)
+	serverInformations, err := s.db.GetServerInformations(ctx, userID, serverID, userIDs)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,

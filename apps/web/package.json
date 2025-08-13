@@ -51,7 +51,9 @@
     "emojibase-data": "^16.0.3",
     "ky": "^1.8.2",
     "neverthrow": "^8.2.0",
+    "svelte-awesome-color-picker": "^4.0.2",
     "svelte-easy-crop": "^4.0.1",
-    "tailwindcss": "^4.1.11"
+    "tailwindcss": "^4.1.11",
+    "what-input": "^5.2.12"
   }
 }

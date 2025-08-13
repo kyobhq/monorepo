@@ -1,14 +1,14 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { CreateCategorySchema } from '$lib/types/schemas';
 	import { backend } from 'stores/backendStore.svelte';
+	import { categoryStore } from 'stores/categoryStore.svelte';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
 	import FormInput from 'ui/Form/FormInput.svelte';
-	import DefaultDialog from './DefaultDialog.svelte';
-	import DialogFooter from './DialogFooter.svelte';
-	import { page } from '$app/state';
-	import { categoryStore } from 'stores/categoryStore.svelte';
+	import DefaultDialog from '../DefaultDialog/DefaultDialog.svelte';
+	import DialogFooter from '../DialogFooter/DialogFooter.svelte';
 
 	const { form, errors, enhance } = superForm(defaults(valibot(CreateCategorySchema)), {
 		dataType: 'json',

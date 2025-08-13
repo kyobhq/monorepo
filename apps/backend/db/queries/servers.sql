@@ -95,6 +95,11 @@ SELECT
         WHERE i.server_id = s.id
     ) as invites,
     (
+        SELECT smc.roles
+        FROM server_members smc
+        WHERE smc.server_id = s.id AND smc.user_id = $3
+    ) as user_roles,
+    (
         SELECT count(id)
         FROM server_members smc
         WHERE smc.server_id = s.id
@@ -151,7 +156,7 @@ WHERE id = $1;
 -- name: UpdateServerProfile :exec
 UPDATE servers SET name = $1, description = $2, public = $3, updated_at = now() WHERE id = $4;
 
--- name: DeleteServer :execresult
+-- name: DeleteServer :exec
 DELETE FROM servers WHERE id = $1 AND owner_id = $2;
 
 -- name: GetServersIDs :many

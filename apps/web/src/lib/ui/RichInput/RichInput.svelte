@@ -6,13 +6,14 @@
 	import { Editor } from '@tiptap/core';
 	import { onDestroy, onMount } from 'svelte';
 	import { createEditorConfig } from './richInputConfig';
-	import PlusIcon from 'ui/icons/PlusIcon.svelte';
 	import EmojiIcon from 'ui/icons/EmojiIcon.svelte';
 	import type { CreateMessageType } from '$lib/types/schemas';
 	import { backend } from 'stores/backendStore.svelte';
 	import { Placeholder } from '@tiptap/extensions';
 	import AttachmentsButton from './attachments/AttachmentsButton.svelte';
 	import Attachments from './attachments/Attachments.svelte';
+	import { hasPermissions } from 'utils/permissions';
+	import { page } from '$app/state';
 
 	interface Props {
 		server: Server;
@@ -97,7 +98,7 @@
 	});
 
 	const icon =
-		'h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-900 hocus:bg-main-800/80 border-[0.5px] border-main-700 aspect-square text-main-500 hocus:text-main-200 hover:cursor-pointer transition-colors duration-75';
+		'h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-900 hover:bg-main-800/80 border-[0.5px] border-main-700 aspect-square text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75';
 </script>
 
 <div class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5">
@@ -119,9 +120,11 @@
 		<Attachments bind:attachments />
 	{/if}
 	<div class="flex gap-x-1">
-		<AttachmentsButton bind:attachments />
+		{#if hasPermissions(page.params.server_id!, 'ATTACH_FILES')}
+			<AttachmentsButton bind:attachments />
+		{/if}
 		<div
-			class="bg-main-900 border-[0.5px] border-main-700 relative flex w-[calc(100%-3.5rem*2-0.625rem)] flex-col transition duration-100 focus-within:border-main-500 hocus:bg-main-800/70 rounded-[2px]"
+			class="bg-main-900 border-[0.5px] border-main-700 relative flex w-[calc(100%-3.5rem*2-0.625rem)] flex-col transition duration-100 focus-within:border-main-500 hover:bg-main-800/70 rounded-[2px]"
 		>
 			<div class="flex w-full">
 				<div class="max-h-[10rem] w-full" bind:this={element}></div>

@@ -97,7 +97,7 @@
 <div class="mt-4 flex items-end gap-x-3">
 	<label
 		for="avatar-profile"
-		class="group bg-accent-darker border-[0.5px] hocus:bg-accent border-accent relative flex w-fit items-center justify-center overflow-hidden px-2.5 py-1 transition duration-100 rounded-sm"
+		class="group bg-accent-darker border-[0.5px] hover:bg-accent border-accent relative flex w-fit items-center justify-center overflow-hidden px-2.5 py-1 transition duration-100 rounded-sm"
 	>
 		<input
 			type="file"

@@ -9,15 +9,13 @@ export const SignUpSchema = v.object({
   ),
   username: v.pipe(
     v.string(),
-    v.minLength(1, 'The length must be equal or above 1 character.'),
-    v.maxLength(20, 'The length must be equal or below 20 characters.'),
-    v.nonEmpty('Please enter a username.')
+    v.nonEmpty('Please enter a username.'),
+    v.maxLength(20, 'The length must be equal or below 20 characters.')
   ),
   display_name: v.pipe(
     v.string(),
-    v.minLength(1, 'The length must be equal or above 1 character.'),
-    v.maxLength(20, 'The length must be equal or below 20 characters.'),
-    v.nonEmpty('Please enter a display name.')
+    v.nonEmpty('Please enter a display name.'),
+    v.maxLength(20, 'The length must be equal or below 20 characters.')
   ),
   password: v.pipe(
     v.string(),
@@ -63,9 +61,8 @@ export const CreateCategorySchema = v.object({
   server_id: v.string(),
   name: v.pipe(
     v.string(),
-    v.minLength(1, 'The length must be equal or above 1 character.'),
+    v.nonEmpty('Please enter a name for your category.'),
     v.maxLength(20, 'The length must be equal or below 20 characters.'),
-    v.nonEmpty('Please enter a name for your category.')
   ),
   position: v.number(),
   users: v.optional(v.array(v.string())),
@@ -81,9 +78,8 @@ export const CreateChannelSchema = v.object({
   server_id: v.string(),
   name: v.pipe(
     v.string(),
-    v.minLength(1, 'The length must be equal or above 1 character.'),
+    v.nonEmpty('Please enter a name for your channel.'),
     v.maxLength(20, 'The length must be equal or below 20 characters.'),
-    v.nonEmpty('Please enter a name for your channel.')
   ),
   description: v.optional(v.string()),
   users: v.optional(v.array(v.string())),
@@ -108,9 +104,8 @@ export const EditChannelSchema = v.object({
   server_id: v.string(),
   name: v.pipe(
     v.string(),
-    v.minLength(1, 'The length must be equal or above 1 character.'),
+    v.nonEmpty('Please enter a name for your channel.'),
     v.maxLength(20, 'The length must be equal or below 20 characters.'),
-    v.nonEmpty('Please enter a name for your channel.')
   ),
   description: v.optional(v.string()),
   users: v.optional(v.array(v.string())),
@@ -252,3 +247,17 @@ export const AddEmojisSchema = v.object({
 });
 
 export interface AddEmojisType extends v.InferInput<typeof AddEmojisSchema> { }
+
+export const CreateOrUpdateRoleSchema = v.object({
+  id: v.string(),
+  name: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter a name for your role.'),
+    v.maxLength(20, 'Maximum 20 characters.')
+  ),
+  color: v.string(),
+  abilities: v.array(v.string()),
+  position: v.number()
+});
+
+export interface CreateOrUpdateRoleType extends v.InferInput<typeof CreateOrUpdateRoleSchema> { }

@@ -1,3 +1,5 @@
+import type { Abilities } from "$lib/constants/permissions";
+
 export const ChannelTypes = {
   Textual: 'textual',
   TextualE2EE: 'textual-e2ee',
@@ -5,22 +7,6 @@ export const ChannelTypes = {
   Dm: 'dm'
 } as const;
 export type ChannelTypes = (typeof ChannelTypes)[keyof typeof ChannelTypes];
-
-export const ABILITIES = [
-  'ADMIN',
-  'MANAGE_CHANNELS',
-  'MANAGE_ROLES',
-  'MANAGE_SERVER',
-  'MANAGE_EXPRESSIONS',
-  'CHANGE_NICKNAME',
-  'MANAGE_NICKNAMES',
-  'BAN',
-  'KICK',
-  'MUTE',
-  'ATTACH_FILES',
-  'MANAGE_MESSAGES'
-] as const;
-export type AbilitiesType = (typeof ABILITIES)[number];
 
 export interface Channel {
   id: string;
@@ -56,24 +42,25 @@ export interface Server {
   categories: Record<string, Category>;
   public: boolean;
   members: Member[];
+  user_roles: string[];
   roles: Role[];
   invites: Invite[];
 }
 
 export interface Invite {
-  id: string
-  creator: Partial<User>
-  server_id: string
-  invite_id: string
-  expire_at: string
+  id: string;
+  creator: Partial<User>;
+  server_id: string;
+  invite_id: string;
+  expire_at: string;
 }
 
 export interface Role {
   id: string;
-  idx: number;
+  position: number;
   name: string;
   color: string;
-  abilities: string[];
+  abilities: Abilities[];
   members: string[];
 }
 
@@ -113,6 +100,7 @@ export interface ServerInformations {
   member_count: number;
   members: Member[];
   roles: Role[];
+  user_roles: string[];
   invites: Invite[];
 }
 

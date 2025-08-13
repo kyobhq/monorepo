@@ -38,7 +38,7 @@
 		</div>
 
 		<div
-			class="flex gap-x-2 bg-main-950 w-full border border-main-800 items-center pl-2.5 pr-2 group hocus:bg-main-900 hocus:border-main-700 focus-within:bg-main-900 focus-within:border-main-700 transition-colors duration-75 text-main-300"
+			class="flex gap-x-2 bg-main-950 w-full border border-main-800 items-center pl-2.5 pr-2 group hover:bg-main-900 hover:border-main-700 focus-within:bg-main-900 focus-within:border-main-700 transition-colors duration-75 text-main-300"
 		>
 			<input
 				{type}
@@ -61,7 +61,7 @@
 		</div>
 
 		<div
-			class="flex gap-x-2 bg-main-950 w-full border border-main-800 items-center pl-2.5 pr-2 group hocus:bg-main-900 hocus:border-main-700 focus-within:bg-main-900 focus-within:border-main-700 transition-colors duration-75 text-main-300"
+			class="flex gap-x-2 bg-main-950 w-full border border-main-800 items-center pl-2.5 pr-2 group hover:bg-main-900 hover:border-main-700 focus-within:bg-main-900 focus-within:border-main-700 transition-colors duration-75 text-main-300"
 		>
 			<input
 				type={showPassword ? 'text' : 'password'}
@@ -74,7 +74,7 @@
 			<button
 				type="button"
 				onclick={() => (showPassword = !showPassword)}
-				class="hover:cursor-pointer text-main-300 hocus:text-main-100 transition-colors"
+				class="hover:cursor-pointer text-main-300 hover:text-main-100 transition-colors"
 			>
 				{#if showPassword}
 					<EyeClose height={20} width={20} />

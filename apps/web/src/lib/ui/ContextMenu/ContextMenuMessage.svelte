@@ -7,7 +7,7 @@
 	import { generateTextWithExt } from 'utils/richInput';
 	import { messageStore } from 'stores/messageStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
-	import { checkActionPermission } from 'utils/abilities';
+	import { hasPermissions } from 'utils/permissions';
 
 	let { message } = $props();
 	const isAuthor = $derived(message.author_id === userStore.user?.id);
@@ -64,7 +64,7 @@
 		{#if isAuthor}
 			<ContextMenuItem onclick={handleEdit} text="Edit Message" />
 		{/if}
-		{#if isAuthor || checkActionPermission(page.params.server_id!, 'MANAGE_MESSAGES')}
+		{#if isAuthor || hasPermissions(page.params.server_id!, 'MANAGE_MESSAGES')}
 			<ContextMenuItem onclick={handleDelete} text="Delete Message" destructive />
 		{/if}
 	{/snippet}

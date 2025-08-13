@@ -1,17 +1,27 @@
 <script lang="ts">
-	import { coreStore } from 'stores/coreStore.svelte';
-	import DefaultSettingsDialog from './DefaultSettingsDialog.svelte';
-	import SideBarSettings from 'ui/SideBar/SideBarSettings.svelte';
-	import FormInput from 'ui/Form/FormInput.svelte';
-	import { channelStore } from 'stores/channelStore.svelte';
 	import { page } from '$app/state';
+	import { EditChannelSchema } from '$lib/types/schemas';
+	import { backend } from 'stores/backendStore.svelte';
+	import { channelStore } from 'stores/channelStore.svelte';
+	import { coreStore } from 'stores/coreStore.svelte';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { EditChannelSchema } from '$lib/types/schemas';
-	import { flyBlur } from 'utils/transition';
-	import { backend } from 'stores/backendStore.svelte';
-	import SubmitButton from 'ui/SubmitButton/SubmitButton.svelte';
+	import FormInput from 'ui/Form/FormInput.svelte';
 	import SaveBar from 'ui/SaveBar/SaveBar.svelte';
+	import SideBarSettings from 'ui/SideBar/SideBarSettings.svelte';
+	import DefaultSettingsDialog from '../DefaultSettingsDialog/DefaultSettingsDialog.svelte';
+	import type { SidebarSection } from '$lib/types/types';
+
+	const SECTIONS: SidebarSection[] = [
+		{
+			label: 'Overview',
+			permissions: ['MANAGE_CHANNELS']
+		},
+		{
+			label: 'Permissions',
+			permissions: ['MANAGE_CHANNELS']
+		}
+	];
 
 	let currentChannel = $derived(
 		channelStore.getChannel(page.params.server_id || '', coreStore.channelSettingsDialog.channel_id)

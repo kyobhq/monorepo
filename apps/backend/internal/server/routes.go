@@ -84,12 +84,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	role := handlers.NewRoleHandlers(s.roleSvc)
 	protected.GET("/roles/:server_id", role.GetRoles)
-	protected.POST("/roles/:server_id", role.CreateRole)
-	protected.PATCH("/roles/:role_id", role.EditRole)
-	protected.PATCH("/roles/:role_id/add_member", role.AddRoleMember)
-	protected.PATCH("/roles/:role_id/remove_member", role.RemoveRoleMember)
-	protected.PATCH("/roles/:role_id/move", role.MoveRole)
-	protected.DELETE("/roles/:role_id", role.DeleteRole)
+	protected.POST("/roles", role.CreateOrEditRole)
+	protected.PATCH("/roles/add_member", role.AddRoleMember)
+	protected.PATCH("/roles/remove_member", role.RemoveRoleMember)
+	protected.PATCH("/roles/move", role.MoveRole)
+	protected.DELETE("/roles", role.DeleteRole)
 
 	return r
 }

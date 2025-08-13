@@ -25,6 +25,7 @@
 					<Channel
 						id={channel.id}
 						type={channel.type}
+						categoryId={channel.category_id}
 						name={channel.name}
 						serverName={channelServer.name}
 						onclick={() => goto(channelHref)}

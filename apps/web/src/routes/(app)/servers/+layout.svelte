@@ -20,6 +20,7 @@
 			(server) => {
 				serverStore.setMembers(page.params.server_id!, server.members);
 				serverStore.setRoles(page.params.server_id!, server.roles);
+				serverStore.setUserRoles(page.params.server_id!, server.user_roles);
 				serverStore.setInvites(page.params.server_id!, server.invites);
 				serverStore.memberCount = server.member_count;
 				serverStore.markServerInfoCached(page.params.server_id!);

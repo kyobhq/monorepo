@@ -75,7 +75,7 @@
 								<Select.Item
 									value={beginning.value}
 									label={beginning.label}
-									class="px-2 py-1 hocus:bg-main-800 cursor-pointer text-main-200 transition-colors duration-100"
+									class="px-2 py-1 hover:bg-main-800 cursor-pointer text-main-200 transition-colors duration-100"
 								>
 									{beginning.label}
 								</Select.Item>
@@ -102,7 +102,7 @@
 		{#if facts.length < MAX_FACTS}
 			<button
 				type="button"
-				class="flex justify-center bg-main-800/40 border-[0.5px] border-main-700/50 placeholder:text-main-400 px-3 py-2 transition-colors duration-100 focus:ring-0 text-main-500 hover:cursor-pointer hocus:bg-main-800 hocus:border-main-700 rounded-sm"
+				class="flex justify-center bg-main-800/40 border-[0.5px] border-main-700/50 placeholder:text-main-400 px-3 py-2 transition-colors duration-100 focus:ring-0 text-main-500 hover:cursor-pointer hover:bg-main-800 hover:border-main-700 rounded-sm"
 				onclick={addFact}
 			>
 				<PlusIcon height={20} width={20} />

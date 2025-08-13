@@ -13,6 +13,11 @@ message WSMessage {
     StartCategory start_category = 6;
     KillChannel kill_channel = 7;
     KillCategory kill_category = 8;
+    CreateOrEditRole create_or_edit_role = 9;
+    RemoveRole remove_role = 10;
+    MoveRole move_role = 11;
+    AddRoleMember add_role_member = 12;
+    RemoveRoleMember remove_role_member = 13;
   }
 }
 
@@ -55,6 +60,31 @@ message KillCategory {
   repeated string channels_ids = 3;
 }
 
+message CreateOrEditRole {
+  Role role = 1;
+}
+
+message RemoveRole {
+  Role role = 1;
+}
+
+message MoveRole {
+  Role moved_role = 1;
+  Role target_role = 2;
+  int32 from = 3;
+  int32 to = 4;
+}
+
+message AddRoleMember {
+  string user_id = 1;
+  Role role = 2;
+}
+
+message RemoveRoleMember {
+  string user_id = 1;
+  Role role = 2;
+}
+
 message Message {
 	string id = 1;
 	User author = 2;
@@ -94,6 +124,17 @@ message Category {
 	bool e2ee = 7;
 	google.protobuf.Timestamp created_at = 8;
 	google.protobuf.Timestamp updated_at = 9;
+}
+
+message Role {
+  string id = 1;
+  string server_id = 2;
+	int32 position = 3;
+  string name = 4;
+  string color = 5;
+  repeated string abilities = 6;
+	google.protobuf.Timestamp created_at = 7;
+	google.protobuf.Timestamp updated_at = 8;
 }
 
 message Channel {

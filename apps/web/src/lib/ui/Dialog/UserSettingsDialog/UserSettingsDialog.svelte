@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { coreStore } from 'stores/coreStore.svelte';
-	import DefaultSettingsDialog from '../DefaultSettingsDialog.svelte';
+	import DefaultSettingsDialog from '../DefaultSettingsDialog/DefaultSettingsDialog.svelte';
 	import SideBarSettings from 'ui/SideBar/SideBarSettings.svelte';
-	import UserSettingsProfile from './UserSettingsProfile.svelte';
-	import UserSettingsPassword from './UserSettingsPassword.svelte';
-	import UserSettingsEmail from './UserSettingsEmail.svelte';
-	import Separator from '../Separator.svelte';
-	import UserSettingsAvatar from './UserSettingsAvatar.svelte';
-	import UserSettingsEmojis from './UserSettingsEmojis.svelte';
+	import UserSettingsProfile from './profile/UserSettingsProfile.svelte';
+	import UserSettingsPassword from './password/UserSettingsPassword.svelte';
+	import UserSettingsEmail from './email/UserSettingsEmail.svelte';
+	import Separator from 'ui/Separator/Separator.svelte';
+	import UserSettingsAvatar from './avatar/UserSettingsAvatar.svelte';
+	import UserSettingsEmojis from './emojis/UserSettingsEmojis.svelte';
 
 	let initialized = $state(false);
 	let container = $state<HTMLDivElement>();
@@ -38,7 +38,7 @@
 					This is not a soft delete! This action is irreversible.
 				</p>
 				<button
-					class="text-left w-fit bg-red-400/30 border-[0.5px] border-red-400 px-2 py-1.5 text-red-400 hocus:bg-red-400 hocus:text-red-50 hover:cursor-pointer transition-colors duration-100 mt-4"
+					class="text-left w-fit bg-red-400/30 border-[0.5px] border-red-400 px-2 py-1.5 text-red-400 hover:bg-red-400 hover:text-red-50 hover:cursor-pointer transition-colors duration-100 mt-4"
 				>
 					Delete account
 				</button>

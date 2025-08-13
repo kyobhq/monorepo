@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
 	import { channelStore } from 'stores/channelStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import ChannelHeader from 'ui/ChannelHeader/ChannelHeader.svelte';
 	import Message from 'ui/Message/Message.svelte';
 	import RichInput from 'ui/RichInput/RichInput.svelte';
@@ -48,8 +49,18 @@
 		);
 	}
 
-	$effect(() => {
-		if (page.params.channel_id) getMessages(page.params.channel_id);
+	onMount(async () => {
+		if (page.params.channel_id) await getMessages(page.params.channel_id);
+	});
+
+	beforeNavigate(async ({ from, to }) => {
+		if (
+			from?.params?.channel_id &&
+			to?.params?.channel_id &&
+			from?.params?.channel_id !== to?.params?.channel_id
+		) {
+			await getMessages(to.params.channel_id);
+		}
 	});
 
 	$effect(() => {

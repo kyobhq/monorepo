@@ -4,10 +4,10 @@
 	import { page } from '$app/state';
 	import { serverStore } from 'stores/serverStore.svelte';
 	import ServerDialog from 'ui/Dialog/ServerDialog/ServerDialog.svelte';
-	import CreateCategoryDialog from 'ui/Dialog/CreateCategoryDialog.svelte';
-	import CreateChannelDialog from 'ui/Dialog/CreateChannelDialog.svelte';
-	import DestructiveDialog from 'ui/Dialog/DestructiveDialog.svelte';
-	import ChannelSettingsDialog from 'ui/Dialog/ChannelSettingsDialog.svelte';
+	import CreateCategoryDialog from 'ui/Dialog/CreateCategoryDialog/CreateCategoryDialog.svelte';
+	import CreateChannelDialog from 'ui/Dialog/CreateChannelDialog/CreateChannelDialog.svelte';
+	import DestructiveDialog from 'ui/Dialog/DestructiveDialog/DestructiveDialog.svelte';
+	import ChannelSettingsDialog from 'ui/Dialog/ChannelSettingsDialog/ChannelSettingsDialog.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import UserProfile from 'ui/UserProfile/UserProfile.svelte';

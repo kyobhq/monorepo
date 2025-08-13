@@ -16,7 +16,7 @@
 <div class="flex items-baseline gap-x-1.5 select-none w-fit relative z-[1]">
 	<button
 		bind:this={displayNameEl}
-		class="hocus:underline hover:cursor-pointer"
+		class="hover:underline hover:cursor-pointer"
 		onclick={() => {
 			if (author.id === userStore.user!.id) {
 				coreStore.openMyProfile(displayNameEl!, 'right');
