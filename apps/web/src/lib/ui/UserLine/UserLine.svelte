@@ -25,7 +25,7 @@
 	let memberEl = $state<HTMLButtonElement>();
 
 	function getHoverColor(color: string) {
-		return color + '26';
+		return color + '40';
 	}
 </script>
 
@@ -33,7 +33,7 @@
 	bind:this={memberEl}
 	style="--hover-color: {color ? getHoverColor(color) : 'var(--ui-main-900)'}"
 	class={[
-		'flex items-center gap-x-2.5 p-1 pr-2.5 transition-colors duration-75 select-none rounded-sm',
+		'flex items-center gap-x-2.5 p-1 pr-2.5 transition-colors duration-100 select-none rounded-sm z-[1] active-scale-down',
 		hoverable && `hover:cursor-pointer hover:bg-[var(--hover-color)]`,
 		status === 'offline' && 'opacity-40'
 	]}

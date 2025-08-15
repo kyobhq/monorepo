@@ -282,6 +282,7 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 		}
 	}
 	user := u.(*db.User)
+	user.Password = ""
 
 	emojis, err := s.db.GetEmojis(ctx, user.ID)
 	if err != nil {

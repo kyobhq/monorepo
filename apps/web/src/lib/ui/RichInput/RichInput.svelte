@@ -96,9 +96,6 @@
 		if (!editor) return;
 		editor.setOptions();
 	});
-
-	const icon =
-		'h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-900 hover:bg-main-800/80 border-[0.5px] border-main-700 aspect-square text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75';
 </script>
 
 <div class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5">
@@ -119,19 +116,21 @@
 	{#if attachments.length > 0}
 		<Attachments bind:attachments />
 	{/if}
-	<div class="flex gap-x-1">
+	<div
+		class="flex gap-x-1 box-style rounded-2xl before:rounded-[14px] focus-within:border-main-800 transition-colors duration-100"
+	>
 		{#if hasPermissions(page.params.server_id!, 'ATTACH_FILES')}
 			<AttachmentsButton bind:attachments />
 		{/if}
-		<div
-			class="bg-main-900 border-[0.5px] border-main-700 relative flex w-[calc(100%-3.5rem*2-0.625rem)] flex-col transition duration-100 focus-within:border-main-500 hover:bg-main-800/70 rounded-[2px]"
-		>
+		<div class="relative flex w-[calc(100%-3.5rem*2)] flex-col transition duration-100">
 			<div class="flex w-full">
 				<div class="max-h-[10rem] w-full" bind:this={element}></div>
 			</div>
 		</div>
-		<button class={[icon, 'rounded-l-[2px] rounded-r-md']}>
-			<EmojiIcon height={22} width={22} />
+		<button
+			class="h-full px-3 flex justify-center items-center text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 z-[1]"
+		>
+			<EmojiIcon />
 		</button>
 	</div>
 </div>

@@ -20,28 +20,29 @@
 	}
 
 	function getBackgroundColor(color: string) {
-		return color + '1A';
+		return color + '26';
 	}
 
 	function getBorderColor(color: string) {
-		return color + '80';
+		return color + '59';
 	}
 </script>
 
 <div
-	class="border-[0.5px] border-main-400 rounded-md overflow-hidden"
+	class="box-style overflow-hidden"
 	style="
-    background-color: {color ? getBackgroundColor(color) : 'var(--ui-main-950)'}; 
-    border-color: {color ? getBorderColor(color) : 'var(--ui-main-700)'};"
+    --bg-color: {color ? getBackgroundColor(color) : 'var(--ui-main-950)'};
+    --border-color: {color ? getBorderColor(color) : 'var(--ui-main-850)'};
+  "
 >
 	<button
 		onclick={collapse}
-		style="border-color: {color ? getBorderColor(color) : 'var(--ui-main-700)'};
+		style="border-color: {color ? getBorderColor(color) : 'var(--ui-main-850)'};
       color: {color ? color : 'var(--ui-main-300)'};"
 		class={[
-			'relative w-full flex items-center justify-start py-1.5 px-2.5 text-main-300 text-sm',
-			!isCollapsed && 'border-b-[0.5px]',
-			canCollapse && 'hover:cursor-pointer hover:bg-main-900 transition-colors duration-75'
+			'relative w-full flex items-center justify-start py-1.5 px-2.5 text-main-300 text-sm rounded-t-[6px]',
+			!isCollapsed && 'border-b-[2px]',
+			canCollapse ? 'hover:bg-main-925 transition-colors duration-75' : 'hover:cursor-default!'
 		]}
 	>
 		{header}

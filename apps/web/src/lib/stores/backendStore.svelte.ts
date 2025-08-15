@@ -187,8 +187,8 @@ export class BackendStore {
     return this.makeRequest<ServerInformations>(`servers/${serverID}`);
   }
 
-  getMessages(channelID: string): ResultAsync<Message[], APIError> {
-    return this.makeRequest<Message[]>(`messages/${channelID}`);
+  getMessages(serverID: string, channelID: string): ResultAsync<Message[], APIError> {
+    return this.makeRequest<Message[]>(`messages/${serverID}/${channelID}`);
   }
 
   editMessage(messageID: string, body: EditMessageType): ResultAsync<void, APIError> {

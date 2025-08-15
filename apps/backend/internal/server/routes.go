@@ -77,7 +77,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	protected.DELETE("/channels/category/:category_id", channel.DeleteCategory)
 
 	chat := handlers.NewChatHandlers(s.chatSvc)
-	protected.GET("/messages/:channel_id", chat.GetMessages)
+	protected.GET("/messages/:server_id/:channel_id", chat.GetMessages)
 	protected.POST("/messages", chat.CreateMessage)
 	protected.PATCH("/messages/:message_id", chat.EditMessage)
 	protected.DELETE("/messages/:message_id", chat.DeleteMessage)

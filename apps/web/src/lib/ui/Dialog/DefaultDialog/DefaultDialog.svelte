@@ -45,15 +45,15 @@
 						transition:scaleBlur={{}}
 					>
 						{#if tabs}
-							<div class="flex gap-x-1">
+							<div class="flex gap-x-1 ml-3">
 								{#each tabs as tab, idx (idx)}
 									<button
 										onclick={() => (currentTab = tab)}
 										class={[
-											'border-[0.5px] px-2.5 py-1.5 w-fit transition-colors duration-100 hover:cursor-pointer rounded-[2px] first:rounded-tl-md last:rounded-tr-md',
+											'border-[1px] px-2.5 py-1.5 w-fit transition-colors duration-100 hover:cursor-pointer rounded-md',
 											currentTab === tab
-												? 'bg-main-800/70 border-main-500'
-												: 'bg-main-950 border-main-700 hover:bg-main-900 hover:border-main-600'
+												? 'bg-main-800 border-main-500'
+												: 'bg-main-950 border-main-850 hover:bg-main-900 hover:border-main-600 text-main-500 hover:text-main-300'
 										]}
 									>
 										{tab}
@@ -61,19 +61,14 @@
 								{/each}
 							</div>
 						{/if}
-						<div
-							class={[
-								'bg-main-950 border-[0.5px] border-main-700 rounded-md',
-								tabs && 'rounded-tl-[2px]'
-							]}
-						>
+						<div class="bg-main-950 shadow-box border-[2px] border-main-850 rounded-xl">
 							<div class="border-b-main-800 relative mb-8 w-full border-b py-5 px-4">
 								<p class="font-semibold text-xl">{title}</p>
 								<p class="text-main-400 text-sm">{subtitle}</p>
 
 								<Dialog.Close
 									type="button"
-									class="text-main-400 h-8 w-8 hover:bg-main-900 hover:text-main-50 absolute top-5 right-5 transition-colors hover:cursor-pointer border-[0.5px] border-main-700 aspect-square flex justify-center items-center duration-75 rounded-sm"
+									class="text-main-400 h-8 w-8 hover:bg-main-900 hover:text-main-50 absolute top-3 right-3 transition-colors hover:cursor-pointer border-[0.5px] border-main-700 aspect-square flex justify-center items-center duration-75 rounded-md"
 								>
 									<CloseIcon height={18} width={18} />
 								</Dialog.Close>

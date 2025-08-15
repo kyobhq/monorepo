@@ -19,29 +19,33 @@
 	});
 </script>
 
-<div class="flex items-center p-1 border-[0.5px] border-main-700 w-fit relative rounded-md">
-	{#each tabs as tab, idx (idx)}
-		{@const Icon = tab.Icon}
+<div class="box-style">
+	<div class="flex items-center p-1 w-fit relative rounded-md">
+		{#each tabs as tab, idx (idx)}
+			{@const Icon = tab.Icon}
 
-		<button
-			bind:this={buttonEl}
-			onclick={() => onclick(tab.href)}
-			class="p-[0.4rem] z-[1] group hover:cursor-pointer"
-			data-route={tab.href}
-		>
-			<Icon
-				height={18}
-				width={18}
-				class={[
-					'transition-colors duration-100',
-					activeTab?.includes(tab.href) ? 'text-main-50' : 'text-main-300 group-hover:text-main-100'
-				]}
-			/>
-		</button>
-	{/each}
+			<button
+				bind:this={buttonEl}
+				onclick={() => onclick(tab.href)}
+				class="p-[0.4rem] z-[1] group hover:cursor-pointer"
+				data-route={tab.href}
+			>
+				<Icon
+					height={18}
+					width={18}
+					class={[
+						'transition-colors duration-100',
+						activeTab?.includes(tab.href)
+							? 'text-main-50'
+							: 'text-main-400 group-hover:text-main-100'
+					]}
+				/>
+			</button>
+		{/each}
 
-	<div
-		class="absolute top-1 left-1 h-[calc(100%-0.5rem)] aspect-square bg-main-900 transition rounded-[3px]"
-		style="transform: translateX({left}px)"
-	></div>
+		<div
+			class="absolute top-1 left-1 h-[calc(100%-0.5rem)] aspect-square bg-main-850 transition rounded-[6px]"
+			style="transform: translateX({left}px)"
+		></div>
+	</div>
 </div>

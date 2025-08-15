@@ -13,8 +13,8 @@
 
 <ContextMenu.Item
 	class={[
-		'flex px-2.5 py-1.5 hover:cursor-pointer transition-colors duration-75 select-none text-sm rounded-sm',
-		!destructive && !success && 'hover:bg-main-800',
+		'flex px-2.5 py-1.5 hover:cursor-pointer transition-colors duration-75 select-none text-sm rounded-lg',
+		!destructive && !success && 'hover:bg-main-850',
 		destructive && 'text-red-400 hover:bg-red-400/20',
 		success && 'text-green-400 hover:bg-green-400/20'
 	]}

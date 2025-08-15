@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PlusIcon from 'ui/icons/PlusIcon.svelte';
+	import FilledPlusIcon from 'ui/icons/FilledPlusIcon.svelte';
 
 	let { attachments = $bindable() } = $props();
 
@@ -18,7 +18,7 @@
 </script>
 
 <label
-	class="h-[3.5625rem] w-[3.5625rem] flex justify-center items-center bg-main-900 hover:bg-main-800/80 border-[0.5px] border-main-700 aspect-square text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 rounded-r-[2px] rounded-l-md"
+	class="h-full px-3 flex justify-center items-center text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 z-[1]"
 	for="file-attachement"
 >
 	<input
@@ -28,5 +28,5 @@
 		onchange={onFile}
 		multiple
 	/>
-	<PlusIcon height={20} width={20} />
+	<FilledPlusIcon />
 </label>

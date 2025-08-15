@@ -78,7 +78,7 @@
 		class="w-full"
 	/>
 
-	{#if isOwner()}
+	{#if isOwner(server.id)}
 		<Switch
 			active={$form.public}
 			action={() => ($form.public = true)}

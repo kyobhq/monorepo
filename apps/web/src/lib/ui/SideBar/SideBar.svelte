@@ -12,7 +12,7 @@
 </script>
 
 <aside
-	class="bg-main-975 min-h-screen border-r-[0.5px] border-r-main-700 w-[19.5rem] overflow-hidden"
+	class="bg-main-975 min-h-screen border-r-[0.5px] border-r-main-800 w-[19.5rem] overflow-hidden"
 >
 	<div class="flex gap-x-2 px-2.5 pt-2.5">
 		<Input Icon={MagnifyingGlass} placeholder="Search" />

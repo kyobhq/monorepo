@@ -54,7 +54,7 @@
 	});
 </script>
 
-<div class="bg-main-975 border-l-[0.5px] border-l-main-700 w-[16rem] overflow-hidden">
+<div class="bg-main-975 border-l-[0.5px] border-l-main-800 w-[16rem] overflow-hidden">
 	<section class="p-2.5">
 		<Input Icon={MagnifyingGlass} placeholder="Search" />
 	</section>

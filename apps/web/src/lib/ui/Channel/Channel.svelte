@@ -29,8 +29,8 @@
 <button
 	{onclick}
 	class={[
-		'relative flex items-center w-full gap-x-2 hover:cursor-pointer transition-colors duration-75 py-2 px-2.5 rounded-sm',
-		active ? 'text-main-50 bg-main-900' : 'hover:bg-main-900 hover:text-main-200 text-main-300'
+		'relative flex items-center w-full gap-x-2 hover:cursor-pointer transition duration-150 py-2 px-2.5 rounded-md active-scale-down',
+		active ? 'text-main-50 active-channel' : 'hover:bg-main-900 hover:text-main-200 text-main-300'
 	]}
 >
 	<Icon height={18} width={18} />

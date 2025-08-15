@@ -40,9 +40,10 @@ func NewChatService(actors actors.Service, db database.Service, files files.Serv
 }
 
 func (s *chatService) GetMessages(ctx *gin.Context) ([]db.GetMessagesFromChannelRow, *types.APIError) {
+	serverID := ctx.Param("server_id")
 	channelID := ctx.Param("channel_id")
 
-	messages, err := s.db.GetMessages(ctx, channelID)
+	messages, err := s.db.GetMessages(ctx, serverID, channelID)
 	if err != nil {
 		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_MESSAGES", "Failed to get messages", err)
 	}

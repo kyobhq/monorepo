@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { scaleBlur } from 'utils/transition';
+
 	interface Props {
 		height: number;
 		width: number;
@@ -14,8 +16,10 @@
 		xmlns="http://www.w3.org/2000/svg"
 		{width}
 		{height}
-		class={['-scale-x-100', classes]}
+		class={['absolute -scale-x-100', classes]}
 		viewBox="0 0 256 256"
+		in:scaleBlur={{ duration: 100, delay: 50, blurAmount: 8, startScale: 0 }}
+		out:scaleBlur={{ duration: 100, blurAmount: 8, startScale: 0 }}
 	>
 		<path
 			fill="currentColor"
@@ -23,7 +27,15 @@
 		/>
 	</svg>
 {:else}
-	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" {width} {height} class={classes}>
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 256 256"
+		{width}
+		{height}
+		class={['absolute', classes]}
+		in:scaleBlur={{ duration: 100, delay: 50, blurAmount: 8, startScale: 0 }}
+		out:scaleBlur={{ duration: 100, blurAmount: 8, startScale: 0 }}
+	>
 		<path
 			fill="currentColor"
 			d="M80 128V64a48 48 0 0 1 96 0v64a48 48 0 0 1-96 0m128 0a8 8 0 0 0-16 0a64 64 0 0 1-128 0a8 8 0 0 0-16 0a80.11 80.11 0 0 0 72 79.6V240a8 8 0 0 0 16 0v-32.4a80.11 80.11 0 0 0 72-79.6"

@@ -1,7 +1,7 @@
 <script lang="ts">
 	interface Props {
-		height: number;
-		width: number;
+		height?: number;
+		width?: number;
 		class?: string;
 	}
 

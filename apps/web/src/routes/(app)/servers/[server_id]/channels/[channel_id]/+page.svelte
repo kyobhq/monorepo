@@ -36,8 +36,8 @@
 		}
 	};
 
-	async function getMessages(channelID: string) {
-		const res = await backend.getMessages(channelID);
+	async function getMessages(serverID: string, channelID: string) {
+		const res = await backend.getMessages(serverID, channelID);
 		res.match(
 			(messages) => {
 				channelStore.messages = messages ? messages.reverse() : [];
@@ -50,16 +50,18 @@
 	}
 
 	onMount(async () => {
-		if (page.params.channel_id) await getMessages(page.params.channel_id);
+		if (page.params.server_id && page.params.channel_id)
+			await getMessages(page.params.server_id, page.params.channel_id);
 	});
 
 	beforeNavigate(async ({ from, to }) => {
 		if (
+			to?.params?.server_id &&
 			from?.params?.channel_id &&
 			to?.params?.channel_id &&
 			from?.params?.channel_id !== to?.params?.channel_id
 		) {
-			await getMessages(to.params.channel_id);
+			await getMessages(to.params.server_id, to.params.channel_id);
 		}
 	});
 

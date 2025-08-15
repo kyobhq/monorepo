@@ -6,10 +6,11 @@ SELECT m.*, (
   SELECT json_build_object(
     'id', u.id, 
     'avatar', u.avatar, 
-    'display_name', u.display_name
+    'display_name', u.display_name,
+    'roles', sm.roles
   ) 
-  FROM users u 
-  WHERE u.id = m.author_id
+  FROM users u, server_members sm
+  WHERE u.id = m.author_id AND sm.server_id = $2 AND u.id = sm.user_id
 ) as author
 FROM messages m 
 WHERE channel_id = $1

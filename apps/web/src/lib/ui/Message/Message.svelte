@@ -28,7 +28,7 @@
 >
 	<button
 		bind:this={avatarEl}
-		class="h-12 w-12 relative highlight-border mb-1 select-none shrink-0 hover:after:border-main-50/75 hover:cursor-pointer rounded-md overflow-hidden"
+		class="h-12 w-12 relative highlight-border mb-1 select-none shrink-0 hover:after:border-main-50/75 active:after:border-main-50/50 hover:cursor-pointer rounded-md overflow-hidden"
 		onclick={() => {
 			if (author.id === userStore.user!.id) {
 				coreStore.openMyProfile(avatarEl!, 'right');

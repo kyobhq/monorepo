@@ -13,7 +13,9 @@
   --ui-main-600: #6B6B72;
   --ui-main-700: #55555A;
   --ui-main-800: #3E3E43;
+  --ui-main-850: #313134;
   --ui-main-900: #28282B;
+  --ui-main-925: #252528;
   --ui-main-950: #1D1D20;
   --ui-main-975: #121214;
 
@@ -24,6 +26,9 @@
   --ui-accent-mention-hover: #0096894D;
   
   --ui-mention: #E37D3D;
+
+  --bg-color: var(--ui-main-950);
+  --border-color: var(--ui-main-850);
 }
 
 .light {
@@ -45,7 +50,9 @@
 	--color-main-600: var(--ui-main-600);
 	--color-main-700: var(--ui-main-700);
 	--color-main-800: var(--ui-main-800);
+	--color-main-850: var(--ui-main-850);
 	--color-main-900: var(--ui-main-900);
+	--color-main-925: var(--ui-main-925);
 	--color-main-950: var(--ui-main-950);
 	--color-main-975: var(--ui-main-975);
   --color-mention: var(--ui-mention);
@@ -85,11 +92,13 @@ body {
 }
 
 @utility inner-main-700 {
-  box-shadow: inset 0px 0px 0px 1px var(--ui-main-700), inset 0px 0px 0px 0px rgba(0, 0, 0, 0);
+  box-shadow: inset 0px 0px 0px 1px rgba(255,255,255, 0.25);
+  mix-blend-mode: plus-lighter;
 }
 
 @utility inner-active {
-  box-shadow: inset 0px 0px 0px 2px #E9EBDF, inset 0px 0px 6px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0px 0px 0px 2px rgba(255,255,255, 0.75);
+  mix-blend-mode: plus-lighter;
 }
 
 @utility highlight-border {
@@ -100,8 +109,58 @@ body {
   @apply after:content-normal after:absolute after:inset-0 after:border-3 after:border-main-600/10 after:transition-colors after:duration-100 after:z-[1] after:rounded-[inherit] after:mix-blend-lighten;
 }
 
-*:focus-visible {
+@utility shadow-box {
+  box-shadow: 0px 0px 2px 0.5px rgba(0, 0, 0, 0.5), inset 0px 0px 8px 1px rgba(0, 0, 0, 0.25);
+}
+
+@utility inner-shadow-box {
+  box-shadow: inset 0px 0px 8px 1px rgba(0, 0, 0, 0.25);
+}
+
+@utility shadow-xs {
+  box-shadow: 0px 0px 2px 0.5px rgba(0, 0, 0, 0.5);
+}
+
+@utility box-style {
+  @apply relative bg-[var(--bg-color)] border-[2px] border-[var(--border-color)] rounded-[10px] shadow-box;
+}
+
+@utility active-scale-down {
+  @apply active:scale-[0.985]
+}
+
+@utility active-channel {
+  background: var(--ui-main-900);
+  box-shadow: inset 0px 1px 0px rgba(240, 240, 255, 0.1), inset 0px 16px 6px -2px rgba(240, 240, 255, 0.02);
+}
+
+@utility active-setting {
+  background: var(--ui-main-850);
+  box-shadow: inset 0px 1px 0px rgba(240, 240, 255, 0.15), inset 0px 16px 6px -2px rgba(240, 240, 255, 0.035);
+}
+
+@utility icon-button {
+  @apply p-1 border-[0.5px] border-transparent transition-colors duration-100 hover:cursor-pointer flex items-center justify-center rounded-sm h-7 w-7 active:scale-[0.96];
+}
+
+@utility icon-button-normal {
+  @apply text-main-500 hover:bg-main-800 hover:border-main-600 active:bg-main-700/75;
+}
+
+@utility icon-button-destructive {
+  @apply text-red-400 bg-red-400/20 hover:bg-red-400/30 hover:border-red-400 active:bg-red-400/40;
+}
+
+
+
+/* Only show focus outline when keyboard navigation is being used */
+[data-keyboard-user="true"] *:focus-visible {
   box-shadow: 0px 0px 0px 4px var(--ui-accent-lighter);
+}
+
+/* Fallback for browsers that don't support :focus-visible */
+[data-keyboard-user="true"] *:focus:not(:focus-visible) {
+  box-shadow: none;
 }
 
 a, button {
@@ -133,16 +192,16 @@ a, button {
 	pointer-events: none;
 }
 
-[data-whatinput="mouse"] .chat-input:focus-visible, [data-whatinput="mouse"] .edit-chat-input:focus-visible {
+.chat-input:focus-visible, .edit-chat-input:focus-visible {
 	box-shadow: none;
 }
 
-[data-whatintent="mouse"] .chat-input:focus-visible, [data-whatintent="mouse"] .edit-chat-input:focus-visible {
+.chat-input:focus-visible, .edit-chat-input:focus-visible {
 	box-shadow: none;
 }
 
 .chat-input {
-	padding: 1rem;
+	padding: 1rem 0rem;
 }
 
 .user-profile-gradient {

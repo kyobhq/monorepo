@@ -11,7 +11,7 @@
 	class="flex gap-x-2.5 pl-2.5 pb-2.5 shrink-0 relative after:absolute after:top-0 after:right-0 after:w-16 after:h-full after:bg-gradient-to-l after:from-main-975 after:to-transparent after:pointer-events-none"
 >
 	<button
-		class="h-13 w-13 bg-main-900 text-main-500 aspect-square hover:bg-main-800 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 flex items-center justify-center rounded-md"
+		class="h-13 w-13 bg-main-900 text-main-500 aspect-square hover:bg-main-800 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 flex items-center justify-center rounded-xl active-scale-down"
 		onclick={() => (coreStore.serverDialog = true)}
 	>
 		<PlusIcon height={20} width={20} />
@@ -23,7 +23,9 @@
 			active={page.url.pathname.includes(server.id)}
 		/>
 	{/each}
-	{#each { length: 5 }, _}
-		<div class="h-13 w-13 bg-main-950 aspect-square"></div>
-	{/each}
+	{#if Object.keys(serverStore.servers).length < 4}
+		{#each { length: 4 - Object.keys(serverStore.servers).length }, _}
+			<div class="h-13 w-13 bg-main-950 aspect-square rounded-xl"></div>
+		{/each}
+	{/if}
 </div>

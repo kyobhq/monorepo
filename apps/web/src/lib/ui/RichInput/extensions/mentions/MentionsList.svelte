@@ -80,24 +80,23 @@
 </script>
 
 {#if props.items.length > 0}
-	<div
-		bind:this={scrollableMenu}
-		class={[
-			'bg-main-900 border-[0.5px] border-main-700 z-[10] flex max-h-[20rem] flex-col gap-y-1 overflow-y-auto px-1 py-1',
-			classes
-		]}
-	>
-		{#each props.items as item, idx (idx)}
-			<button
-				class={[
-					'flex w-full items-center gap-x-1.5 px-2 py-1 text-left',
-					idx === selectedIndex ? 'bg-main-800 text-accent-50' : 'hover:bg-accent-100/20'
-				]}
-				onclick={() => (selectedIndex = idx)}
-			>
-				<img src={item.avatar} alt="avatar" class="h-5 w-5 object-cover" />
-				{item.display_name}
-			</button>
-		{/each}
+	<div class="box-style z-[10]">
+		<div
+			bind:this={scrollableMenu}
+			class={['flex max-h-[20rem] flex-col gap-y-1 overflow-y-auto px-1 py-1', classes]}
+		>
+			{#each props.items as item, idx (idx)}
+				<button
+					class={[
+						'flex w-full items-center gap-x-1.5 px-2 py-1 text-left relative z-[1] rounded-md',
+						idx === selectedIndex ? 'bg-accent/50 text-main-50' : 'hover:bg-accent/10'
+					]}
+					onclick={() => (selectedIndex = idx)}
+				>
+					<img src={item.avatar} alt="avatar" class="h-5 w-5 object-cover" />
+					{item.display_name}
+				</button>
+			{/each}
+		</div>
 	</div>
 {/if}

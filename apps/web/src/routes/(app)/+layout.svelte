@@ -20,13 +20,11 @@
 	const currentServer = $derived(serverStore.getServer(page.params.server_id || '') || undefined);
 
 	onMount(() => {
-		window.addEventListener('keydown', coreStore.handleShiftDown);
-		window.addEventListener('keyup', coreStore.handleShiftUp);
+		coreStore.initializeKeyboardDetection();
 	});
 
 	onDestroy(() => {
-		window.removeEventListener('keydown', coreStore.handleShiftDown);
-		window.removeEventListener('keyup', coreStore.handleShiftUp);
+		coreStore.cleanupKeyboardDetection();
 	});
 </script>
 

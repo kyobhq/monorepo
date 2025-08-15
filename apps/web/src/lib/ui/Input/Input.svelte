@@ -11,16 +11,18 @@
 	const { placeholder, Icon, disabled = false, class: classes }: Props = $props();
 </script>
 
-<div
-	class={[
-		'text-300 flex items-center gap-3 border-[0.5px] border-main-700 bg-main-950 pl-3 transition duration-100 focus-within:border-main-500 rounded-md',
-		classes
-	]}
->
-	<Icon height={18} width={18} />
-	<input
-		{placeholder}
-		{disabled}
-		class="w-full border-none py-2 placeholder:text-main-500 bg-transparent text-sm px-0"
-	/>
+<div class="box-style">
+	<div
+		class={[
+			'text-300 flex items-center gap-3 pl-3 transition duration-100 rounded-md z-[1] relative',
+			classes
+		]}
+	>
+		<Icon height={18} width={18} />
+		<input
+			{placeholder}
+			{disabled}
+			class="w-full border-none py-2 placeholder:text-main-500 bg-transparent text-sm px-0"
+		/>
+	</div>
 </div>
