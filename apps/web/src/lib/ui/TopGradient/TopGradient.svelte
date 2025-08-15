@@ -22,7 +22,7 @@
 	>
 		{#key currentServer.avatar}
 			<img
-				class="absolute inset-0 fade-out-gradient bg-cover bg-no-repeat bg-center w-full h-full rounded-[50%] object-cover"
+				class="absolute inset-0 fade-out-gradient bg-cover bg-no-repeat bg-center w-full h-full rounded-[50%] object-cover select-none"
 				src={currentServer.avatar}
 				aria-hidden="true"
 				alt=""

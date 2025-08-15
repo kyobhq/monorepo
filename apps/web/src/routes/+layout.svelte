@@ -30,4 +30,8 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Kyob</title>
+</svelte:head>
+
 {@render children()}

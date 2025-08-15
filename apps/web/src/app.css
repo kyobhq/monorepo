@@ -229,6 +229,7 @@ a, button {
 	color: var(--ui-accent-lighter);
 	padding: 2px 7px 2px 5px;
 	margin: 1px 4px 0px 4px;
+  border-radius: 6px;
 }
 
 .mention {

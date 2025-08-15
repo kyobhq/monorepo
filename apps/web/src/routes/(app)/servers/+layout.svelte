@@ -33,6 +33,9 @@
 	}
 
 	let currentServerId = $state<string | undefined>();
+	let currentServerName = $derived(
+		page.params?.server_id && serverStore.getServer(page.params.server_id)?.name
+	);
 
 	$effect(() => {
 		const serverId = page.params.server_id;
@@ -44,6 +47,10 @@
 		getServerInformations();
 	});
 </script>
+
+<svelte:head>
+	<title>Kyob | {currentServerName}</title>
+</svelte:head>
 
 {@render children()}
 

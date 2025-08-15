@@ -10,7 +10,7 @@
 	import { hasPermissions } from 'utils/permissions';
 
 	let { message } = $props();
-	const isAuthor = $derived(message.author_id === userStore.user?.id);
+	const isAuthor = $derived(message.author.id === userStore.user?.id);
 
 	async function deleteMessage() {
 		const res = await backend.deleteMessage(message.id, {

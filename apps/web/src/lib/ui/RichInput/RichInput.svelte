@@ -117,7 +117,7 @@
 		<Attachments bind:attachments />
 	{/if}
 	<div
-		class="flex gap-x-1 box-style rounded-2xl before:rounded-[14px] focus-within:border-main-800 transition-colors duration-100"
+		class="flex gap-x-1 box-style rounded-2xl before:rounded-[14px] focus-within:border-main-700 transition-colors duration-100"
 	>
 		{#if hasPermissions(page.params.server_id!, 'ATTACH_FILES')}
 			<AttachmentsButton bind:attachments />

@@ -40,9 +40,11 @@
 		style="border-color: {color ? getBorderColor(color) : 'var(--ui-main-850)'};
       color: {color ? color : 'var(--ui-main-300)'};"
 		class={[
-			'relative w-full flex items-center justify-start py-1.5 px-2.5 text-main-300 text-sm rounded-t-[6px]',
+			'relative w-full flex items-center justify-start py-1.5 px-2.5 text-main-300 hover:text-main-50! text-sm rounded-t-[6px]',
 			!isCollapsed && 'border-b-[2px]',
-			canCollapse ? 'hover:bg-main-925 transition-colors duration-75' : 'hover:cursor-default!'
+			canCollapse
+				? 'hover:bg-main-925 active:bg-main-850/75 transition-colors duration-150'
+				: 'hover:cursor-default!'
 		]}
 	>
 		{header}
