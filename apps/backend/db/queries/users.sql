@@ -5,7 +5,9 @@ SELECT * FROM users WHERE email = $1 OR username = $2;
 SELECT * FROM users WHERE id = $1;
 
 -- name: GetUserProfile :one
-SELECT id, username, display_name, avatar, banner, main_color, about_me, links, facts FROM users WHERE id = $1;
+SELECT u.id, u.username, u.display_name, u.avatar, u.banner, u.main_color, u.about_me, u.links, u.facts
+FROM users u
+WHERE u.id = $1;
 
 -- name: GetUsersByIds :many
 SELECT id, username, display_name, avatar FROM users WHERE id = ANY($1::text[]);

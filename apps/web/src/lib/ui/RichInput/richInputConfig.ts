@@ -62,7 +62,7 @@ export function getMessageExtensions() {
 				class: 'mention'
 			},
 			renderHTML({ options, node }) {
-				return ['button', options.HTMLAttributes, `${node.attrs.label}`];
+				return ['button', options.HTMLAttributes, `${node.attrs.mentionSuggestionChar}${node.attrs.label}`];
 			}
 		})
 	];

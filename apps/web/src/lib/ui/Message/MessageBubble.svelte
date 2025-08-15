@@ -53,7 +53,7 @@
 		<div
 			bind:this={messageEl}
 			class={[
-				'border-[1.5px] py-1.5 px-3 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-xl rounded-bl-md',
+				'border-[1.5px] py-1.5 px-3 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-2xl rounded-bl-sm',
 				message.author.id === userStore.user?.id
 					? 'bg-main-800 border-main-600'
 					: 'bg-main-950 border-main-800',

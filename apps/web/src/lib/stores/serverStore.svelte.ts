@@ -50,6 +50,10 @@ export class ServerStore {
     return this.servers[serverID].members.find((member) => member.id === userID);
   }
 
+  getMemberRoles(serverID: string, userID: string) {
+    return this.servers[serverID].members.find((member) => member.id === userID)?.roles;
+  }
+
   setMembers(serverID: string, members: Member[]) {
     this.servers[serverID].members = members;
   }

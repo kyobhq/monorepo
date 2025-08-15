@@ -24,7 +24,7 @@ type UserService interface {
 	UpdateProfile(ctx *gin.Context, body *types.UpdateProfileParams) *types.APIError
 	Setup(ctx *gin.Context) (*types.Setup, *types.APIError)
 	UpdatePassword(ctx *gin.Context, body *types.UpdatePasswordParams) *types.APIError
-	GetUserProfile(ctx *gin.Context, userID string) (*db.GetUserProfileRow, *types.APIError)
+	GetUserProfile(ctx *gin.Context) (*db.GetUserProfileRow, *types.APIError)
 	UploadEmojis(ctx *gin.Context, emojis []*multipart.FileHeader, shortcodes []string, body *types.UploadEmojiParams) (*[]types.EmojiResponse, *types.APIError)
 	UpdateEmoji(ctx *gin.Context, body *types.UpdateEmojiParams) *types.APIError
 	DeleteEmoji(ctx *gin.Context) *types.APIError
@@ -390,7 +390,9 @@ func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFr
 	return result, nil
 }
 
-func (s *userService) GetUserProfile(ctx *gin.Context, userID string) (*db.GetUserProfileRow, *types.APIError) {
+func (s *userService) GetUserProfile(ctx *gin.Context) (*db.GetUserProfileRow, *types.APIError) {
+	userID := ctx.Param("user_id")
+
 	user, err := s.db.GetUserProfile(ctx, userID)
 	if err != nil {
 		return nil, &types.APIError{

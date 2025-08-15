@@ -21,13 +21,13 @@
 <Popover.Portal>
 	<Popover.Content bind:ref {...restProps} forceMount={true}>
 		{#snippet child({ wrapperProps, props, open })}
-			{#if open}
-				<div {...wrapperProps}>
+			<div {...wrapperProps}>
+				{#if open}
 					<div {...props} transition:flyBlur={{ x, y, preserveBackdrop }}>
 						{@render children?.()}
 					</div>
-				</div>
-			{/if}
+				{/if}
+			</div>
 		{/snippet}
 	</Popover.Content>
 </Popover.Portal>

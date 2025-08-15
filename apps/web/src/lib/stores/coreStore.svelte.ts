@@ -108,12 +108,19 @@ export class Core {
 				side: side
 			};
 		} else {
+			// First set the user and element without opening
 			this.profile = {
-				open: true,
+				open: false,
 				user: userStore.user!,
 				el: el,
 				side: side
 			};
+			// Then open it on the next tick to trigger the animation
+			setTimeout(() => {
+				if (this.profile.user) {
+					this.profile.open = true;
+				}
+			}, 10);
 		}
 	}
 
@@ -132,24 +139,38 @@ export class Core {
 		} else {
 			const cachedUser = this.seenProfiles.find((profile) => profile.id === userID);
 			if (cachedUser) {
+				// First set the user and element without opening
 				this.profile = {
-					open: true,
+					open: false,
 					user: cachedUser,
 					el: el,
 					side: side
 				};
+				// Then open it on the next tick to trigger the animation
+				setTimeout(() => {
+					if (this.profile.user) {
+						this.profile.open = true;
+					}
+				}, 10);
 				return;
 			}
 
 			const res = await backend.getUserProfile(userID);
 			res.match(
 				(user) => {
+					// First set the user and element without opening
 					this.profile = {
-						open: true,
+						open: false,
 						user: user,
 						el: el,
 						side: side
 					};
+					// Then open it on the next tick to trigger the animation
+					setTimeout(() => {
+						if (this.profile.user) {
+							this.profile.open = true;
+						}
+					}, 10);
 
 					if (this.seenProfiles.length === MAX_SEEN_PROFILES) this.seenProfiles.shift();
 					this.seenProfiles.push(user);

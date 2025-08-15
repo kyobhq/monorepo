@@ -35,6 +35,10 @@ type UpdatePasswordParams struct {
 	Confirm string `json:"confirm" validate:"required,min=8,max=254"`
 }
 
+type GetUserProfileParams struct {
+	ServerID string `json:"server_id" validate:"omitempty"`
+}
+
 type Link struct {
 	Label string `json:"label" validate:"omitempty,min=1,max=20"`
 	URL   string `json:"url" validate:"omitempty,url"`

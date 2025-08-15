@@ -21,9 +21,7 @@ func NewUserHandlers(userService domains.UserService) *userHandler {
 }
 
 func (h *userHandler) GetUserProfile(c *gin.Context) {
-	userID := c.Param("user_id")
-
-	user, err := h.domain.GetUserProfile(c, userID)
+	user, err := h.domain.GetUserProfile(c)
 	if err != nil {
 		err.Respond(c)
 		return

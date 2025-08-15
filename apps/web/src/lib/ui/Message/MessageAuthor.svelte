@@ -7,7 +7,7 @@
 	import { formatMessageTime } from 'utils/time';
 
 	interface Props {
-		author: Member;
+		author: Partial<Member>;
 		message: Message;
 	}
 

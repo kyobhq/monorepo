@@ -22,8 +22,9 @@
   --ui-accent-select-fg: #F0F0FF;
   --ui-accent-select-bg: #F0F0FF33;
 
-  --ui-accent-mention: #00968926;
-  --ui-accent-mention-hover: #0096894D;
+  --ui-accent-mention: #00BBA730;
+  --ui-accent-mention-hover: #00BBA74D;
+  --ui-accent-mention-active: #00BBA766;
   
   --ui-mention: #E37D3D;
 
@@ -225,14 +226,14 @@ a, button {
 
 .editor-mention {
 	background-color: var(--ui-accent-mention);
-	color: var(--ui-accent);
+	color: var(--ui-accent-lighter);
 	padding: 2px 7px 2px 5px;
 	margin: 1px 4px 0px 4px;
 }
 
 .mention {
 	background-color: var(--ui-accent-mention);
-	color: var(--ui-accent);
+	color: var(--ui-accent-lighter);
 	padding: 1px 7px;
 	display: inline-flex;
 	align-items: center;
@@ -240,11 +241,16 @@ a, button {
   margin: 0 2px;
 	transition: background-color 75ms ease-out;
 	font-size: 16px;
+  border-radius: 6px;
 }
 
 .mention:hover {
 	background-color: var(--ui-accent-mention-hover);
 	cursor: pointer;
+}
+
+.mention:active {
+	background-color: var(--ui-accent-mention-active);
 }
 
 .context-shadow {

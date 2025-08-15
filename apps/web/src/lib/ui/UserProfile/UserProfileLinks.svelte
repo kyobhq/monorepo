@@ -15,7 +15,7 @@
 		{#each user.links as link, idx (idx)}
 			<a
 				href={link.url}
-				class="bg-white/20 mix-blend-plus-lighter border border-white/45 py-3 px-3 flex items-center justify-between hover:bg-white/30 hover:border-white/65 transition-colors duration-100 rounded-sm"
+				class="bg-white/20 mix-blend-plus-lighter border border-white/45 py-3 px-3 flex items-center justify-between hover:bg-white/30 hover:border-white/65 transition-colors duration-100 rounded-md"
 			>
 				<div class="flex flex-col gap-y-1.5">
 					<p class="text-white/65 mix-blend-plus-lighter leading-none font-medium">

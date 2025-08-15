@@ -6,6 +6,8 @@
 	import UserProfileFacts from './UserProfileFacts.svelte';
 	import UserProfileHeader from './UserProfileHeader.svelte';
 	import UserProfileLinks from './UserProfileLinks.svelte';
+	import UserProfileRoles from './UserProfileRoles.svelte';
+	import { page } from '$app/state';
 
 	const user = $derived(coreStore.profile.user);
 </script>
@@ -47,6 +49,10 @@
 				<UserProfileHeader {user} />
 
 				<UserProfileAbout {user} />
+
+				{#if page.params.server_id}
+					<UserProfileRoles {user} />
+				{/if}
 
 				{#if user.links.length! > 0 || user.facts.length! > 0}
 					<div
