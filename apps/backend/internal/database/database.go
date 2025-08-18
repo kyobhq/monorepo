@@ -41,7 +41,7 @@ type Service interface {
 	CreateServer(ctx context.Context, ownerID string, body *types.CreateServerParams, avatarURL *string) (*db.Server, error)
 	CheckInvite(ctx context.Context, inviteCode string) (string, error)
 	CreateInvite(ctx context.Context, userID, serverID string) (string, error)
-	JoinServer(ctx context.Context, serverID string, userID string, position int) (db.JoinServerRow, error)
+	JoinServer(ctx context.Context, serverID string, userID string, position int) (*db.JoinServerRow, error)
 	GetServer(ctx context.Context, serverID string) (db.Server, error)
 	UpdateServerAvatarNBanner(ctx context.Context, serverID string, avatar, bannerURL *string) error
 	UpdateServerProfile(ctx context.Context, serverID string, body *types.UpdateServerProfileParams) error
@@ -220,11 +220,24 @@ func (s *service) CreateServer(ctx context.Context, ownerID string, body *types.
 		return nil, err
 	}
 
+	role, err := qtx.UpsertRole(ctx, db.UpsertRoleParams{
+		ID:        cuid2.Generate(),
+		Position:  999,
+		ServerID:  server.ID,
+		Name:      "Default Permissions",
+		Color:     "#ffffff",
+		Abilities: []string{"VIEW_CHANNELS", "CREATE_INVITE", "CHANGE_NICKNAME", "SEND_MESSAGES", "ATTACH_FILES", "ADD_REACTIONS", "USE_PERSONAL_EMOJIS", "CONNECT", "SPEAK", "VIDEO"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	_, err = qtx.JoinServer(ctx, db.JoinServerParams{
 		ID:       cuid2.Generate(),
 		UserID:   ownerID,
 		ServerID: server.ID,
 		Position: int32(body.Position),
+		Roles:    []string{role.ID},
 	})
 	if err != nil {
 		return nil, err
@@ -261,13 +274,30 @@ func (s *service) CreateInvite(ctx context.Context, userID, serverID string) (st
 	return invite.(string), nil
 }
 
-func (s *service) JoinServer(ctx context.Context, serverID string, userID string, position int) (db.JoinServerRow, error) {
-	return s.queries.JoinServer(ctx, db.JoinServerParams{
+func (s *service) JoinServer(ctx context.Context, serverID string, userID string, position int) (*db.JoinServerRow, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	roleID, err := s.queries.GetDefaultRoleID(ctx, serverID)
+	if err != nil {
+		return nil, err
+	}
+
+	join, err := s.queries.JoinServer(ctx, db.JoinServerParams{
 		ID:       cuid2.Generate(),
 		UserID:   userID,
 		ServerID: serverID,
 		Position: int32(position),
+		Roles:    []string{roleID},
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &join, tx.Commit(ctx)
 }
 
 func (s *service) UpdateServerAvatarNBanner(ctx context.Context, serverID string, avatarURL, bannerURL *string) error {
@@ -668,7 +698,6 @@ func (s *service) RemoveFriend(ctx context.Context, friendshipID, userID string)
 	}
 
 	return tx.Commit(ctx)
-
 }
 
 func (s *service) GetFriends(ctx context.Context, userID string) ([]db.GetFriendsRow, error) {

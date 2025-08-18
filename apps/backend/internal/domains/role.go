@@ -6,7 +6,6 @@ import (
 	"backend/internal/database"
 	"backend/internal/permissions"
 	"backend/internal/types"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -141,7 +140,6 @@ func (s *roleService) MoveRole(ctx *gin.Context, body *types.MoveRoleMemberParam
 		}
 	}
 
-	fmt.Println(body)
 	if err := s.db.MoveRole(ctx, body); err != nil {
 		return &types.APIError{
 			Status:  http.StatusInternalServerError,

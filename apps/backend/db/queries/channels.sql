@@ -64,4 +64,4 @@ WHERE friendship_id = $1
 RETURNING *;
 
 -- name: GetChannelsIDs :many
-SELECT id, server_id FROM channels WHERE id <> 'global';
+SELECT id, server_id, users FROM channels WHERE id <> 'global';

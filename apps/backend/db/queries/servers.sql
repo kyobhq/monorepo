@@ -135,7 +135,7 @@ RETURNING *;
 -- name: JoinServer :one
 WITH ins AS (
   INSERT INTO server_members (id, user_id, server_id, position, roles)
-  VALUES ($1, $2, $3, $4, '{}'::varchar[])
+  VALUES ($1, $2, $3, $4, $5)
   RETURNING *
 )
 SELECT s.*, ins.roles, ins.position, (SELECT COUNT(*) FROM server_members smc WHERE smc.server_id = ins.server_id) AS member_count
@@ -160,7 +160,7 @@ UPDATE servers SET name = $1, description = $2, public = $3, updated_at = now() 
 DELETE FROM servers WHERE id = $1 AND owner_id = $2;
 
 -- name: GetServersIDs :many
-SELECT id FROM servers WHERE id <> 'global';
+SELECT id FROM servers;
 
 -- name: GetServersIDFromUser :many
 SELECT server_id FROM server_members WHERE user_id = $1;

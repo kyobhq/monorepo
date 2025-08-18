@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { userStore } from 'stores/userStore.svelte';
 	import type { User } from '$lib/types/types';
 
 	interface Props {
@@ -26,12 +25,4 @@
 			@{user.username}
 		</p>
 	</div>
-
-	{#if user.id !== userStore.user?.id}
-		<button
-			class="relative z-[4] mix-blend-plus-lighter bg-white/20 border border-white/30 px-2 py-1 text-sm text-white/80 font-medium"
-		>
-			Add friend
-		</button>
-	{/if}
 </div>

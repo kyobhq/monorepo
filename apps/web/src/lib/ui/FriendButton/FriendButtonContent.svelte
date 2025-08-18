@@ -3,10 +3,11 @@
 		avatar?: string;
 		display_name?: string;
 		about_me?: string;
+		accepted: boolean;
 		sender: boolean;
 	}
 
-	let { avatar, display_name, about_me, sender }: Props = $props();
+	let { avatar, display_name, about_me, accepted, sender }: Props = $props();
 </script>
 
 <figure class="h-10 w-10 rounded-lg overflow-hidden">
@@ -14,7 +15,7 @@
 </figure>
 <p class="font-medium">
 	{display_name}
-	{#if sender}
+	{#if !accepted && sender}
 		<span class="text-sm text-main-500">- Pending...</span>
 	{/if}
 </p>

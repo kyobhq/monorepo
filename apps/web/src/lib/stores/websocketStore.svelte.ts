@@ -1,5 +1,5 @@
 import { WSMessageSchema } from '$lib/gen/types_pb';
-import type { Category, Channel, ChannelTypes, Member, Message, Role } from '$lib/types/types';
+import type { Category, Channel, ChannelTypes, Friend, Member, Message, Role } from '$lib/types/types';
 import { fromBinary } from '@bufbuild/protobuf';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { channelStore } from './channelStore.svelte';
@@ -266,6 +266,48 @@ export class WebsocketStore {
             roles.sort((a, b) => a.position - b.position);
           }
           break;
+        case 'friendRequest':
+          {
+            if (!wsMess.content.value) return;
+            const sender = wsMess.content.value.sender
+            const friendshipID = wsMess.content.value.friendshipId
+            const accepted = wsMess.content.value.accepted
+            if (!sender) return;
+
+            const aboutMeStr = new TextDecoder().decode(sender.aboutMe);
+
+            const friend: Friend = {
+              friendship_id: friendshipID,
+              friendship_sender_id: sender.id,
+              id: sender.id,
+              display_name: sender.displayName,
+              about_me: JSON.parse(aboutMeStr),
+              banner: sender.banner,
+              avatar: sender.avatar,
+              accepted: accepted
+            }
+
+            userStore.friends.push(friend)
+          }
+          break;
+        case 'acceptFriendRequest':
+          {
+            if (!wsMess.content.value) return;
+            const friendshipID = wsMess.content.value.friendshipId
+            const channelID = wsMess.content.value.channelId
+
+            userStore.acceptFriend(friendshipID, channelID)
+          }
+          break;
+        case 'removeFriend':
+          {
+            if (!wsMess.content.value) return;
+            const friendshipID = wsMess.content.value.friendshipId
+
+            userStore.removeFriend(friendshipID)
+          }
+          break;
+
       }
     };
   }

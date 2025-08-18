@@ -14,24 +14,43 @@
 	import UserSettingsDialog from 'ui/Dialog/UserSettingsDialog/UserSettingsDialog.svelte';
 	import ServerSettingsDialog from 'ui/Dialog/ServerSettingsDialog/ServerSettingsDialog.svelte';
 	import FriendsDialog from 'ui/Dialog/FriendsDialog/FriendsDialog.svelte';
+	import { onNavigate } from '$app/navigation';
 
 	let { children } = $props();
 
 	const currentTab = $derived(page.url.pathname.split('/')[1]);
 	const currentServer = $derived(serverStore.getServer(page.params.server_id || '') || undefined);
+	let mainEl = $state<HTMLElement>();
+
+	function handleRichInputLength() {
+		if (mainEl) coreStore.richInputLength = mainEl.clientWidth;
+	}
 
 	onMount(() => {
 		coreStore.initializeKeyboardDetection();
+		handleRichInputLength();
+		window.addEventListener('resize', handleRichInputLength);
 	});
 
 	onDestroy(() => {
 		coreStore.cleanupKeyboardDetection();
+		window.removeEventListener('resize', handleRichInputLength);
+	});
+
+	onNavigate(() => {
+		handleRichInputLength();
 	});
 </script>
 
 <div class="flex">
 	<SideBar />
-	<main class="flex flex-col w-[calc(100%-19.5rem-16rem)] h-screen relative">
+	<main
+		bind:this={mainEl}
+		class={[
+			'flex flex-col h-screen relative',
+			page.url.pathname.includes('servers') ? 'w-[calc(100%-19.5rem-16rem)]' : 'w-full'
+		]}
+	>
 		{@render children()}
 	</main>
 	{#if currentTab === 'servers' && currentServer}

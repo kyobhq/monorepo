@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Channel, Message, Server } from '$lib/types/types';
+	import type { Channel, Friend, Message, Server } from '$lib/types/types';
 	import { messageStore } from 'stores/messageStore.svelte';
 	import ContextMenuMessage from 'ui/ContextMenu/ContextMenuMessage.svelte';
 	import MessageEditSentence from './MessageEditSentence.svelte';
@@ -9,12 +9,13 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 
 	interface Props {
-		server: Server;
-		channel: Channel;
+		server?: Server;
+		channel?: Channel;
+		friend?: Friend;
 		message: Message;
 	}
 
-	let { server, channel, message }: Props = $props();
+	let { server, channel, friend, message }: Props = $props();
 
 	let avatarEl = $state<HTMLButtonElement>();
 	let onClickSave = $state<() => Promise<void>>();
@@ -43,7 +44,7 @@
 		{#if messageStore.editMessage?.id === message.id}
 			<MessageEditSentence bind:onClickSave />
 		{/if}
-		<MessageBubble {server} {channel} {message} bind:onClickSave />
+		<MessageBubble {server} {channel} {friend} {message} bind:onClickSave />
 		<MessageAuthor {author} {message} />
 	</div>
 

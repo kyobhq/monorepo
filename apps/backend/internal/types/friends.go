@@ -5,12 +5,12 @@ type SendRequestParams struct {
 }
 
 type AcceptRequestParams struct {
-	FriendshipID string `json:"friendship_id" validate:"required,min=1,max=20"`
-	SenderID     string `json:"sender_id" validate:"required,min=1,max=20"`
+	FriendshipID string `json:"friendship_id" validate:"required"`
+	SenderID     string `json:"sender_id" validate:"required"`
 }
 
 type RemoveFriendParams struct {
-	FriendshipID string `json:"friendship_id" validate:"required,min=1,max=20"`
-	SenderID     string `json:"sender_id" validate:"required,min=1,max=20"`
-	ReceiverID   string `json:"receiver_id" validate:"required,min=1,max=20"`
+	FriendshipID string `json:"friendship_id" validate:"required"`
+	SenderID     string `json:"sender_id" validate:"required"`
+	ReceiverID   string `json:"receiver_id" validate:"required"`
 }

@@ -115,7 +115,6 @@ func New(dbService database.Service) Service {
 	c.Engine().Subscribe(eventPID)
 	c.Start()
 
-	c.Spawn(newServer(actorService), "server", actor.WithID("global"))
 	actorService.Bootstrap()
 
 	return actorService
@@ -128,6 +127,7 @@ func (se *service) Bootstrap() {
 		log.Fatal(err1, err2)
 	}
 
+	// start servers
 	nodeRegion := os.Getenv("REGION")
 	for _, serverID := range serverIDs {
 		serverPID := se.StartServerInRegion(serverID, nodeRegion)
@@ -136,7 +136,8 @@ func (se *service) Bootstrap() {
 			if channel.ServerID == serverID {
 				se.cluster.Engine().Send(serverPID, &message.StartChannel{
 					Channel: &message.Channel{
-						Id: channel.ID,
+						Id:    channel.ID,
+						Users: channel.Users,
 					},
 				})
 			}
@@ -363,17 +364,19 @@ func (se *service) RemoveRoleMember(body *types.ChangeRoleMemberParams) {
 func (se *service) SendFriendRequest(friendshipID, receiverID string, sender *db.User) {
 	userPID := se.GetUser(receiverID)
 
-	message := &message.WSMessage_FriendRequest{
-		FriendRequest: &message.FriendRequest{
-			FriendshipId: friendshipID,
-			Sender: &message.User{
-				Id:          sender.ID,
-				DisplayName: sender.DisplayName,
-				Avatar:      sender.Avatar.String,
-				Banner:      sender.Banner.String,
-				AboutMe:     sender.AboutMe,
+	message := &message.WSMessage{
+		Content: &message.WSMessage_FriendRequest{
+			FriendRequest: &message.FriendRequest{
+				FriendshipId: friendshipID,
+				Sender: &message.User{
+					Id:          sender.ID,
+					DisplayName: sender.DisplayName,
+					Avatar:      sender.Avatar.String,
+					Banner:      sender.Banner.String,
+					AboutMe:     sender.AboutMe,
+				},
+				Accepted: false,
 			},
-			Accepted: false,
 		},
 	}
 
@@ -384,10 +387,12 @@ func (se *service) AcceptFriendRequest(friendshipID, senderID, receiverID, chann
 	senderPID := se.GetUser(senderID)
 	receiverPID := se.GetUser(receiverID)
 
-	message := &message.WSMessage_AcceptFriendRequest{
-		AcceptFriendRequest: &message.AcceptFriendRequest{
-			FriendshipId: friendshipID,
-			ChannelId:    channelID,
+	message := &message.WSMessage{
+		Content: &message.WSMessage_AcceptFriendRequest{
+			AcceptFriendRequest: &message.AcceptFriendRequest{
+				FriendshipId: friendshipID,
+				ChannelId:    channelID,
+			},
 		},
 	}
 
@@ -399,9 +404,11 @@ func (se *service) RemoveFriend(friendshipID, senderID, receiverID string) {
 	senderPID := se.GetUser(senderID)
 	receiverPID := se.GetUser(receiverID)
 
-	message := &message.WSMessage_RemoveFriend{
-		RemoveFriend: &message.RemoveFriend{
-			FriendshipId: friendshipID,
+	message := &message.WSMessage{
+		Content: &message.WSMessage_RemoveFriend{
+			RemoveFriend: &message.RemoveFriend{
+				FriendshipId: friendshipID,
+			},
 		},
 	}
 

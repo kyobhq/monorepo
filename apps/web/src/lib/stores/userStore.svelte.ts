@@ -8,6 +8,18 @@ export class UserStore {
   mute = $state(false);
   deafen = $state(false);
   setupComplete = $state(false);
+
+  acceptFriend(friendshipID: string, channelID: string) {
+    const friendship = this.friends.find((friend) => friend.friendship_id === friendshipID)
+    if (friendship) {
+      friendship.accepted = true
+      friendship.channel_id = channelID
+    }
+  }
+
+  removeFriend(friendshipID: string) {
+    this.friends = this.friends.filter(friend => friend.friendship_id !== friendshipID)
+  }
 }
 
 export const userStore = new UserStore();

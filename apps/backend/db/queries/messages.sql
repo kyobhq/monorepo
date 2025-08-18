@@ -9,8 +9,9 @@ SELECT m.*, (
     'display_name', u.display_name,
     'roles', sm.roles
   ) 
-  FROM users u, server_members sm
-  WHERE u.id = m.author_id AND sm.server_id = $2 AND u.id = sm.user_id
+  FROM users u
+  LEFT JOIN server_members sm ON (u.id = sm.user_id AND sm.server_id = $2 AND $2 != 'global')
+  WHERE u.id = m.author_id
 ) as author
 FROM messages m 
 WHERE channel_id = $1

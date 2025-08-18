@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Message, Channel, Server } from '$lib/types/types';
+	import type { Message, Channel, Server, Friend } from '$lib/types/types';
 	import { generateHTML } from '@tiptap/core';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { messageStore } from 'stores/messageStore.svelte';
@@ -11,13 +11,14 @@
 	import { generateTextWithExt } from 'utils/richInput';
 
 	interface Props {
-		server: Server;
-		channel: Channel;
+		server?: Server;
+		channel?: Channel;
+		friend?: Friend;
 		message: Message;
 		onClickSave?: () => Promise<void>;
 	}
 
-	let { server, channel, message, onClickSave = $bindable() }: Props = $props();
+	let { server, channel, friend, message, onClickSave = $bindable() }: Props = $props();
 
 	let messageEl = $state<HTMLElement>();
 	const html = $derived.by(() => generateHTML(message.content, MESSAGE_EXTENSIONS));
@@ -61,7 +62,7 @@
 			]}
 		>
 			{#if messageStore.editMessage?.id === message.id}
-				<RichInputEdit {server} {channel} bind:onClickSave />
+				<RichInputEdit {server} {channel} {friend} bind:onClickSave />
 			{:else}
 				{@html html}
 			{/if}

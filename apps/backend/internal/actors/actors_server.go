@@ -94,7 +94,7 @@ func (s *server) startCategory(msg *messages.StartCategory) {
 }
 
 func (s *server) startChannel(ctx *actor.Context, msg *messages.StartChannel) {
-	ctx.SpawnChild(newChannel(s.hub), "channel", actor.WithID(msg.Channel.Id))
+	ctx.SpawnChild(newChannel(s.hub, msg.Channel.Users), "channel", actor.WithID(msg.Channel.Id))
 
 	message := &messages.WSMessage{
 		Content: &messages.WSMessage_StartChannel{

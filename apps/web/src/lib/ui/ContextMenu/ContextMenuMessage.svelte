@@ -14,7 +14,7 @@
 
 	async function deleteMessage() {
 		const res = await backend.deleteMessage(message.id, {
-			server_id: page.params.server_id!,
+			server_id: page.params.server_id || 'global',
 			channel_id: page.params.channel_id!,
 			author_id: message.author.id
 		});
@@ -28,8 +28,6 @@
 	}
 
 	async function handleDelete() {
-		if (!page.params.server_id) return;
-
 		if (coreStore.pressingShift) {
 			await deleteMessage();
 			return;
@@ -60,7 +58,9 @@
 	{#snippet contextMenuContent()}
 		<ContextMenuItem onclick={() => {}} text="Reply" />
 		<ContextMenuItem onclick={handleCopyText} text="Copy Text" />
-		<ContextMenuItem onclick={() => {}} text="Copy Message Link" />
+		{#if message.server_id !== 'global'}
+			<ContextMenuItem onclick={() => {}} text="Copy Message Link" />
+		{/if}
 		{#if isAuthor}
 			<ContextMenuItem onclick={handleEdit} text="Edit Message" />
 		{/if}

@@ -197,7 +197,7 @@ func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParam
 	}
 
 	serverWithCategories := &types.JoinServerWithCategories{
-		server,
+		*server,
 		categoryMap,
 		roles,
 	}

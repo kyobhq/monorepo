@@ -18,8 +18,8 @@
 		identityRes.match(
 			(setup) => {
 				userStore.user = setup.user;
-				userStore.friends = setup.friends;
-				userStore.emojis = setup.emojis;
+				userStore.friends = setup.friends || [];
+				userStore.emojis = setup.emojis || [];
 				serverStore.servers = setup.servers;
 				ws.init(setup.user.id);
 				userStore.setupComplete = true;

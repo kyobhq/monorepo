@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Channel, Server } from '$lib/types/types';
+	import type { Channel, Friend, Server } from '$lib/types/types';
 	import { editorStore } from 'stores/editorStore.svelte';
 	import MentionsList from './extensions/mentions/MentionsList.svelte';
 	import EmojisList from './extensions/emojis/EmojisList.svelte';
@@ -14,12 +14,13 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 
 	interface Props {
-		server: Server;
-		channel: Channel;
+		server?: Server;
+		channel?: Channel;
+		friend?: Friend;
 		onClickSave?: () => Promise<void>;
 	}
 
-	let { server, channel, onClickSave = $bindable() }: Props = $props();
+	let { server, channel, friend, onClickSave = $bindable() }: Props = $props();
 
 	let element: Element;
 	let editor: Editor;
@@ -61,9 +62,11 @@
 				.match(/<@(\d+)>/g)
 				?.map((match) => match.slice(2, -1)) || [];
 
+		if (!channel?.id && !friend?.channel_id) return;
+
 		const payload: EditMessageType = {
-			server_id: server.id,
-			channel_id: channel.id,
+			server_id: server?.id || 'global',
+			channel_id: channel?.id || friend?.channel_id || '',
 			content: message,
 			mentions_users: [...new Set(ids)],
 			mentions_roles: [],

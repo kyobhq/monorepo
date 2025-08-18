@@ -19,7 +19,8 @@
 
 	let { selectedRole = $bindable(), initialized = $bindable() }: Props = $props();
 	const TABS = ['Display', 'Permissions', 'Members'];
-	let activeTab = $state('Display');
+	const TABS_DEFAULT = ['Permissions'];
+	let activeTab = $state();
 	let isSubmitting = $state(false);
 	let isButtonComplete = $state(true);
 
@@ -70,14 +71,17 @@
 			$form.abilities = selectedRole.abilities;
 			$form.position = selectedRole.position;
 			$form.color = selectedRole.color;
-			activeTab = 'Display';
+			activeTab = selectedRole.name === 'Default Permissions' ? 'Permissions' : 'Display';
 			initialized = true;
 		}
 	});
 </script>
 
 <div class="h-full w-full overflow-y-auto p-4">
-	<RoleNavbar {TABS} bind:activeTab />
+	<RoleNavbar
+		TABS={selectedRole?.name === 'Default Permissions' ? TABS_DEFAULT : TABS}
+		bind:activeTab
+	/>
 
 	<form method="post" use:enhance>
 		{#if activeTab === 'Display'}

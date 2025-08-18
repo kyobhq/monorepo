@@ -54,6 +54,11 @@ SELECT r.id, r.position, r.name, r.color, r.abilities, r.server_id
 FROM roles r
 WHERE r.id = $1;
 
+-- name: GetDefaultRoleID :one
+SELECT r.id
+FROM roles r
+WHERE r.name = 'Default Permissions' AND server_id = $1;
+
 -- name: GiveRole :exec
 UPDATE server_members 
 SET roles = array_append(roles, $1) -- role_name

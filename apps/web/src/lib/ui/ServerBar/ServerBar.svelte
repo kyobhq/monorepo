@@ -12,7 +12,9 @@
 	let membersPerRole = $derived.by(() => {
 		if (!page.params.server_id) return {};
 		const members = serverStore.getMembers(page.params.server_id);
-		const roles = serverStore.getRoles(page.params.server_id);
+		const roles = serverStore
+			.getRoles(page.params.server_id)
+			.filter((role) => role.name !== 'Default Permissions');
 
 		if (roles.length === 0) {
 			return {

@@ -24,14 +24,16 @@
 </script>
 
 {#if userStore.user}
-	<div class="absolute w-[calc(100%-1.25rem)] bottom-2.5 pr-2 left-1/2 -translate-x-1/2 box-style">
+	<div
+		class="absolute w-[calc(100%-1.25rem)] bottom-2.5 pr-2 left-1/2 -translate-x-1/2 box-style rounded-xl"
+	>
 		<div class="flex justify-between p-[2.5px]">
 			<button
 				bind:this={buttonEl}
 				onclick={() => coreStore.openMyProfile(buttonEl!)}
-				class="flex text-left items-center gap-x-2 active:bg-main-700/85 hover:bg-main-800 pr-2 border-[0.5px] border-transparent hover:border-main-600 transition-colors hover:cursor-pointer duration-150 rounded-md z-[1]"
+				class="flex text-left items-center gap-x-2 active:bg-main-700/85 hover:bg-main-800 pr-2 border-[0.5px] border-transparent hover:border-main-600 transition-colors hover:cursor-pointer duration-150 rounded-lg z-[1]"
 			>
-				<figure class="relative h-12 w-12 highlight-border rounded-sm overflow-hidden">
+				<figure class="relative h-12 w-12 highlight-border rounded-lg overflow-hidden">
 					<img src={userStore.user.avatar} alt="" class="w-full h-full object-cover" />
 				</figure>
 				<div class="flex flex-col gap-y-0.5">

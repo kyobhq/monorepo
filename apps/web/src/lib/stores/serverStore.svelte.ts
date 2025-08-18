@@ -75,7 +75,7 @@ export class ServerStore {
   }
 
   getRoles(serverID: string) {
-    return this.servers[serverID].roles;
+    return this.servers[serverID].roles
   }
 
   getRole(serverID: string, roleID: string): Role | undefined {

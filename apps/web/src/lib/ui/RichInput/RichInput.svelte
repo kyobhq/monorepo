@@ -14,10 +14,11 @@
 	import Attachments from './attachments/Attachments.svelte';
 	import { hasPermissions } from 'utils/permissions';
 	import { page } from '$app/state';
+	import { coreStore } from 'stores/coreStore.svelte';
 
 	interface Props {
-		server: Server;
-		channel: Channel;
+		server?: Server;
+		channel?: Channel;
 		friend?: Friend;
 	}
 
@@ -37,9 +38,11 @@
 				.match(/<@(.*)>/g)
 				?.map((match) => match.slice(2, -1)) || [];
 
+		if (!channel?.id && !friend?.channel_id) return;
+
 		const payload: CreateMessageType = {
-			server_id: server.id,
-			channel_id: channel.id,
+			server_id: server?.id || 'global',
+			channel_id: channel?.id || friend?.channel_id || '',
 			content: message,
 			mentions_users: [...new Set(ids)],
 			mentions_roles: [],
@@ -80,7 +83,7 @@
 				},
 				onEnterPress: () => prepareMessage(editor.getJSON()),
 				onFocus: () => {
-					editorStore.currentChannel = channel.id;
+					editorStore.currentChannel = channel?.id || friend?.channel_id || '';
 				}
 			})
 		);
@@ -98,7 +101,10 @@
 	});
 </script>
 
-<div class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5">
+<div
+	class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5"
+	style="width: {coreStore.richInputLength}px;"
+>
 	{#if editorStore.currentInput === 'main' && editorStore.mentionProps}
 		<MentionsList
 			props={editorStore.mentionProps}
@@ -119,16 +125,17 @@
 	<div
 		class="flex gap-x-1 box-style rounded-2xl before:rounded-[14px] focus-within:border-main-700 transition-colors duration-100"
 	>
-		{#if hasPermissions(page.params.server_id!, 'ATTACH_FILES')}
-			<AttachmentsButton bind:attachments />
-		{/if}
+		<AttachmentsButton
+			bind:attachments
+			disabled={!(Boolean(friend) || hasPermissions(page.params.server_id!, 'ATTACH_FILES'))}
+		/>
 		<div class="relative flex w-[calc(100%-3.5rem*2)] flex-col transition duration-100">
 			<div class="flex w-full">
 				<div class="max-h-[10rem] w-full" bind:this={element}></div>
 			</div>
 		</div>
 		<button
-			class="h-full px-3 flex justify-center items-center text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 z-[1]"
+			class="h-[3.5rem] px-3 flex justify-center items-center text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 z-[1]"
 		>
 			<EmojiIcon />
 		</button>

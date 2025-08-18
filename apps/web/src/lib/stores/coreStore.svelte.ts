@@ -5,6 +5,7 @@ import { userStore } from './userStore.svelte';
 const MAX_SEEN_PROFILES = 5;
 
 export class Core {
+  richInputLength = $state(0);
   serverDialog = $state(false);
   categoryDialog = $state(false);
   friendsDialog = $state(false);

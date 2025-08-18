@@ -14,11 +14,11 @@ type channel struct {
 	hub    Service
 }
 
-func newChannel(actorService Service) actor.Producer {
+func newChannel(actorService Service, users []string) actor.Producer {
 	return func() actor.Receiver {
 		return &channel{
 			logger: slog.Default(),
-			users:  []string{},
+			users:  users,
 			hub:    actorService,
 		}
 	}
