@@ -37,6 +37,7 @@ type Service interface {
 	UpdateUserPassword(ctx context.Context, userID string, hashedPassword string) error
 	UpdateUserProfile(ctx context.Context, userID string, body *types.UpdateProfileParams) (db.User, error)
 	GetUserServers(ctx context.Context, userID string) ([]db.GetServersFromUserRow, error)
+	GetUserServerIDs(ctx context.Context, userID string) ([]string, error)
 	GetServersIDFromUser(ctx context.Context, userID string) ([]string, error)
 	CreateServer(ctx context.Context, ownerID string, body *types.CreateServerParams, avatarURL *string) (*db.Server, error)
 	CheckInvite(ctx context.Context, inviteCode string) (string, error)
@@ -86,6 +87,7 @@ type Service interface {
 	AcceptFriendRequest(ctx context.Context, friendshipID, senderID, receiverID string) (*string, error)
 	RemoveFriend(ctx context.Context, friendshipID, userID string) error
 	GetFriends(ctx context.Context, userID string) ([]db.GetFriendsRow, error)
+	GetFriendIDs(ctx context.Context, userID string) ([]string, error)
 	DeleteAccount(ctx context.Context, userID string) error
 }
 
@@ -172,6 +174,10 @@ func (s *service) UpdateUserAvatarNBanner(ctx context.Context, userID string, av
 
 func (s *service) GetUserServers(ctx context.Context, userID string) ([]db.GetServersFromUserRow, error) {
 	return s.queries.GetServersFromUser(ctx, userID)
+}
+
+func (s *service) GetUserServerIDs(ctx context.Context, userID string) ([]string, error) {
+	return s.queries.GetServerIDsFromUser(ctx, userID)
 }
 
 func (s *service) UpdateUserEmail(ctx context.Context, userID string, body *types.UpdateEmailParams) (db.User, error) {
@@ -654,18 +660,13 @@ func (s *service) AcceptFriendRequest(ctx context.Context, friendshipID, senderI
 		return nil, err
 	}
 
-	channel, err := qtx.GetExistingChannel(ctx, pgtype.Text{String: friendshipID, Valid: true})
-	if err == nil {
-		return &channel.ID, nil
-	}
-
-	channel, err = qtx.CreateChannel(ctx, db.CreateChannelParams{
+	channel, err := qtx.CreateChannel(ctx, db.CreateChannelParams{
 		ID:           cuid2.Generate(),
 		ServerID:     "global",
 		FriendshipID: pgtype.Text{String: friendshipID, Valid: true},
 		Name:         "",
 		Type:         "dm",
-		E2ee:         true,
+		E2ee:         false,
 		Users:        []string{senderID, receiverID},
 		Description:  pgtype.Text{String: "", Valid: true},
 	})
@@ -685,6 +686,10 @@ func (s *service) RemoveFriend(ctx context.Context, friendshipID, userID string)
 
 func (s *service) GetFriends(ctx context.Context, userID string) ([]db.GetFriendsRow, error) {
 	return s.queries.GetFriends(ctx, userID)
+}
+
+func (s *service) GetFriendIDs(ctx context.Context, userID string) ([]string, error) {
+	return s.queries.GetFriendIDs(ctx, userID)
 }
 
 func (s *service) DeleteAccount(ctx context.Context, userID string) error {

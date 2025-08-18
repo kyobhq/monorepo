@@ -17,11 +17,12 @@
 			friendship_id: friend.friendship_id,
 			sender_id: friend.friendship_sender_id,
 			receiver_id:
-				friend.friendship_sender_id === userStore.user!.id ? friend.id! : userStore.user!.id
+				friend.friendship_sender_id === userStore.user!.id ? friend.id! : userStore.user!.id,
+			channel_id: friend.channel_id!
 		});
 		res.match(
 			() => {
-				userStore.removeFriend(friend.friendship_id);
+				userStore.removeFriend({ friendshipID: friend.friendship_id });
 			},
 			(err) => logErr(err)
 		);

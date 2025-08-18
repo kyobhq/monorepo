@@ -48,6 +48,8 @@ func (s *server) Receive(ctx *actor.Context) {
 			"id", ctx.PID().GetID(),
 			"err", msg.Err,
 		)
+	case *messages.AccountDeletion:
+		s.AccountDeletion(ctx, msg)
 	case *messages.StartCategory:
 		s.startCategory(msg)
 	case *messages.KillCategory:
@@ -95,6 +97,10 @@ func (s *server) startCategory(msg *messages.StartCategory) {
 
 func (s *server) startChannel(ctx *actor.Context, msg *messages.StartChannel) {
 	ctx.SpawnChild(newChannel(s.hub, msg.Channel.Users), "channel", actor.WithID(msg.Channel.Id))
+
+	if msg.Channel.ServerId == "global" {
+		return
+	}
 
 	message := &messages.WSMessage{
 		Content: &messages.WSMessage_StartChannel{
@@ -221,5 +227,13 @@ func (s *server) RemoveRoleMember(msg *messages.RemoveRoleMember) {
 	for userID := range s.users {
 		userPID := s.hub.GetUser(userID)
 		s.hub.BroadcastMessageToUser(userPID, message)
+	}
+}
+
+func (s *server) AccountDeletion(ctx *actor.Context, msg *messages.AccountDeletion) {
+	delete(s.users, msg.UserId)
+
+	for _, channelPID := range ctx.Children() {
+		ctx.Send(channelPID, msg)
 	}
 }

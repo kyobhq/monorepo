@@ -24,10 +24,10 @@
 		This is not a soft delete! This action is irreversible.
 	</p>
 	<button
-		class="text-left w-fit bg-red-400/30 border-[0.5px] border-red-400 px-2 py-1.5 text-red-400 hover:bg-red-400 hover:text-red-50 hover:cursor-pointer transition-colors duration-100 mt-4"
-		onclick={() => (activateDelete = true)}
+		class="text-left w-fit bg-red-400/30 border-[0.5px] border-red-400 px-2 py-1.5 text-red-400 hover:bg-red-400 hover:text-red-50 hover:cursor-pointer transition-colors duration-100 mt-4 rounded-sm"
+		onclick={() => (activateDelete = !activateDelete)}
 	>
-		Delete account
+		{activateDelete ? 'NOOOOOOOO' : 'Delete account'}
 	</button>
 </div>
 

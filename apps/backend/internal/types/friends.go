@@ -13,4 +13,5 @@ type RemoveFriendParams struct {
 	FriendshipID string `json:"friendship_id" validate:"required"`
 	SenderID     string `json:"sender_id" validate:"required"`
 	ReceiverID   string `json:"receiver_id" validate:"required"`
+	ChannelID    string `json:"channel_id" validate:"required"`
 }

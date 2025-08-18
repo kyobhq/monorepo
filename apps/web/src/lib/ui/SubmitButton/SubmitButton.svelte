@@ -59,9 +59,9 @@
 	{type}
 	onclick={type === 'button' ? fn : null}
 	class={[
-		'px-3 py-1.5 bg-accent-darker border-[0.5px]  transition-colors hover:cursor-pointer relative rounded-sm w-fit',
+		'px-3 py-1.5 bg-accent-darker border-[0.5px] transition-colors hover:cursor-pointer relative rounded-sm w-fit',
 		destructive
-			? 'bg-red-500/20  border-red-400 hover:bg-red-400/30'
+			? 'bg-red-500/20 border-red-400 hover:bg-red-400/30 text-red-400'
 			: 'border-accent hover:bg-accent',
 		isError ? 'bg-red-500/20  border-red-400 hover:bg-red-400/30' : 'border-accent hover:bg-accent',
 		classes

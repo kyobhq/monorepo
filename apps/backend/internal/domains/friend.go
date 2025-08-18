@@ -119,7 +119,7 @@ func (s *friendService) RemoveFriend(ctx *gin.Context, body *types.RemoveFriendP
 		}
 	}
 
-	s.actors.RemoveFriend(body.FriendshipID, body.SenderID, body.ReceiverID)
+	s.actors.RemoveFriend(body.FriendshipID, body.SenderID, body.ReceiverID, body.ChannelID)
 
 	return nil
 }

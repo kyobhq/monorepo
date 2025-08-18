@@ -16,6 +16,12 @@ FROM servers s
 INNER JOIN server_members sm ON sm.server_id = s.id AND sm.user_id = $1
 WHERE s.id <> 'global';
 
+-- name: GetServerIDsFromUser :many
+SELECT DISTINCT s.id
+FROM servers s
+INNER JOIN server_members sm ON sm.server_id = s.id AND sm.user_id = $1
+WHERE s.id <> 'global';
+
 -- name: GetServerMembers :many
 SELECT 
     u.id, 

@@ -6,7 +6,7 @@
 </script>
 
 <BarSeparatorWithButton
-	title="Friends"
+	title={`Friends - ${userStore.getNbOnlineFriends()}`}
 	buttonText="Add Friend"
 	onclick={() => {
 		coreStore.friendsDialog = true;

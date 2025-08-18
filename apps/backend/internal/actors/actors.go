@@ -54,6 +54,8 @@ type Service interface {
 
 	StartChannel(channel db.Channel)
 
+	StartDMChannel(channelID string, userIDs []string)
+
 	KillChannel(body *types.DeleteChannelParams, channelID string)
 
 	KillCategory(body *types.DeleteCategoryParams, categoryID string)
@@ -76,7 +78,13 @@ type Service interface {
 
 	AcceptFriendRequest(friendshipID, senderID, receiverID, channelID string)
 
-	RemoveFriend(friendshipID, senderID, receiverID string)
+	RemoveFriend(friendshipID, senderID, receiverID, channelID string)
+
+	NotifyAccountDeletion(userID string, serverIDs []string)
+
+	NotifyFriendStatus(friendID string, msg *message.ChangeStatus)
+
+	GetActiveFriends(userID string) []string
 }
 
 type service struct {
@@ -157,6 +165,11 @@ func (se *service) GetUser(userID string) *actor.PID {
 	return se.cluster.GetActiveByID("user/" + userID)
 }
 
+func (se *service) NotifyFriendStatus(friendID string, msg *message.ChangeStatus) {
+	friendPID := se.GetUser(friendID)
+	se.cluster.Engine().Send(friendPID, msg)
+}
+
 func (se *service) GetAllServerInstances(serverID string) []*actor.PID {
 	var instances []*actor.PID
 
@@ -229,6 +242,19 @@ func (se *service) StartChannel(channel db.Channel) {
 				Position:    channel.Position,
 				CreatedAt:   timestamppb.New(channel.CreatedAt),
 				UpdatedAt:   timestamppb.New(channel.UpdatedAt),
+			},
+		})
+	}
+}
+
+func (se *service) StartDMChannel(channelID string, userIDs []string) {
+	serversPID := se.GetAllServerInstances("global")
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, &message.StartChannel{
+			Channel: &message.Channel{
+				Id:    channelID,
+				Users: userIDs,
 			},
 		})
 	}
@@ -395,11 +421,13 @@ func (se *service) AcceptFriendRequest(friendshipID, senderID, receiverID, chann
 		},
 	}
 
+	se.StartDMChannel(channelID, []string{senderID, receiverID})
+
 	se.cluster.Engine().Send(senderPID, message)
 	se.cluster.Engine().Send(receiverPID, message)
 }
 
-func (se *service) RemoveFriend(friendshipID, senderID, receiverID string) {
+func (se *service) RemoveFriend(friendshipID, senderID, receiverID, channelID string) {
 	senderPID := se.GetUser(senderID)
 	receiverPID := se.GetUser(receiverID)
 
@@ -411,6 +439,11 @@ func (se *service) RemoveFriend(friendshipID, senderID, receiverID string) {
 		},
 	}
 
+	channelPIDs := se.GetAllChannelInstances("global", channelID)
+	for _, channelPID := range channelPIDs {
+		se.cluster.Engine().Poison(channelPID)
+	}
+
 	se.cluster.Engine().Send(senderPID, message)
 	se.cluster.Engine().Send(receiverPID, message)
 }
@@ -420,6 +453,24 @@ func (se *service) SendUserStatusMessage(userPID *actor.PID, status *message.Cha
 	for _, serverPID := range servers {
 		se.cluster.Engine().SendWithSender(serverPID, status, userPID)
 	}
+}
+
+func (se *service) NotifyAccountDeletion(userID string, serverIDs []string) {
+	userPID := se.GetUser(userID)
+
+	for _, serverID := range serverIDs {
+		serverPIDs := se.GetAllServerInstances(serverID)
+		for _, serverPID := range serverPIDs {
+			se.cluster.Engine().Send(serverPID, &message.AccountDeletion{
+				UserId:   userID,
+				ServerId: serverID,
+			})
+		}
+	}
+
+	se.cluster.Engine().Send(userPID, &message.AccountDeletion{
+		UserId: userID,
+	})
 }
 
 func (se *service) BroadcastMessageToUser(userPID *actor.PID, message *message.WSMessage) {
@@ -439,4 +490,17 @@ func (se *service) GetActiveUsers(serverID string) []string {
 	}
 
 	return allUsersIDs
+}
+
+func (se *service) GetActiveFriends(userID string) []string {
+	var friendIDs []string
+
+	userPID := se.GetUser(userID)
+	response := se.cluster.Engine().Request(userPID, &message.GetFriends{}, 10*time.Second)
+	result, err := response.Result()
+	if err == nil {
+		friendIDs = append(friendIDs, result.(*message.GetFriends).FriendIds...)
+	}
+
+	return friendIDs
 }

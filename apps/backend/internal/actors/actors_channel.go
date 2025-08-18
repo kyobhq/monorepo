@@ -3,6 +3,7 @@ package actors
 import (
 	messages "backend/proto"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/anthdm/hollywood/actor"
@@ -39,6 +40,8 @@ func (c *channel) Receive(ctx *actor.Context) {
 			"id", ctx.PID().GetID(),
 			"err", msg.Err,
 		)
+	case *messages.AccountDeletion:
+		c.AccountDeletion(ctx, msg)
 	case *messages.NewChatMessage:
 		c.NewMessage(ctx, c.GetChannelUsers(ctx), msg)
 	case *messages.EditChatMessage:
@@ -97,4 +100,10 @@ func (c *channel) DeleteMessage(ctx *actor.Context, userIDs []string, msg *messa
 		userPID := c.hub.GetUser(userID)
 		c.hub.BroadcastMessageToUser(userPID, messageToBroadcast)
 	}
+}
+
+func (c *channel) AccountDeletion(ctx *actor.Context, msg *messages.AccountDeletion) {
+	c.users = slices.DeleteFunc(c.users, func(userID string) bool {
+		return msg.UserId == userID
+	})
 }

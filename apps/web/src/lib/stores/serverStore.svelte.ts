@@ -5,6 +5,7 @@ import { backend } from './backendStore.svelte';
 import { logErr } from 'utils/print';
 import { userStore } from './userStore.svelte';
 import type { Abilities } from '$lib/constants/permissions';
+import { page } from '$app/state';
 
 export class ServerStore {
   servers = $state<Record<string, Server>>({});
@@ -44,6 +45,10 @@ export class ServerStore {
 
   getServer(id: string) {
     return this.servers[id];
+  }
+
+  deleteMember(serverID: string, userID: string) {
+    this.servers[serverID].members = this.servers[serverID].members.filter((member) => member.id !== userID)
   }
 
   getMember(serverID: string, userID: string) {
@@ -150,15 +155,20 @@ export class ServerStore {
   }
 
   addMember(serverID: string, member: Member) {
+    if (this.servers[serverID].members.length > 50) return;
     this.servers[serverID].members.push(member);
   }
 
   setMemberOnline(serverID: string, memberID: string, status: string) {
+    if (page.params.server_id !== serverID || serverID === "") return;
+
     const member = this.servers[serverID].members.find((member) => member.id === memberID);
     if (member) member.status = status;
   }
 
   setMemberOffline(serverID: string, memberID: string) {
+    if (page.params.server_id !== serverID || serverID === "") return;
+
     const member = this.servers[serverID].members.find((member) => member.id === memberID);
     if (member) member.status = 'offline';
   }

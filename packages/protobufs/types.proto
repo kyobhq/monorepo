@@ -21,6 +21,7 @@ message WSMessage {
     FriendRequest friend_request = 14;
     AcceptFriendRequest accept_friend_request = 15;
     RemoveFriend remove_friend = 16;
+    AccountDeletion account_deletion = 17;
   }
 }
 
@@ -187,4 +188,13 @@ message UserFactsRow {
 
 message GetServerUsers {
   repeated string user_ids = 1;
+}
+
+message GetFriends {
+  repeated string friend_ids = 1;
+}
+
+message AccountDeletion {
+  string user_id = 1;
+  string server_id = 2;
 }

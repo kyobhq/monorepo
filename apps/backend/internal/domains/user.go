@@ -2,6 +2,7 @@ package domains
 
 import (
 	db "backend/db/gen_queries"
+	"backend/internal/actors"
 	"backend/internal/broker"
 	"backend/internal/crypto"
 	"backend/internal/database"
@@ -35,13 +36,15 @@ type userService struct {
 	db     database.Service
 	broker broker.Service
 	files  files.Service
+	actors actors.Service
 }
 
-func NewUserService(db database.Service, broker broker.Service, files files.Service) *userService {
+func NewUserService(db database.Service, broker broker.Service, files files.Service, actors actors.Service) *userService {
 	return &userService{
 		db:     db,
 		broker: broker,
 		files:  files,
+		actors: actors,
 	}
 }
 
@@ -535,6 +538,16 @@ func (s *userService) DeleteAccount(ctx *gin.Context) *types.APIError {
 		}
 	}
 
+	servers, err := s.db.GetUserServerIDs(ctx, userID)
+	if err != nil {
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_DELETE_ACCOUNT",
+			Message: "Failed to delete account.",
+			Cause:   err.Error(),
+		}
+	}
+
 	err = s.db.DeleteAccount(ctx, userID)
 	if err != nil {
 		return &types.APIError{
@@ -554,6 +567,8 @@ func (s *userService) DeleteAccount(ctx *gin.Context) *types.APIError {
 			Cause:   err.Error(),
 		})
 	}
+
+	s.actors.NotifyAccountDeletion(userID, servers)
 
 	return nil
 }

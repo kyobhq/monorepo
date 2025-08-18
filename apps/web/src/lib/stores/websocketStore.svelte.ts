@@ -38,21 +38,25 @@ export class WebsocketStore {
           {
             if (!wsMess.content.value) return;
             if (wsMess.content.value.user?.id === userStore.user?.id) return;
-            if (page.params.server_id !== wsMess.content.value.serverId) return;
             const value = wsMess.content.value;
 
             if (value.status === 'offline') {
               serverStore.setMemberOffline(value.serverId, value.user!.id);
+              userStore.setFriendStatus(value.user!.id, value.status)
             } else {
-              if (value.type === 'connect')
+              if (value.type === 'connect') {
                 serverStore.setMemberOnline(value.serverId, value.user!.id, value.status);
+                userStore.setFriendStatus(value.user!.id, value.status)
+              }
               if (value.type === 'join') {
                 const member: Member = {
                   id: value.user!.id,
                   display_name: value.user!.displayName,
                   avatar: value.user!.avatar,
                   status: value.status,
-                  roles: []
+                  roles: [],
+                  joined_server: Date.now().toString(),
+                  joined_kyob: userStore.user!.created_at
                 };
                 serverStore.addMember(value.serverId, member);
               }
@@ -304,7 +308,18 @@ export class WebsocketStore {
             if (!wsMess.content.value) return;
             const friendshipID = wsMess.content.value.friendshipId
 
-            userStore.removeFriend(friendshipID)
+            userStore.removeFriend({ friendshipID: friendshipID })
+          }
+          break;
+        case 'accountDeletion':
+          {
+            if (!wsMess.content.value) return;
+
+            if (wsMess.content.value.serverId !== "") {
+              serverStore.deleteMember(wsMess.content.value.serverId, wsMess.content.value.userId)
+            } else {
+              userStore.removeFriend({ userID: wsMess.content.value.userId })
+            }
           }
           break;
 

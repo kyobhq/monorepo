@@ -87,6 +87,8 @@ export interface User {
   about_me?: any;
   facts: Fact[];
   links: Link[];
+  updated_at: string;
+  created_at: string;
 }
 
 export interface Member extends Partial<User> {
@@ -109,6 +111,7 @@ export interface Friend extends Partial<User> {
   friendship_id: string;
   friendship_sender_id: string;
   accepted: boolean;
+  status: string;
 }
 
 export interface Setup {

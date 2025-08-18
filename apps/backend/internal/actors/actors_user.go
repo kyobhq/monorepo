@@ -4,6 +4,7 @@ import (
 	db "backend/db/gen_queries"
 	"backend/internal/database"
 	messages "backend/proto"
+	"fmt"
 	"log/slog"
 	"slices"
 
@@ -43,8 +44,71 @@ func (u *user) Receive(ctx *actor.Context) {
 			"id", ctx.PID().GetID(),
 			"err", msg.Err,
 		)
+	case *messages.GetFriends:
+		fmt.Println("called")
+		ctx.Respond(&messages.GetFriends{
+			FriendIds: u.friends,
+		})
+	case *messages.AccountDeletion:
+		u.AccountDeletion(ctx, msg)
+	case *messages.ChangeStatus:
+		u.FriendChangeStatus(ctx, msg)
 	case *messages.WSMessage:
 		message, _ := proto.Marshal(msg)
+		u.wsConn.WriteMessage(gws.OpcodeBinary, message)
+	}
+}
+
+func (u *user) FriendChangeStatus(ctx *actor.Context, msg *messages.ChangeStatus) {
+	u.friends = append(u.friends, msg.User.Id)
+
+	if msg.Type == "Ping" {
+		userPID := u.hub.GetUser(msg.User.Id)
+		ctx.Send(userPID, &messages.WSMessage{
+			Content: &messages.WSMessage_UserChangeStatus{
+				UserChangeStatus: &messages.ChangeStatus{
+					Type: "connect",
+					User: &messages.User{
+						Id: GetIDFromPID(ctx.PID()),
+					},
+					Status: "online",
+				},
+			},
+		})
+	}
+
+	m := &messages.WSMessage{
+		Content: &messages.WSMessage_UserChangeStatus{
+			UserChangeStatus: &messages.ChangeStatus{
+				Type:   "connect",
+				User:   msg.User,
+				Status: msg.Status,
+			},
+		},
+	}
+	message, _ := proto.Marshal(m)
+	u.wsConn.WriteMessage(gws.OpcodeBinary, message)
+}
+
+func (u *user) AccountDeletion(ctx *actor.Context, msg *messages.AccountDeletion) {
+	userID := GetIDFromPID(ctx.PID())
+	if msg.UserId == userID {
+		for _, friendID := range u.friends {
+			userPID := u.hub.GetUser(friendID)
+			ctx.Send(userPID, msg)
+		}
+	} else {
+		u.friends = slices.DeleteFunc(u.friends, func(friendID string) bool {
+			return friendID == msg.UserId
+		})
+
+		m := &messages.WSMessage{
+			Content: &messages.WSMessage_AccountDeletion{
+				AccountDeletion: msg,
+			},
+		}
+
+		message, _ := proto.Marshal(m)
 		u.wsConn.WriteMessage(gws.OpcodeBinary, message)
 	}
 }
@@ -54,6 +118,11 @@ func (u *user) initializeUser(ctx *actor.Context) {
 	user, err := u.db.GetUserByID(ctx.Context(), userID)
 	if err != nil {
 		slog.Error("failed to get user", "err", err)
+	}
+
+	friendIDs, err := u.db.GetFriendIDs(ctx.Context(), userID)
+	if err != nil {
+		slog.Error("failed to get friendIDs", "err", err)
 	}
 
 	serverIDs, err := u.db.GetServersIDFromUser(ctx.Context(), userID)
@@ -85,17 +154,35 @@ func (u *user) initializeUser(ctx *actor.Context) {
 
 		u.hub.SendUserStatusMessage(ctx.PID(), connectMessage)
 	}
+
+	for _, friendID := range friendIDs {
+		connectMessage := &messages.ChangeStatus{
+			Type: "Ping",
+			User: &messages.User{
+				Id: user.ID,
+			},
+			Status: "online",
+		}
+
+		u.hub.NotifyFriendStatus(friendID, connectMessage)
+	}
 }
 
 func (u *user) killUser(ctx *actor.Context) {
 	userID := GetIDFromPID(ctx.PID())
 	servers, err := u.db.GetUserServers(ctx.Context(), userID)
 	if err != nil {
-		slog.Error("failed to initialize user", "err", err)
+		slog.Error("failed to get servers on disconnect", "err", err)
+	}
+
+	friendIDs, err := u.db.GetFriendIDs(ctx.Context(), userID)
+	if err != nil {
+		slog.Error("failed to get friends on disconnect", "err", err)
 	}
 
 	for _, server := range servers {
 		disconnectMessage := &messages.ChangeStatus{
+			Type: "disconnect",
 			User: &messages.User{
 				Id: userID,
 			},
@@ -104,5 +191,17 @@ func (u *user) killUser(ctx *actor.Context) {
 		}
 
 		u.hub.SendUserStatusMessage(ctx.PID(), disconnectMessage)
+	}
+
+	for _, friendID := range friendIDs {
+		disconnectMessage := &messages.ChangeStatus{
+			Type: "disconnect",
+			User: &messages.User{
+				Id: userID,
+			},
+			Status: "offline",
+		}
+
+		u.hub.NotifyFriendStatus(friendID, disconnectMessage)
 	}
 }

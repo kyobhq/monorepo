@@ -30,6 +30,7 @@
 	<button
 		class={[
 			'relative text-left flex items-center gap-x-3  p-1.5 rounded-xl transition-colors duration-100 border',
+			friend.status === 'offline' && 'opacity-40',
 			friend.accepted && 'active-scale-down',
 			page.url.pathname.includes(friend.channel_id!)
 				? 'bg-main-900 border-main-800'
