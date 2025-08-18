@@ -4,12 +4,12 @@ SELECT * FROM channels WHERE id = $1;
 -- name: GetFriendChannels :many
 SELECT *
 FROM channels
-WHERE server_id = 'global' AND $1::text = ANY(users) AND active = true;
+WHERE server_id = 'global' AND $1::text = ANY(users);
 
 -- name: GetChannelsFromServer :many
 SELECT *
 FROM channels
-WHERE server_id = $1 AND active = true;
+WHERE server_id = $1;
 
 -- name: GetCategoriesFromServer :many
 SELECT *
@@ -24,7 +24,7 @@ WHERE server_id = ANY($1::text[]);
 -- name: GetChannelsFromServers :many
 SELECT *
 FROM channels
-WHERE server_id = ANY($1::text[]) AND active = true;
+WHERE server_id = ANY($1::text[]);
 
 -- name: CreateChannel :one
 INSERT INTO channels (

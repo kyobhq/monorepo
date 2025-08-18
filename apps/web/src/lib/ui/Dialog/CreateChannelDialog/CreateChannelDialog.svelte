@@ -70,21 +70,21 @@
 			class="mt-4 px-8"
 		/>
 
-		<div class="px-8 mt-10">
-			<Switch
-				active={$form.e2ee}
-				action={() => ($form.e2ee = true)}
-				reverse={() => ($form.e2ee = false)}
-				label="End to end encryption*"
-			/>
-		</div>
-
-		<p class="text-main-600 text-xs px-8 mt-4">
-			*End to end encryption make all your messages in this channel unreadable for everyone outside
-			this channel, even us. However be careful, since encryption happens on your side it makes some
-			features unusable like: Search, Automod, Usage of bots, etc. We advise to use those channels
-			for conversations that should stay fully private even if it means less features.
-		</p>
+		<!-- <div class="px-8 mt-10"> -->
+		<!-- 	<Switch -->
+		<!-- 		active={$form.e2ee} -->
+		<!-- 		action={() => ($form.e2ee = true)} -->
+		<!-- 		reverse={() => ($form.e2ee = false)} -->
+		<!-- 		label="End to end encryption*" -->
+		<!-- 	/> -->
+		<!-- </div> -->
+		<!---->
+		<!-- <p class="text-main-600 text-xs px-8 mt-4"> -->
+		<!-- 	*End to end encryption make all your messages in this channel unreadable for everyone outside -->
+		<!-- 	this channel, even us. However be careful, since encryption happens on your side it makes some -->
+		<!-- 	features unusable like: Search, Automod, Usage of bots, etc. We advise to use those channels -->
+		<!-- 	for conversations that should stay fully private even if it means less features. -->
+		<!-- </p> -->
 
 		<DialogFooter buttonText="Create channel" />
 	</form>

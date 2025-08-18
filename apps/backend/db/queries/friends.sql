@@ -43,6 +43,6 @@ INNER JOIN friends f ON u.id = f.sender_id
 WHERE f.receiver_id = $1;
 
 -- name: GetExistingChannel :one
-UPDATE channels SET active = true
-WHERE friendship_id = $1
-RETURNING *;
+-- UPDATE channels SET active = true
+-- WHERE friendship_id = $1
+-- RETURNING *;

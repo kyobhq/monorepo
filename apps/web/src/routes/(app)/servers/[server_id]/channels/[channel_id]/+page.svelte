@@ -77,7 +77,7 @@
 	<ChannelHeader name={currentChannel.name} description={currentChannel.description} />
 
 	<div
-		class="flex flex-col-reverse w-full h-full gap-y-4 overflow-auto pb-4 pt-18"
+		class="flex flex-col-reverse w-full h-full overflow-auto pb-4 pt-18"
 		bind:this={scrollContainer}
 		onscroll={handleScroll}
 	>

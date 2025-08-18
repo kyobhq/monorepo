@@ -7,6 +7,7 @@
 	import MessageAuthor from './MessageAuthor.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import { coreStore } from 'stores/coreStore.svelte';
+	import { channelStore } from 'stores/channelStore.svelte';
 
 	interface Props {
 		server?: Server;
@@ -17,6 +18,8 @@
 
 	let { server, channel, friend, message }: Props = $props();
 
+	const messageIsRecent = $derived(channelStore.messageIsRecent(message.id));
+
 	let avatarEl = $state<HTMLButtonElement>();
 	let onClickSave = $state<() => Promise<void>>();
 	let author = $derived(
@@ -25,27 +28,34 @@
 </script>
 
 <div
-	class="flex gap-x-2.5 items-end hover:bg-main-950/50 px-6 py-1.5 transition-colors duration-75 relative"
+	class={[
+		'flex gap-x-2.5 items-end hover:bg-main-950/50 px-6 transition-colors duration-75 relative first:mb-0',
+		messageIsRecent ? 'mb-0.5' : 'mb-4'
+	]}
 >
-	<button
-		bind:this={avatarEl}
-		class="h-12 w-12 relative highlight-border mb-1 select-none shrink-0 hover:after:border-main-50/75 active:after:border-main-50/50 hover:cursor-pointer rounded-md overflow-hidden"
-		onclick={() => {
-			if (author.id === userStore.user!.id) {
-				coreStore.openMyProfile(avatarEl!, 'right');
-			} else {
-				coreStore.openProfile(author.id, avatarEl!, 'right');
-			}
-		}}
-	>
-		<img src={author.avatar} alt="" class="w-full h-full object-cover" />
-	</button>
+	{#if !messageIsRecent}
+		<button
+			bind:this={avatarEl}
+			class="h-12 w-12 relative highlight-border mb-1 select-none shrink-0 hover:after:border-main-50/75 active:after:border-main-50/50 hover:cursor-pointer rounded-md overflow-hidden"
+			onclick={() => {
+				if (author.id === userStore.user!.id) {
+					coreStore.openMyProfile(avatarEl!, 'right');
+				} else {
+					coreStore.openProfile(author.id, avatarEl!, 'right');
+				}
+			}}
+		>
+			<img src={author.avatar} alt="" class="w-full h-full object-cover" />
+		</button>
+	{/if}
 	<div class="flex flex-col gap-y-1 relative w-[calc(100%-4rem)]">
 		{#if messageStore.editMessage?.id === message.id}
 			<MessageEditSentence bind:onClickSave />
 		{/if}
-		<MessageBubble {server} {channel} {friend} {message} bind:onClickSave />
-		<MessageAuthor {author} {message} />
+		<MessageBubble {server} {channel} {friend} {message} {messageIsRecent} bind:onClickSave />
+		{#if !messageIsRecent}
+			<MessageAuthor {author} {message} />
+		{/if}
 	</div>
 
 	<ContextMenuMessage {message} />

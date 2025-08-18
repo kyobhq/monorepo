@@ -15,10 +15,18 @@
 		channel?: Channel;
 		friend?: Friend;
 		message: Message;
+		messageIsRecent: boolean;
 		onClickSave?: () => Promise<void>;
 	}
 
-	let { server, channel, friend, message, onClickSave = $bindable() }: Props = $props();
+	let {
+		server,
+		channel,
+		friend,
+		message,
+		messageIsRecent,
+		onClickSave = $bindable()
+	}: Props = $props();
 
 	let messageEl = $state<HTMLElement>();
 	const html = $derived.by(() => generateHTML(message.content, MESSAGE_EXTENSIONS));
@@ -49,16 +57,17 @@
 	});
 </script>
 
-<div class="flex flex-col gap-y-1.5">
+<div class={['flex flex-col gap-y-1.5', messageIsRecent && 'pl-[3.625rem]']}>
 	{#if messageLength > 0}
 		<div
 			bind:this={messageEl}
 			class={[
-				'border-[1px] py-1.5 px-3 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-2xl rounded-bl-sm',
+				'border-[1px] py-1.5 px-3 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-2xl transition-all',
 				message.author.id === userStore.user?.id
 					? 'bg-main-800 border-main-600'
 					: 'bg-main-950 border-main-800',
-				mentioned && 'border-mention! text-mention! bg-mention/20!'
+				mentioned && 'border-mention! text-mention! bg-mention/20!',
+				!messageIsRecent && ' rounded-bl-sm'
 			]}
 		>
 			{#if messageStore.editMessage?.id === message.id}
