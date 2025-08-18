@@ -93,7 +93,7 @@ body {
 }
 
 @utility inner-main-700 {
-  box-shadow: inset 0px 0px 0px 1px rgba(255,255,255, 0.25);
+  box-shadow: inset 0px 0px 0px 1px rgba(255,255,255, 0.20);
   mix-blend-mode: plus-lighter;
 }
 
@@ -171,10 +171,10 @@ a, button {
 .auth-gradient {
   background: linear-gradient(
     251.76deg,
-    rgba(18, 20, 20, 0.35) 0%,
-    rgba(18, 20, 20, 0.875) 12.15%,
-    rgba(18, 20, 20, 0.964431) 19.59%,
-    rgba(18, 20, 20, 0.988278) 27.02%,
+    rgba(18, 18, 20, 0.35) 0%,
+    rgba(18, 18, 20, 0.875) 12.15%,
+    rgba(18, 18, 20, 0.964431) 19.59%,
+    rgba(18, 18, 20, 0.988278) 27.02%,
     #121414 37.72%
   );
 }

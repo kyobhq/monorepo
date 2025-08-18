@@ -10,7 +10,7 @@ RETURNING *;
 UPDATE friends SET accepted=true WHERE id=$1 AND receiver_id = $2;
 
 -- name: DeleteFriend :exec
-DELETE FROM friends WHERE id=$1;
+DELETE FROM friends WHERE id=$1 AND receiver_id = $2 OR sender_id = $2;
 
 -- name: GetFriends :many
 SELECT u.id, u.display_name, u.avatar, u.banner, u.about_me, f.accepted, f.id AS friendship_id, 
@@ -31,8 +31,5 @@ WHERE f.receiver_id = $1;
 
 -- name: GetExistingChannel :one
 UPDATE channels SET active = true
-WHERE type = 'dm'
-  AND array_length(users, 1) = 2
-  AND $1::varchar = ANY(users) 
-  AND $2::varchar = ANY(users)
+WHERE friendship_id = $1
 RETURNING *;

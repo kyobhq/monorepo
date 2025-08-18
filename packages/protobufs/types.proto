@@ -18,7 +18,28 @@ message WSMessage {
     MoveRole move_role = 11;
     AddRoleMember add_role_member = 12;
     RemoveRoleMember remove_role_member = 13;
+    FriendRequest friend_request = 14;
+    AcceptFriendRequest accept_friend_request = 15;
+    RemoveFriend remove_friend = 16;
   }
+}
+
+message FriendRequest {
+  string friendship_id = 1;
+  User sender = 2;
+  bool accepted = 3;
+}
+
+message AcceptFriendRequest {
+  string friendship_id = 1;
+  User sender = 2;
+  string channel_id = 3;
+}
+
+message RemoveFriend {
+  string friendship_id = 1;
+  User sender = 2;
+  User receiver = 3;
 }
 
 message ChangeStatus {

@@ -26,6 +26,7 @@ type UpdateProfileParams struct {
 type Setup struct {
 	User    *db.User                        `json:"user"`
 	Servers map[string]ServerWithCategories `json:"servers"`
+	Friends []db.GetFriendsRow              `json:"friends"`
 	Emojis  []db.GetEmojisRow               `json:"emojis"`
 }
 

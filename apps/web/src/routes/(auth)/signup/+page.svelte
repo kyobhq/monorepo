@@ -51,7 +51,7 @@
 />
 
 <main class="relative h-screen w-screen auth-gradient z-[10]">
-	<div class=" min-w-[26rem] absolute top-[30%] left-[12rem]">
+	<div class="w-[26rem] absolute top-[30%] left-[12rem]">
 		<h1 class="text-5xl font-bold text-main-50">Create an account.</h1>
 		<p class="mt-4 text-main-400">
 			Already have an account? <a href="/signin" class="text-accent-lighter">Sign in</a>

@@ -185,7 +185,7 @@ func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParam
 	for _, category := range categories {
 		channelMap := make(map[string]db.Channel)
 		for _, channel := range channels {
-			if channel.CategoryID == category.ID {
+			if channel.CategoryID.String == category.ID {
 				channelMap[channel.ID] = channel
 			}
 		}

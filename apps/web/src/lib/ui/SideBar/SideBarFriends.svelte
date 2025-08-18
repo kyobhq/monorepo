@@ -1,7 +1,20 @@
 <script lang="ts">
-	import BarSeparator from 'ui/BarSeparator/BarSeparator.svelte';
+	import { coreStore } from 'stores/coreStore.svelte';
+	import { userStore } from 'stores/userStore.svelte';
+	import BarSeparatorWithButton from 'ui/BarSeparator/BarSeparatorWithButton.svelte';
+	import FriendButton from 'ui/FriendButton/FriendButton.svelte';
 </script>
 
-<section class="mt-2.5">
-	<BarSeparator title="Friends - 0" />
-</section>
+<BarSeparatorWithButton
+	title="Friends - 0"
+	buttonText="Add Friend"
+	onclick={() => {
+		coreStore.friendsDialog = true;
+	}}
+/>
+
+<div class="flex flex-col gap-y-1 px-2.5 pt-2.5">
+	{#each userStore.friends as friend (friend.id)}
+		<FriendButton {friend} />
+	{/each}
+</div>

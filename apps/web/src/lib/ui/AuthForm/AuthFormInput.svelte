@@ -30,15 +30,22 @@
 
 {#if type !== 'password'}
 	<div class="flex flex-col gap-y-1">
-		<div class="flex items-center">
-			<label for={id} class="text-sm text-main-500">{label}</label>
+		<div class="flex items-center gap-x-1">
+			<label for={id} class={['text-sm', errorInput ? 'text-red-400' : 'text-main-500']}>
+				{label}
+			</label>
 			{#if errorInput}
-				<p class="text-sm leading-none text-red-400">{errorInput}</p>
+				<p class="text-sm leading-none text-red-400">- {errorInput}</p>
 			{/if}
 		</div>
 
 		<div
-			class="flex gap-x-2 bg-main-950 w-full border border-main-800 items-center pl-2.5 pr-2 group hover:bg-main-900 hover:border-main-700 focus-within:bg-main-900 focus-within:border-main-700 transition-colors duration-75 text-main-300"
+			class={[
+				'flex gap-x-2 bg-main-950 w-full border items-center pl-2.5 pr-2 group hover:bg-main-900  focus-within:bg-main-900 transition-colors duration-75 text-main-300 rounded-lg',
+				errorInput
+					? 'border-red-400'
+					: 'border-main-800 hover:border-main-700 focus-within:border-main-700'
+			]}
 		>
 			<input
 				{type}
@@ -53,15 +60,22 @@
 	</div>
 {:else}
 	<div class="flex flex-col gap-y-1">
-		<div class="flex items-center">
-			<label for={id} class="text-sm text-main-500">{label}</label>
+		<div class="flex items-center gap-x-1">
+			<label for={id} class={['text-sm', errorInput ? 'text-red-400' : 'text-main-500']}>
+				{label}
+			</label>
 			{#if errorInput}
-				<p class="text-sm leading-none text-red-400">{errorInput}</p>
+				<p class="text-sm leading-none text-red-400">- {errorInput}</p>
 			{/if}
 		</div>
 
 		<div
-			class="flex gap-x-2 bg-main-950 w-full border border-main-800 items-center pl-2.5 pr-2 group hover:bg-main-900 hover:border-main-700 focus-within:bg-main-900 focus-within:border-main-700 transition-colors duration-75 text-main-300"
+			class={[
+				'flex gap-x-2 bg-main-950 w-full border border-main-800 items-center pl-2.5 pr-2 group hover:bg-main-900 focus-within:bg-main-900 transition-colors duration-75 text-main-300 rounded-lg',
+				errorInput
+					? 'border-red-400'
+					: 'border-main-800 hover:border-main-700 focus-within:border-main-700'
+			]}
 		>
 			<input
 				type={showPassword ? 'text' : 'password'}

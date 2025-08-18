@@ -82,6 +82,10 @@ type Service interface {
 	GetEmojis(ctx context.Context, userID string) ([]db.GetEmojisRow, error)
 	UpdateEmoji(ctx context.Context, emojiID string, userID string, body *types.UpdateEmojiParams) error
 	DeleteEmoji(ctx context.Context, emojiID string, userID string) error
+	CreateFriendRequest(ctx context.Context, senderID, receiverID string) (db.Friend, error)
+	AcceptFriendRequest(ctx context.Context, friendshipID, senderID, receiverID string) (*string, error)
+	RemoveFriend(ctx context.Context, friendshipID, userID string) error
+	GetFriends(ctx context.Context, userID string) ([]db.GetFriendsRow, error)
 }
 
 type service struct {
@@ -354,7 +358,7 @@ func (s *service) CreateChannel(ctx context.Context, body *types.CreateChannelPa
 	return s.queries.CreateChannel(ctx, db.CreateChannelParams{
 		ID:          cuid2.Generate(),
 		Position:    int32(body.Position),
-		CategoryID:  body.CategoryID,
+		CategoryID:  pgtype.Text{String: body.CategoryID, Valid: true},
 		ServerID:    body.ServerID,
 		Name:        body.Name,
 		Description: pgtype.Text{String: body.Description, Valid: true},
@@ -592,6 +596,83 @@ func (s *service) UpdateEmoji(ctx context.Context, emojiID string, userID string
 		UserID:    userID,
 		Shortcode: body.Shortcode,
 	})
+}
+
+func (s *service) CreateFriendRequest(ctx context.Context, senderID, receiverID string) (db.Friend, error) {
+	return s.queries.AddFriend(ctx, db.AddFriendParams{
+		ID:         cuid2.Generate(),
+		SenderID:   senderID,
+		ReceiverID: receiverID,
+	})
+}
+
+func (s *service) AcceptFriendRequest(ctx context.Context, friendshipID, senderID, receiverID string) (*string, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.queries.WithTx(tx)
+
+	err = qtx.AcceptFriend(ctx, db.AcceptFriendParams{
+		ID:         friendshipID,
+		ReceiverID: receiverID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := qtx.GetExistingChannel(ctx, pgtype.Text{String: friendshipID, Valid: true})
+	if err == nil {
+		return &channel.ID, nil
+	}
+
+	channel, err = qtx.CreateChannel(ctx, db.CreateChannelParams{
+		ID:           cuid2.Generate(),
+		ServerID:     "global",
+		FriendshipID: pgtype.Text{String: friendshipID, Valid: true},
+		Name:         "",
+		Type:         "dm",
+		E2ee:         true,
+		Users:        []string{senderID, receiverID},
+		Description:  pgtype.Text{String: "", Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &channel.ID, tx.Commit(ctx)
+}
+
+func (s *service) RemoveFriend(ctx context.Context, friendshipID, userID string) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.queries.WithTx(tx)
+
+	err = qtx.DeleteFriend(ctx, db.DeleteFriendParams{
+		ID:         friendshipID,
+		ReceiverID: userID,
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = qtx.DeactivateChannel(ctx, pgtype.Text{String: friendshipID, Valid: true})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+
+}
+
+func (s *service) GetFriends(ctx context.Context, userID string) ([]db.GetFriendsRow, error) {
+	return s.queries.GetFriends(ctx, userID)
 }
 
 // Health checks the health of the database connection by pinging the database.

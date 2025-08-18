@@ -13,7 +13,7 @@
 
 <div
 	class={[
-		'box-style text-300 flex items-center gap-3 pl-3 transition duration-100 rounded-[10px] z-[1] relative focus-within:border-main-700',
+		'box-style w-full text-300 flex items-center gap-3 pl-3 transition duration-100 rounded-[10px] z-[1] relative focus-within:border-main-700',
 		classes
 	]}
 >

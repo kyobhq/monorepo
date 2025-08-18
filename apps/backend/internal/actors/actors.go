@@ -71,6 +71,12 @@ type Service interface {
 	AddRoleMember(body *types.ChangeRoleMemberParams)
 
 	RemoveRoleMember(body *types.ChangeRoleMemberParams)
+
+	SendFriendRequest(friendshipID string, receiverID string, sender *db.User)
+
+	AcceptFriendRequest(friendshipID, senderID, receiverID, channelID string)
+
+	RemoveFriend(friendshipID, senderID, receiverID string)
 }
 
 type service struct {
@@ -212,7 +218,7 @@ func (se *service) StartChannel(channel db.Channel) {
 			Channel: &message.Channel{
 				Id:          channel.ID,
 				ServerId:    channel.ServerID,
-				CategoryId:  channel.CategoryID,
+				CategoryId:  channel.CategoryID.String,
 				Name:        channel.Name,
 				Description: channel.Description.String,
 				Type:        channel.Type,
@@ -352,6 +358,55 @@ func (se *service) RemoveRoleMember(body *types.ChangeRoleMemberParams) {
 			},
 		})
 	}
+}
+
+func (se *service) SendFriendRequest(friendshipID, receiverID string, sender *db.User) {
+	userPID := se.GetUser(receiverID)
+
+	message := &message.WSMessage_FriendRequest{
+		FriendRequest: &message.FriendRequest{
+			FriendshipId: friendshipID,
+			Sender: &message.User{
+				Id:          sender.ID,
+				DisplayName: sender.DisplayName,
+				Avatar:      sender.Avatar.String,
+				Banner:      sender.Banner.String,
+				AboutMe:     sender.AboutMe,
+			},
+			Accepted: false,
+		},
+	}
+
+	se.cluster.Engine().Send(userPID, message)
+}
+
+func (se *service) AcceptFriendRequest(friendshipID, senderID, receiverID, channelID string) {
+	senderPID := se.GetUser(senderID)
+	receiverPID := se.GetUser(receiverID)
+
+	message := &message.WSMessage_AcceptFriendRequest{
+		AcceptFriendRequest: &message.AcceptFriendRequest{
+			FriendshipId: friendshipID,
+			ChannelId:    channelID,
+		},
+	}
+
+	se.cluster.Engine().Send(senderPID, message)
+	se.cluster.Engine().Send(receiverPID, message)
+}
+
+func (se *service) RemoveFriend(friendshipID, senderID, receiverID string) {
+	senderPID := se.GetUser(senderID)
+	receiverPID := se.GetUser(receiverID)
+
+	message := &message.WSMessage_RemoveFriend{
+		RemoveFriend: &message.RemoveFriend{
+			FriendshipId: friendshipID,
+		},
+	}
+
+	se.cluster.Engine().Send(senderPID, message)
+	se.cluster.Engine().Send(receiverPID, message)
 }
 
 func (se *service) SendUserStatusMessage(userPID *actor.PID, status *message.ChangeStatus) {

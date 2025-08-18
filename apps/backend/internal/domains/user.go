@@ -304,8 +304,19 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 		}
 	}
 
+	friends, err := s.db.GetFriends(ctx, user.ID)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_SERVERS",
+			Cause:   err.Error(),
+			Message: "Failed to get user's servers.",
+		}
+	}
+
 	res.User = user
 	res.Emojis = emojis
+	res.Friends = friends
 	res.Servers = make(map[string]types.ServerWithCategories)
 	if len(servers) > 0 {
 		serversMap, err := s.processServers(ctx, servers)
@@ -352,7 +363,7 @@ func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFr
 
 	channelsByCategory := make(map[string][]db.Channel)
 	for _, channel := range allChannels {
-		channelsByCategory[channel.CategoryID] = append(channelsByCategory[channel.CategoryID], channel)
+		channelsByCategory[channel.CategoryID.String] = append(channelsByCategory[channel.CategoryID.String], channel)
 	}
 
 	rolesByServer := make(map[string][]db.GetRolesFromServersRow)

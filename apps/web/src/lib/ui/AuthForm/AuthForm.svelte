@@ -60,7 +60,7 @@
 	/>
 
 	<button
-		class="bg-accent-darker py-2 text-lg font-semibold hover:cursor-pointer border border-accent hover:bg-accent transition-colors duration-75"
+		class="bg-accent-darker py-2 text-lg font-semibold hover:cursor-pointer border border-accent hover:bg-accent transition-colors duration-75 rounded-lg"
 	>
 		{buttonText}
 	</button>

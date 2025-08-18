@@ -5,6 +5,7 @@ import type {
   Category,
   Channel,
   Emoji,
+  Friend,
   Message,
   Role,
   Server,
@@ -13,7 +14,9 @@ import type {
   User
 } from '$lib/types/types';
 import type {
+  AcceptFriendType,
   AddEmojisType,
+  AddFriendType,
   CreateCategoryType,
   CreateChannelType,
   CreateMessageType,
@@ -26,7 +29,8 @@ import type {
   EditPasswordType,
   EditServerType,
   EditUserType,
-  PinChannelType
+  PinChannelType,
+  RemoveFriendType
 } from '$lib/types/schemas';
 import { channelStore } from './channelStore.svelte';
 import { SvelteMap } from 'svelte/reactivity';
@@ -335,6 +339,18 @@ export class BackendStore {
         to: to
       }
     });
+  }
+
+  sendFriendRequest(body: AddFriendType): ResultAsync<Friend, APIError> {
+    return this.makeRequest<Friend>('friends', { method: 'post', json: body });
+  }
+
+  acceptFriendRequest(body: AcceptFriendType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>('friends', { method: 'patch', json: body });
+  }
+
+  removeFriend(body: RemoveFriendType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>('friends', { method: 'delete', json: body });
   }
 }
 

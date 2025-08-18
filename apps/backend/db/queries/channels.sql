@@ -28,9 +28,9 @@ WHERE server_id = ANY($1::text[]) AND active = true;
 
 -- name: CreateChannel :one
 INSERT INTO channels (
-  id, position, server_id, category_id, name, description, type, e2ee, users, roles
+  id, position, server_id, category_id, friendship_id, name, description, type, e2ee, users, roles
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 )
 RETURNING *;
 
@@ -60,10 +60,7 @@ DELETE FROM channel_categories WHERE id = $1;
 
 -- name: DeactivateChannel :one
 UPDATE channels SET active = false
-WHERE type = 'dm'
-  AND array_length(users, 1) = 2
-  AND $1::varchar = ANY(users) 
-  AND $2::varchar = ANY(users)
+WHERE friendship_id = $1
 RETURNING *;
 
 -- name: GetChannelsIDs :many

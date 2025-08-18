@@ -107,8 +107,8 @@ export interface ServerInformations {
 export interface Friend extends Partial<User> {
   channel_id?: string;
   friendship_id: string;
+  friendship_sender_id: string;
   accepted: boolean;
-  sender: boolean;
 }
 
 export interface Setup {

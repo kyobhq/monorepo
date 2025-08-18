@@ -13,6 +13,7 @@
 	import UserProfile from 'ui/UserProfile/UserProfile.svelte';
 	import UserSettingsDialog from 'ui/Dialog/UserSettingsDialog/UserSettingsDialog.svelte';
 	import ServerSettingsDialog from 'ui/Dialog/ServerSettingsDialog/ServerSettingsDialog.svelte';
+	import FriendsDialog from 'ui/Dialog/FriendsDialog/FriendsDialog.svelte';
 
 	let { children } = $props();
 
@@ -38,6 +39,7 @@
 	{/if}
 </div>
 
+<FriendsDialog />
 <ServerDialog />
 <CreateCategoryDialog />
 <CreateChannelDialog />

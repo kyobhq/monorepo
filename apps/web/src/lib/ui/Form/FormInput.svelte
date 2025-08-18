@@ -26,8 +26,8 @@
 </script>
 
 <div class={['flex flex-col', classes]}>
-	<div class="flex items-center gap-x-1">
-		<label for={id} class={['text-sm select-none mb-1.5', error ? 'text-red-400' : 'text-main-500']}
+	<div class="flex items-center gap-x-1 mb-1.5">
+		<label for={id} class={['text-sm select-none', error ? 'text-red-400' : 'text-main-500']}
 			>{title}</label
 		>
 		{#if error}

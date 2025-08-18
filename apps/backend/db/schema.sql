@@ -54,7 +54,8 @@ CREATE TABLE public.channels (
     id character varying(255) NOT NULL,
     "position" integer DEFAULT 0 NOT NULL,
     server_id character varying(255) NOT NULL,
-    category_id character varying(255) NOT NULL,
+    category_id character varying(255),
+    friendship_id character varying(255),
     name character varying(255) NOT NULL,
     description text,
     type character varying(255) NOT NULL,
@@ -164,6 +165,8 @@ CREATE TABLE public.server_members (
     user_id character varying(255) NOT NULL,
     server_id character varying(255) NOT NULL,
     roles character varying(255)[],
+    nickname character varying(255),
+    ban boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -437,6 +440,14 @@ ALTER TABLE ONLY public.channel_pins
 
 ALTER TABLE ONLY public.channels
     ADD CONSTRAINT channels_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.channel_categories(id) ON DELETE CASCADE;
+
+
+--
+-- Name: channels channels_friendship_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channels
+    ADD CONSTRAINT channels_friendship_id_fkey FOREIGN KEY (friendship_id) REFERENCES public.friends(id) ON DELETE CASCADE;
 
 
 --
