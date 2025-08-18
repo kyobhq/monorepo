@@ -227,7 +227,6 @@ func (se *service) StartChannel(channel db.Channel) {
 				Users:       channel.Users,
 				Roles:       channel.Roles,
 				Position:    channel.Position,
-				Active:      channel.Active,
 				CreatedAt:   timestamppb.New(channel.CreatedAt),
 				UpdatedAt:   timestamppb.New(channel.UpdatedAt),
 			},

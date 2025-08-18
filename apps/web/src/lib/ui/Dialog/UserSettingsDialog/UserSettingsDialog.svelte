@@ -8,6 +8,8 @@
 	import Separator from 'ui/Separator/Separator.svelte';
 	import UserSettingsAvatar from './avatar/UserSettingsAvatar.svelte';
 	import UserSettingsEmojis from './emojis/UserSettingsEmojis.svelte';
+	import DestructiveBar from 'ui/DestructiveBar/DestructiveBar.svelte';
+	import DeleteAccount from './deleteAccount/DeleteAccount.svelte';
 
 	let initialized = $state(false);
 	let container = $state<HTMLDivElement>();
@@ -32,17 +34,7 @@
 			<Separator />
 			<UserSettingsPassword />
 			<Separator />
-			<div>
-				<p class="font-medium select-none">Account removal</p>
-				<p class="text-sm text-main-500 select-none">
-					This is not a soft delete! This action is irreversible.
-				</p>
-				<button
-					class="text-left w-fit bg-red-400/30 border-[0.5px] border-red-400 px-2 py-1.5 text-red-400 hover:bg-red-400 hover:text-red-50 hover:cursor-pointer transition-colors duration-100 mt-4"
-				>
-					Delete account
-				</button>
-			</div>
+			<DeleteAccount />
 		{:else if coreStore.userSettingsDialog.section === 'Profile'}
 			<UserSettingsAvatar />
 			<UserSettingsProfile />

@@ -352,6 +352,10 @@ export class BackendStore {
   removeFriend(body: RemoveFriendType): ResultAsync<void, APIError> {
     return this.makeRequest<void>('friends', { method: 'delete', json: body });
   }
+
+  deleteAccount(): ResultAsync<void, APIError> {
+    return this.makeRequest<void>('users', { method: 'delete' });
+  }
 }
 
 export const backend = new BackendStore();

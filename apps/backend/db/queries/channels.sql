@@ -58,10 +58,9 @@ DELETE FROM channels WHERE id = $1;
 -- name: DeleteCategory :exec
 DELETE FROM channel_categories WHERE id = $1;
 
--- name: DeactivateChannel :one
-UPDATE channels SET active = false
-WHERE friendship_id = $1
-RETURNING *;
+-- -- name: DeactivateChannel :exec
+-- UPDATE channels SET active = false
+-- WHERE friendship_id = $1;
 
 -- name: GetChannelsIDs :many
 SELECT id, server_id, users FROM channels WHERE id <> 'global';

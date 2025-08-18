@@ -28,6 +28,7 @@ type UserService interface {
 	UploadEmojis(ctx *gin.Context, emojis []*multipart.FileHeader, shortcodes []string, body *types.UploadEmojiParams) (*[]types.EmojiResponse, *types.APIError)
 	UpdateEmoji(ctx *gin.Context, body *types.UpdateEmojiParams) *types.APIError
 	DeleteEmoji(ctx *gin.Context) *types.APIError
+	DeleteAccount(ctx *gin.Context) *types.APIError
 }
 
 type userService struct {
@@ -509,6 +510,49 @@ func (s *userService) DeleteEmoji(ctx *gin.Context) *types.APIError {
 			Cause:   err.Error(),
 			Message: "Failed to delete emoji.",
 		}
+	}
+
+	return nil
+}
+
+func (s *userService) DeleteAccount(ctx *gin.Context) *types.APIError {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := u.(*db.User).ID
+
+	token, err := ctx.Cookie("token")
+	if err != nil {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_MISSING_TOKEN",
+			Message: "Session token not found.",
+		}
+	}
+
+	err = s.db.DeleteAccount(ctx, userID)
+	if err != nil {
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_DELETE_ACCOUNT",
+			Message: "Failed to delete account.",
+			Cause:   err.Error(),
+		}
+	}
+
+	err = s.broker.RemoveCachedUser(ctx, token)
+	if err != nil {
+		fmt.Println(&types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_DELETE_CACHE_USER",
+			Message: "Failed to delete cached user",
+			Cause:   err.Error(),
+		})
 	}
 
 	return nil

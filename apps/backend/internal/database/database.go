@@ -86,6 +86,7 @@ type Service interface {
 	AcceptFriendRequest(ctx context.Context, friendshipID, senderID, receiverID string) (*string, error)
 	RemoveFriend(ctx context.Context, friendshipID, userID string) error
 	GetFriends(ctx context.Context, userID string) ([]db.GetFriendsRow, error)
+	DeleteAccount(ctx context.Context, userID string) error
 }
 
 type service struct {
@@ -676,32 +677,18 @@ func (s *service) AcceptFriendRequest(ctx context.Context, friendshipID, senderI
 }
 
 func (s *service) RemoveFriend(ctx context.Context, friendshipID, userID string) error {
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
-
-	qtx := s.queries.WithTx(tx)
-
-	err = qtx.DeleteFriend(ctx, db.DeleteFriendParams{
+	return s.queries.DeleteFriend(ctx, db.DeleteFriendParams{
 		ID:         friendshipID,
 		ReceiverID: userID,
 	})
-	if err != nil {
-		return err
-	}
-
-	_, err = qtx.DeactivateChannel(ctx, pgtype.Text{String: friendshipID, Valid: true})
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit(ctx)
 }
 
 func (s *service) GetFriends(ctx context.Context, userID string) ([]db.GetFriendsRow, error) {
 	return s.queries.GetFriends(ctx, userID)
+}
+
+func (s *service) DeleteAccount(ctx context.Context, userID string) error {
+	return s.queries.DeleteUser(ctx, userID)
 }
 
 // Health checks the health of the database connection by pinging the database.

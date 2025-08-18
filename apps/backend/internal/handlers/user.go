@@ -6,6 +6,8 @@ import (
 	"backend/internal/validation"
 	"encoding/json"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -212,5 +214,16 @@ func (h *userHandler) DeleteEmoji(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+func (h *userHandler) DeleteAccount(c *gin.Context) {
+	err := h.domain.DeleteAccount(c)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.SetCookie("token", "", int(time.Now().Add(-30*(24*time.Hour)).Unix()), "/", os.Getenv("DOMAIN"), false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }

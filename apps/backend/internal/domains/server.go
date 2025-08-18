@@ -251,7 +251,7 @@ func (s *serverService) CreateInvite(ctx *gin.Context, serverID string) (*string
 		}
 	}
 
-	inviteURL := fmt.Sprintf("%s/invite/%s", os.Getenv("DOMAIN"), inviteID)
+	inviteURL := fmt.Sprintf("https://%s/invite/%s", os.Getenv("DOMAIN"), inviteID)
 
 	return &inviteURL, nil
 }

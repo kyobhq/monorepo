@@ -168,10 +168,9 @@ message Channel {
 	bool e2ee = 7;
 	repeated string users = 8;
 	repeated string roles = 9;
-	bool active = 10;
-  int32 position = 11;
-	google.protobuf.Timestamp created_at = 12;
-	google.protobuf.Timestamp updated_at = 13;
+  int32 position = 10;
+	google.protobuf.Timestamp created_at = 11;
+	google.protobuf.Timestamp updated_at = 12;
 }
 
 message UserLinksRow {

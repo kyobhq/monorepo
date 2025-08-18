@@ -5,6 +5,7 @@ import (
 	"backend/internal/types"
 	"backend/internal/validation"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,7 @@ func (h *authHandler) SignIn(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", *token, int(time.Now().Add(30*(24*time.Hour)).Unix()), "/", "localhost", false, true)
+	c.SetCookie("token", *token, int(time.Now().Add(30*(24*time.Hour)).Unix()), "/", os.Getenv("DOMAIN"), false, true)
 
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
@@ -53,7 +54,7 @@ func (h *authHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", *token, int(time.Now().Add(30*(24*time.Hour)).Unix()), "/", "localhost", false, true)
+	c.SetCookie("token", *token, int(time.Now().Add(30*(24*time.Hour)).Unix()), "/", os.Getenv("DOMAIN"), false, true)
 
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
@@ -64,6 +65,6 @@ func (h *authHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", "", int(time.Now().Add(-30*(24*time.Hour)).Unix()), "/", "localhost", false, true)
+	c.SetCookie("token", "", int(time.Now().Add(-30*(24*time.Hour)).Unix()), "/", os.Getenv("DOMAIN"), false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }

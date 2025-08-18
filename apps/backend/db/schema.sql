@@ -62,7 +62,6 @@ CREATE TABLE public.channels (
     users character varying(255)[],
     roles character varying(255)[],
     e2ee boolean DEFAULT false NOT NULL,
-    active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -91,6 +90,7 @@ CREATE TABLE public.friends (
     sender_id character varying(255) NOT NULL,
     receiver_id character varying(255) NOT NULL,
     accepted boolean DEFAULT false NOT NULL,
+    blocked boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
