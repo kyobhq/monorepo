@@ -17,7 +17,9 @@
 		if (!page.params.server_id) return;
 		let topRole: Role | undefined;
 
-		const userRoles = author?.roles ?? serverStore.getUserRoles(page.params.server_id);
+		const userRoles =
+			serverStore.getMemberRoles(page.params.server_id, author.id!) ??
+			serverStore.getUserRoles(page.params.server_id);
 		for (const userRole of userRoles) {
 			const role = serverStore.getRole(page.params.server_id!, userRole);
 			if (!topRole || (role && role.position < topRole.position)) {

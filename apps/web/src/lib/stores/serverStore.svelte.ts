@@ -130,10 +130,11 @@ export class ServerStore {
       position: roles.length,
       members: []
     };
+    this.servers[serverID].roles.push(newRole)
 
     const res = await backend.createOrUpdateRole(serverID, newRole);
     res.match(
-      () => this.servers[serverID].roles.push(newRole),
+      () => { },
       (err) => logErr(err)
     );
   }

@@ -9,6 +9,7 @@
 	import { userStore } from 'stores/userStore.svelte';
 	import { page } from '$app/state';
 
+	const currentServer = $derived(serverStore.getServer(page.params.server_id!));
 	let membersPerRole = $derived.by(() => {
 		if (!page.params.server_id) return {};
 		const members = serverStore.getMembers(page.params.server_id);
@@ -58,7 +59,7 @@
 
 <div class="bg-main-975 border-l-[0.5px] border-l-main-800 w-[16rem] overflow-hidden">
 	<section class="p-2.5">
-		<Input Icon={MagnifyingGlass} placeholder="Search" />
+		<Input Icon={MagnifyingGlass} placeholder={`Search ${currentServer.name}`} />
 	</section>
 	<BarSeparator title={`Members - ${serverStore.memberCount}`} />
 	<div class="flex flex-col gap-y-2 p-2.5">

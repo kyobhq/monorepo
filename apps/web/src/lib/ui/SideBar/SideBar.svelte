@@ -15,7 +15,7 @@
 	class="relative bg-main-975 min-h-screen border-r-[0.5px] border-r-main-800 w-[19.5rem] overflow-hidden shrink-0"
 >
 	<div class="flex gap-x-2 px-2.5 pt-2.5">
-		<Input Icon={MagnifyingGlass} placeholder="Search" />
+		<Input Icon={MagnifyingGlass} placeholder="Search servers" />
 		<!-- <IconsTabBar tabs={TABS} onclick={(href: string) => goto(href)} activeTab={page.url.pathname} /> -->
 	</div>
 

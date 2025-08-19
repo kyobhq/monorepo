@@ -18,7 +18,7 @@
 	<div class="flex gap-1.5 flex-wrap mt-3">
 		{#each roleIDs as roleID (roleID)}
 			{@const role = serverStore.getRole(page.params.server_id!, roleID)}
-			{#if role}
+			{#if role && role.name !== 'Default Permissions'}
 				<div
 					class="z-[4] text-sm px-2 py-[3px] rounded-md mix-blend-plus-lighter"
 					style="background-color: {role.color}4d; color: {role.color}"

@@ -9,7 +9,7 @@
 
 	let { selectedRole = $bindable(), initialized = $bindable() } = $props();
 	let serverID = $derived(coreStore.serverSettingsDialog.server_id);
-	let roles = $derived(serverStore.getRoles(serverID));
+	let roles = $derived(serverStore.getRoles(serverID).toSorted((a, b) => a.position - b.position));
 	let userTopRolePosition = $derived.by(() => {
 		let topRolePosition: number = 9999;
 		const userRoles = serverStore.getUserRoles(serverID);
