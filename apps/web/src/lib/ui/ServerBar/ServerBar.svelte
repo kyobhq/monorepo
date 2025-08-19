@@ -10,6 +10,7 @@
 	import { page } from '$app/state';
 	import gsap from 'gsap';
 	import { afterNavigate } from '$app/navigation';
+	import { coreStore } from 'stores/coreStore.svelte';
 
 	const currentServer = $derived(serverStore.getServer(page.params.server_id!));
 	let membersEl = $state<HTMLElement>();
@@ -61,7 +62,7 @@
 	});
 
 	$effect(() => {
-		if (!membersEl) return;
+		if (!membersEl || coreStore.firstLoad.serverbar) return;
 		const boxes = membersEl.querySelectorAll('.collapsible-wrapper');
 		if (!boxes.length) return;
 		gsap.from(boxes, {
@@ -69,7 +70,10 @@
 			scale: 0.95,
 			stagger: 0.06,
 			duration: 0.35,
-			ease: 'power2.out'
+			ease: 'power2.out',
+			onComplete: () => {
+				coreStore.firstLoad.serverbar = true;
+			}
 		});
 	});
 </script>
