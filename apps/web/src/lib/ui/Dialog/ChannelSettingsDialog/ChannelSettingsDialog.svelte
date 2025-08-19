@@ -10,18 +10,6 @@
 	import SaveBar from 'ui/SaveBar/SaveBar.svelte';
 	import SideBarSettings from 'ui/SideBar/SideBarSettings.svelte';
 	import DefaultSettingsDialog from '../DefaultSettingsDialog/DefaultSettingsDialog.svelte';
-	import type { SidebarSection } from '$lib/types/types';
-
-	const SECTIONS: SidebarSection[] = [
-		{
-			label: 'Overview',
-			permissions: ['MANAGE_CHANNELS']
-		},
-		{
-			label: 'Permissions',
-			permissions: ['MANAGE_CHANNELS']
-		}
-	];
 
 	let currentChannel = $derived(
 		channelStore.getChannel(page.params.server_id || '', coreStore.channelSettingsDialog.channel_id)
@@ -120,7 +108,7 @@
 			{/if}
 
 			{#if changes}
-				<SaveBar bind:isSubmitting {isButtonComplete} />
+				<SaveBar bind:isSubmitting bind:isButtonComplete />
 			{/if}
 		</form>
 	</div>

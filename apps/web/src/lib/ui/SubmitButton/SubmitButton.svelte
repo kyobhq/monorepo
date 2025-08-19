@@ -37,10 +37,7 @@
 
 	$effect(() => {
 		if (wasSubmitting && !isSubmitting && !isSubmitted) {
-			const timer = setTimeout(() => {
-				isSubmitted = true;
-			}, 600);
-			return () => clearTimeout(timer);
+			isSubmitted = true;
 		}
 		wasSubmitting = isSubmitting;
 	});
