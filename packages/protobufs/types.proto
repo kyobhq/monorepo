@@ -22,7 +22,32 @@ message WSMessage {
     AcceptFriendRequest accept_friend_request = 15;
     RemoveFriend remove_friend = 16;
     AccountDeletion account_deletion = 17;
+    AvatarServerChange avatar_server_change = 18;
+    ProfileServerChange profile_server_change = 19;
+    EditChannel edit_channel = 20;
+    EditCategory edit_category = 21;
   }
+}
+
+message EditChannel {
+  Channel channel = 1;
+}
+
+message EditCategory {
+  Category category = 1;
+}
+
+message AvatarServerChange {
+  string server_id = 1;
+  optional string avatar_url = 2;
+  optional string banner_url = 3;
+}
+
+message ProfileServerChange {
+  string server_id = 1;
+  string name = 2;
+  bytes description = 3;
+  bool public = 4;
 }
 
 message FriendRequest {

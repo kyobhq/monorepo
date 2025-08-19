@@ -30,13 +30,9 @@ class ChannelStore {
     const messageDate = new Date(message.created_at);
     const nextMessageDate = new Date(nextMessage.created_at);
 
-    return (
-      messageDate.getFullYear() === nextMessageDate.getFullYear() &&
-      messageDate.getMonth() === nextMessageDate.getMonth() &&
-      messageDate.getDate() === nextMessageDate.getDate() &&
-      messageDate.getHours() === nextMessageDate.getHours() &&
-      messageDate.getMinutes() === nextMessageDate.getMinutes()
-    );
+    const diff = (nextMessageDate.getTime() - messageDate.getTime()) / 1000
+
+    return diff < 30;
   }
 
   getCategoryChannels(serverID: string, categoryID: string): Channel[] {
@@ -69,6 +65,16 @@ class ChannelStore {
     if (!category) return null;
 
     category.channels[channel.id] = channel;
+  }
+
+  editChannel(channelID: string, channelOpts: Partial<Channel>) {
+    const channel = this.getChannel(channelOpts.server_id!, channelID)
+    if (!channel) return;
+
+    if (channelOpts.name) channel.name = channelOpts.name
+    if (channelOpts.description) channel.description = channelOpts.description
+    if (channelOpts.users) channel.users = channelOpts.users
+    if (channelOpts.roles) channel.roles = channelOpts.roles
   }
 
   addMessage(message: Message) {

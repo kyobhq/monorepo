@@ -15,6 +15,7 @@
 	import ServerSettingsDialog from 'ui/Dialog/ServerSettingsDialog/ServerSettingsDialog.svelte';
 	import FriendsDialog from 'ui/Dialog/FriendsDialog/FriendsDialog.svelte';
 	import { onNavigate } from '$app/navigation';
+	import CategorySettingsDialog from 'ui/Dialog/CategorySettingsDialog/CategorySettingsDialog.svelte';
 
 	let { children } = $props();
 
@@ -64,6 +65,7 @@
 <CreateChannelDialog />
 <DestructiveDialog />
 <ChannelSettingsDialog />
+<CategorySettingsDialog />
 <UserSettingsDialog />
 <ServerSettingsDialog />
 <UserProfile />

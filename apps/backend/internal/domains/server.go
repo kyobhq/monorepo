@@ -278,6 +278,8 @@ func (s *serverService) UpdateProfile(ctx *gin.Context, body *types.UpdateServer
 		}
 	}
 
+	s.actors.ProfileServerChange(serverID, body)
+
 	return nil
 }
 
@@ -407,6 +409,8 @@ func (s *serverService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileH
 			Cause:   err.Error(),
 		}
 	}
+
+	s.actors.AvatarServerChange(serverID, bannerURL, avatarURL)
 
 	return avatarURL, bannerURL, nil
 }

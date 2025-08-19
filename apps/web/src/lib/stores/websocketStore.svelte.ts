@@ -288,7 +288,8 @@ export class WebsocketStore {
               about_me: JSON.parse(aboutMeStr),
               banner: sender.banner,
               avatar: sender.avatar,
-              accepted: accepted
+              accepted: accepted,
+              status: "offline"
             }
 
             userStore.friends.push(friend)
@@ -322,7 +323,57 @@ export class WebsocketStore {
             }
           }
           break;
+        case 'avatarServerChange':
+          {
+            if (!wsMess.content.value) return;
+            const serverID = wsMess.content.value.serverId
+            const avatarURL = wsMess.content.value.avatarUrl
+            const bannerURL = wsMess.content.value.bannerUrl
 
+            serverStore.updateAvatar(serverID, avatarURL, bannerURL)
+          }
+          break;
+        case 'profileServerChange':
+          {
+            if (!wsMess.content.value) return;
+            const serverID = wsMess.content.value.serverId
+
+            const descriptionStr = new TextDecoder().decode(wsMess.content.value.description)
+
+            serverStore.updateProfile(serverID, {
+              name: wsMess.content.value.name,
+              description: JSON.parse(descriptionStr),
+              public: wsMess.content.value.public,
+            })
+          }
+          break;
+        case 'editChannel':
+          {
+            if (!wsMess.content.value.channel) return;
+            const channel = wsMess.content.value.channel
+
+            channelStore.editChannel(channel.id, {
+              server_id: channel.serverId,
+              name: channel.name,
+              description: channel.description,
+              users: channel.users,
+              roles: channel.roles
+            })
+          }
+          break;
+        case 'editCategory':
+          {
+            if (!wsMess.content.value.category) return;
+            const category = wsMess.content.value.category
+
+            categoryStore.editCategory(category.id, {
+              server_id: category.serverId,
+              name: category.name,
+              users: category.users,
+              roles: category.roles
+            })
+          }
+          break;
       }
     };
   }

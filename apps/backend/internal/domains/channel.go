@@ -18,6 +18,7 @@ type ChannelService interface {
 	DeleteChannel(c *gin.Context, body *types.DeleteChannelParams) *types.APIError
 	DeleteCategory(c *gin.Context, body *types.DeleteCategoryParams) *types.APIError
 	EditChannel(c *gin.Context, body *types.EditChannelParams) *types.APIError
+	EditCategory(c *gin.Context, body *types.EditCategoryParams) *types.APIError
 }
 
 type channelService struct {
@@ -115,12 +116,30 @@ func (s *channelService) EditChannel(c *gin.Context, body *types.EditChannelPara
 	channelID := c.Param("channel_id")
 
 	if ok := s.permissions.CheckPermission(c, body.ServerID, types.ManageChannels); !ok {
-		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN_DELETE_CATEGORY", "Forbidden to delete category.", nil)
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN_EDIT_CHANNEL", "Forbidden to edit channel.", nil)
 	}
 
 	if err := s.db.UpdateChannelInformations(c, channelID, body); err != nil {
 		return types.NewAPIError(http.StatusInternalServerError, "ERR_EDIT_CHANNEL", "Failed to edit channel.", err)
 	}
+
+	s.actors.EditChannel(channelID, body)
+
+	return nil
+}
+
+func (s *channelService) EditCategory(c *gin.Context, body *types.EditCategoryParams) *types.APIError {
+	categoryID := c.Param("category_id")
+
+	if ok := s.permissions.CheckPermission(c, body.ServerID, types.ManageChannels); !ok {
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN_EDIT_CATEGORY", "Forbidden to edit category.", nil)
+	}
+
+	if err := s.db.UpdateCategoryInformations(c, categoryID, body); err != nil {
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_EDIT_CATEGORY", "Failed to edit category.", err)
+	}
+
+	s.actors.EditCategory(categoryID, body)
 
 	return nil
 }

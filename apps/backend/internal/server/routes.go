@@ -73,6 +73,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	protected.POST("/channels", channel.CreateChannel)
 	protected.POST("/channels/category", channel.CreateCategory)
 	protected.POST("/channels/pin/:channel_id", channel.PinChannel)
+	protected.PATCH("/channels/category/:category_id", channel.EditCategory)
 	protected.PATCH("/channels/:channel_id", channel.EditChannel)
 	protected.DELETE("/channels/:channel_id", channel.DeleteChannel)
 	protected.DELETE("/channels/category/:category_id", channel.DeleteCategory)

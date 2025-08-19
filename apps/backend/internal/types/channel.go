@@ -29,6 +29,13 @@ type EditChannelParams struct {
 	Roles       []string `json:"roles" validate:"omitempty"`
 }
 
+type EditCategoryParams struct {
+	ServerID string   `json:"server_id"`
+	Name     string   `json:"name" validate:"required,min=1,max=20"`
+	Users    []string `json:"users" validate:"omitempty"`
+	Roles    []string `json:"roles" validate:"omitempty"`
+}
+
 type PinChannelParams struct {
 	ServerID string `json:"server_id" validate:"required"`
 	Position int    `json:"position" validate:"min=0"`

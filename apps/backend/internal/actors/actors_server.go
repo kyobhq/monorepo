@@ -48,26 +48,16 @@ func (s *server) Receive(ctx *actor.Context) {
 			"id", ctx.PID().GetID(),
 			"err", msg.Err,
 		)
+	case *messages.WSMessage:
+		s.BroadcastToServer(msg)
 	case *messages.AccountDeletion:
 		s.AccountDeletion(ctx, msg)
-	case *messages.StartCategory:
-		s.startCategory(msg)
 	case *messages.KillCategory:
 		s.killCategory(ctx, msg)
 	case *messages.StartChannel:
 		s.startChannel(ctx, msg)
 	case *messages.KillChannel:
 		s.killChannel(ctx, msg)
-	case *messages.CreateOrEditRole:
-		s.CreateOrEditRole(msg)
-	case *messages.RemoveRole:
-		s.RemoveRole(msg)
-	case *messages.MoveRole:
-		s.MoveRole(msg)
-	case *messages.AddRoleMember:
-		s.AddRoleMember(msg)
-	case *messages.RemoveRoleMember:
-		s.RemoveRoleMember(msg)
 	case *messages.GetServerUsers:
 		ctx.Respond(&messages.GetServerUsers{
 			UserIds: slices.Collect(maps.Keys(s.users)),
@@ -80,18 +70,6 @@ func (s *server) Receive(ctx *actor.Context) {
 		case "offline":
 			delete(s.users, msg.User.Id)
 		}
-	}
-}
-
-func (s *server) startCategory(msg *messages.StartCategory) {
-	message := &messages.WSMessage{
-		Content: &messages.WSMessage_StartCategory{
-			StartCategory: msg,
-		},
-	}
-
-	for userID := range s.users {
-		s.hub.BroadcastMessageToUser(s.hub.GetUser(userID), message)
 	}
 }
 
@@ -165,75 +143,17 @@ func (s *server) broadcastUserStatus(msg *messages.ChangeStatus) {
 	}
 }
 
-func (s *server) CreateOrEditRole(msg *messages.CreateOrEditRole) {
-	message := &messages.WSMessage{
-		Content: &messages.WSMessage_CreateOrEditRole{
-			CreateOrEditRole: msg,
-		},
-	}
-
-	for userID := range s.users {
-		userPID := s.hub.GetUser(userID)
-		s.hub.BroadcastMessageToUser(userPID, message)
-	}
-}
-
-func (s *server) RemoveRole(msg *messages.RemoveRole) {
-	message := &messages.WSMessage{
-		Content: &messages.WSMessage_RemoveRole{
-			RemoveRole: msg,
-		},
-	}
-
-	for userID := range s.users {
-		userPID := s.hub.GetUser(userID)
-		s.hub.BroadcastMessageToUser(userPID, message)
-	}
-}
-
-func (s *server) MoveRole(msg *messages.MoveRole) {
-	message := &messages.WSMessage{
-		Content: &messages.WSMessage_MoveRole{
-			MoveRole: msg,
-		},
-	}
-
-	for userID := range s.users {
-		userPID := s.hub.GetUser(userID)
-		s.hub.BroadcastMessageToUser(userPID, message)
-	}
-}
-
-func (s *server) AddRoleMember(msg *messages.AddRoleMember) {
-	message := &messages.WSMessage{
-		Content: &messages.WSMessage_AddRoleMember{
-			AddRoleMember: msg,
-		},
-	}
-
-	for userID := range s.users {
-		userPID := s.hub.GetUser(userID)
-		s.hub.BroadcastMessageToUser(userPID, message)
-	}
-}
-
-func (s *server) RemoveRoleMember(msg *messages.RemoveRoleMember) {
-	message := &messages.WSMessage{
-		Content: &messages.WSMessage_RemoveRoleMember{
-			RemoveRoleMember: msg,
-		},
-	}
-
-	for userID := range s.users {
-		userPID := s.hub.GetUser(userID)
-		s.hub.BroadcastMessageToUser(userPID, message)
-	}
-}
-
 func (s *server) AccountDeletion(ctx *actor.Context, msg *messages.AccountDeletion) {
 	delete(s.users, msg.UserId)
 
 	for _, channelPID := range ctx.Children() {
 		ctx.Send(channelPID, msg)
+	}
+}
+
+func (s *server) BroadcastToServer(msg *messages.WSMessage) {
+	for userID := range s.users {
+		userPID := s.hub.GetUser(userID)
+		s.hub.BroadcastMessageToUser(userPID, msg)
 	}
 }

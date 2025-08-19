@@ -85,6 +85,14 @@ type Service interface {
 	NotifyFriendStatus(friendID string, msg *message.ChangeStatus)
 
 	GetActiveFriends(userID string) []string
+
+	AvatarServerChange(serverID string, bannerURL, avatarURL *string)
+
+	ProfileServerChange(serverID string, body *types.UpdateServerProfileParams)
+
+	EditChannel(channelID string, body *types.EditChannelParams)
+
+	EditCategory(categoryID string, body *types.EditCategoryParams)
 }
 
 type service struct {
@@ -208,19 +216,25 @@ func (se *service) StartCategory(category db.ChannelCategory) {
 	serversPID := se.GetAllServerInstances(category.ServerID)
 
 	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.StartCategory{
-			Category: &message.Category{
-				Id:        category.ID,
-				Position:  category.Position,
-				ServerId:  category.ServerID,
-				Name:      category.Name,
-				Users:     category.Users,
-				Roles:     category.Roles,
-				E2Ee:      category.E2ee,
-				CreatedAt: timestamppb.New(category.CreatedAt),
-				UpdatedAt: timestamppb.New(category.UpdatedAt),
+		message := &message.WSMessage{
+			Content: &message.WSMessage_StartCategory{
+				StartCategory: &message.StartCategory{
+					Category: &message.Category{
+						Id:        category.ID,
+						Position:  category.Position,
+						ServerId:  category.ServerID,
+						Name:      category.Name,
+						Users:     category.Users,
+						Roles:     category.Roles,
+						E2Ee:      category.E2ee,
+						CreatedAt: timestamppb.New(category.CreatedAt),
+						UpdatedAt: timestamppb.New(category.UpdatedAt),
+					},
+				},
 			},
-		})
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
@@ -311,18 +325,24 @@ func (se *service) CreateOrEditRole(role db.Role) {
 	serversPID := se.GetAllServerInstances(role.ServerID)
 
 	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.CreateOrEditRole{
-			Role: &message.Role{
-				Id:        role.ID,
-				ServerId:  role.ServerID,
-				Position:  role.Position,
-				Name:      role.Name,
-				Color:     role.Color,
-				Abilities: role.Abilities,
-				CreatedAt: timestamppb.New(role.CreatedAt),
-				UpdatedAt: timestamppb.New(role.UpdatedAt),
+		message := &message.WSMessage{
+			Content: &message.WSMessage_CreateOrEditRole{
+				CreateOrEditRole: &message.CreateOrEditRole{
+					Role: &message.Role{
+						Id:        role.ID,
+						ServerId:  role.ServerID,
+						Position:  role.Position,
+						Name:      role.Name,
+						Color:     role.Color,
+						Abilities: role.Abilities,
+						CreatedAt: timestamppb.New(role.CreatedAt),
+						UpdatedAt: timestamppb.New(role.UpdatedAt),
+					},
+				},
 			},
-		})
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
@@ -330,12 +350,18 @@ func (se *service) RemoveRole(body *types.DeleteRoleParams) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
 	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.RemoveRole{
-			Role: &message.Role{
-				Id:       body.RoleID,
-				ServerId: body.ServerID,
+		message := &message.WSMessage{
+			Content: &message.WSMessage_RemoveRole{
+				RemoveRole: &message.RemoveRole{
+					Role: &message.Role{
+						Id:       body.RoleID,
+						ServerId: body.ServerID,
+					},
+				},
 			},
-		})
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
@@ -343,18 +369,24 @@ func (se *service) MoveRole(body *types.MoveRoleMemberParams) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
 	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.MoveRole{
-			MovedRole: &message.Role{
-				Id:       body.MovedRoleID,
-				ServerId: body.ServerID,
+		message := &message.WSMessage{
+			Content: &message.WSMessage_MoveRole{
+				MoveRole: &message.MoveRole{
+					MovedRole: &message.Role{
+						Id:       body.MovedRoleID,
+						ServerId: body.ServerID,
+					},
+					TargetRole: &message.Role{
+						Id:       body.TargetRoleID,
+						ServerId: body.ServerID,
+					},
+					From: int32(body.From),
+					To:   int32(body.To),
+				},
 			},
-			TargetRole: &message.Role{
-				Id:       body.TargetRoleID,
-				ServerId: body.ServerID,
-			},
-			From: int32(body.From),
-			To:   int32(body.To),
-		})
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
@@ -362,13 +394,19 @@ func (se *service) AddRoleMember(body *types.ChangeRoleMemberParams) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
 	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.AddRoleMember{
-			UserId: body.UserID,
-			Role: &message.Role{
-				Id:       body.RoleID,
-				ServerId: body.ServerID,
+		message := &message.WSMessage{
+			Content: &message.WSMessage_AddRoleMember{
+				AddRoleMember: &message.AddRoleMember{
+					UserId: body.UserID,
+					Role: &message.Role{
+						Id:       body.RoleID,
+						ServerId: body.ServerID,
+					},
+				},
 			},
-		})
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
@@ -376,13 +414,19 @@ func (se *service) RemoveRoleMember(body *types.ChangeRoleMemberParams) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
 	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.RemoveRoleMember{
-			UserId: body.UserID,
-			Role: &message.Role{
-				Id:       body.RoleID,
-				ServerId: body.ServerID,
+		message := &message.WSMessage{
+			Content: &message.WSMessage_RemoveRoleMember{
+				RemoveRoleMember: &message.RemoveRoleMember{
+					UserId: body.UserID,
+					Role: &message.Role{
+						Id:       body.RoleID,
+						ServerId: body.ServerID,
+					},
+				},
 			},
-		})
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
@@ -503,4 +547,86 @@ func (se *service) GetActiveFriends(userID string) []string {
 	}
 
 	return friendIDs
+}
+
+func (se *service) AvatarServerChange(serverID string, bannerURL, avatarURL *string) {
+	serverPIDs := se.GetAllServerInstances(serverID)
+
+	for _, serverPID := range serverPIDs {
+		message := &message.WSMessage{
+			Content: &message.WSMessage_AvatarServerChange{
+				AvatarServerChange: &message.AvatarServerChange{
+					ServerId:  serverID,
+					AvatarUrl: avatarURL,
+					BannerUrl: bannerURL,
+				},
+			},
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
+	}
+}
+
+func (se *service) ProfileServerChange(serverID string, body *types.UpdateServerProfileParams) {
+	serverPIDs := se.GetAllServerInstances(serverID)
+
+	for _, serverPID := range serverPIDs {
+		message := &message.WSMessage{
+			Content: &message.WSMessage_ProfileServerChange{
+				ProfileServerChange: &message.ProfileServerChange{
+					ServerId:    serverID,
+					Name:        body.Name,
+					Description: body.Description,
+					Public:      body.Public,
+				},
+			},
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
+	}
+}
+
+func (se *service) EditChannel(channelID string, body *types.EditChannelParams) {
+	serverPIDs := se.GetAllServerInstances(body.ServerID)
+
+	for _, serverPID := range serverPIDs {
+		message := &message.WSMessage{
+			Content: &message.WSMessage_EditChannel{
+				EditChannel: &message.EditChannel{
+					Channel: &message.Channel{
+						Id:          channelID,
+						ServerId:    body.ServerID,
+						Name:        body.Name,
+						Description: body.Description,
+						Users:       body.Users,
+						Roles:       body.Roles,
+					},
+				},
+			},
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
+	}
+}
+
+func (se *service) EditCategory(categoryID string, body *types.EditCategoryParams) {
+	serverPIDs := se.GetAllServerInstances(body.ServerID)
+
+	for _, serverPID := range serverPIDs {
+		message := &message.WSMessage{
+			Content: &message.WSMessage_EditCategory{
+				EditCategory: &message.EditCategory{
+					Category: &message.Category{
+						Id:       categoryID,
+						ServerId: body.ServerID,
+						Name:     body.Name,
+						Users:    body.Users,
+						Roles:    body.Roles,
+					},
+				},
+			},
+		}
+
+		se.cluster.Engine().Send(serverPID, message)
+	}
 }

@@ -101,6 +101,22 @@ func (h *channelHandler) EditChannel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
+func (h *channelHandler) EditCategory(c *gin.Context) {
+	var body types.EditCategoryParams
+
+	if verr := validation.ParseAndValidate(c.Request, &body); verr != nil {
+		verr.Respond(c)
+		return
+	}
+
+	if derr := h.domain.EditCategory(c, &body); derr != nil {
+		derr.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
 func (h *channelHandler) DeleteChannel(c *gin.Context) {
 	var body types.DeleteChannelParams
 

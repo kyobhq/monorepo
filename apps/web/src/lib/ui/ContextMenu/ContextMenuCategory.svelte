@@ -16,6 +16,14 @@
 		};
 	}
 
+	function openSettings() {
+		coreStore.categorySettingsDialog = {
+			open: true,
+			category_id: categoryId,
+			section: 'Overview'
+		};
+	}
+
 	function handleDelete() {
 		if (!page.params.server_id) return;
 
@@ -45,7 +53,7 @@
 	<ContextMenuSkeleton>
 		{#snippet contextMenuContent()}
 			<ContextMenuItem onclick={openChannelDialog} text="Create channel" />
-			<ContextMenuItem onclick={() => {}} text="Edit category" />
+			<ContextMenuItem onclick={openSettings} text="Edit category" />
 			<ContextMenuItem onclick={handleDelete} text="Delete category" destructive />
 		{/snippet}
 	</ContextMenuSkeleton>

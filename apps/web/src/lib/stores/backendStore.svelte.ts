@@ -24,6 +24,7 @@ import type {
   CreateServerType,
   DeleteMessageType,
   EditAvatarType,
+  EditCategoryType,
   EditChannelType,
   EditMessageType,
   EditPasswordType,
@@ -171,6 +172,10 @@ export class BackendStore {
 
   editChannel(channelID: string, body: EditChannelType): ResultAsync<void, APIError> {
     return this.makeRequest<void>(`channels/${channelID}`, { method: 'patch', json: body });
+  }
+
+  editCategory(categoryID: string, body: EditCategoryType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`channels/category/${categoryID}`, { method: 'patch', json: body });
   }
 
   createMessage(body: CreateMessageType): ResultAsync<void, APIError> {

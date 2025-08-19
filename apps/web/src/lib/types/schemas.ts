@@ -111,6 +111,19 @@ export const EditChannelSchema = v.object({
 
 export interface EditChannelType extends v.InferInput<typeof EditChannelSchema> { }
 
+export const EditCategorySchema = v.object({
+  server_id: v.string(),
+  name: v.pipe(
+    v.string(),
+    v.nonEmpty("Can't be empty."),
+    v.maxLength(20, 'Must be at most 20 characters.')
+  ),
+  users: v.optional(v.array(v.string())),
+  roles: v.optional(v.array(v.string()))
+});
+
+export interface EditCategoryType extends v.InferInput<typeof EditCategorySchema> { }
+
 export const CreateMessageSchema = v.object({
   server_id: v.string(),
   channel_id: v.string(),

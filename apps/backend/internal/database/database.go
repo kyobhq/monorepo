@@ -68,6 +68,7 @@ type Service interface {
 	CheckPermission(ctx context.Context, serverID, userID string, ability types.Ability) (bool, error)
 	GetServerAbilities(ctx context.Context, serverID, userID string) ([]string, error)
 	UpdateChannelInformations(ctx context.Context, channelID string, body *types.EditChannelParams) error
+	UpdateCategoryInformations(ctx context.Context, categoryID string, body *types.EditCategoryParams) error
 	CreateMessage(ctx context.Context, userID string, body *types.CreateMessageParams) (db.Message, error)
 	GetServers(ctx context.Context) ([]string, error)
 	GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, error)
@@ -511,6 +512,15 @@ func (s *service) UpdateChannelInformations(ctx context.Context, channelID strin
 		Description: pgtype.Text{String: body.Description, Valid: true},
 		Users:       body.Users,
 		Roles:       body.Roles,
+	})
+}
+
+func (s *service) UpdateCategoryInformations(ctx context.Context, categoryID string, body *types.EditCategoryParams) error {
+	return s.queries.UpdateCategoryInformations(ctx, db.UpdateCategoryInformationsParams{
+		ID:    categoryID,
+		Name:  body.Name,
+		Users: body.Users,
+		Roles: body.Roles,
 	})
 }
 

@@ -21,6 +21,15 @@ class CategoryStore {
     }, false)
   }
 
+  editCategory(categoryID: string, categoryOpts: Partial<Category>) {
+    const category = this.getCategory(categoryOpts.server_id!, categoryID)
+    if (!category) return;
+
+    if (categoryOpts.name) category.name = categoryOpts.name
+    if (categoryOpts.users) category.users = categoryOpts.users
+    if (categoryOpts.roles) category.roles = categoryOpts.roles
+  }
+
   deleteCategory(serverID: string, categoryID: string) {
     serverStore.safeServerOperation(serverID, (server) => {
       delete server.categories[categoryID]
