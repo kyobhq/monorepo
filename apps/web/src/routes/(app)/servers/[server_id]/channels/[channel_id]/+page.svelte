@@ -6,12 +6,14 @@
 	import { serverStore } from 'stores/serverStore.svelte';
 	import { onMount, tick } from 'svelte';
 	import ChannelHeader from 'ui/ChannelHeader/ChannelHeader.svelte';
+	import StraightFaceEmoji from 'ui/icons/StraightFaceEmoji.svelte';
 	import Message from 'ui/Message/Message.svelte';
 	import RichInput from 'ui/RichInput/RichInput.svelte';
 
 	let scrollContainer = $state<HTMLDivElement>();
 	let messageCount = $state(0);
 	let isAtBottom = $state(true);
+	let messagesLoaded = $state(false);
 
 	const currentServer = $derived.by(() => {
 		if (!page.params.server_id) return;
@@ -42,6 +44,7 @@
 			(messages) => {
 				channelStore.messages = messages ? messages.reverse() : [];
 				tick().then(() => scrollToBottom(false));
+				messagesLoaded = true;
 			},
 			(error) => {
 				console.error(`${error.code}: ${error.message}`);
@@ -81,12 +84,19 @@
 		bind:this={scrollContainer}
 		onscroll={handleScroll}
 	>
-		{#if channelStore.messages.length > 0}
-			{#each channelStore.messages as message (message.id)}
-				<Message server={currentServer} channel={currentChannel} {message} />
-			{/each}
-		{:else}
-			No messages in {currentChannel?.name} yet :c
+		{#if messagesLoaded}
+			{#if channelStore.messages.length > 0}
+				{#each channelStore.messages as message (message.id)}
+					<Message server={currentServer} channel={currentChannel} {message} />
+				{/each}
+			{:else}
+				<div
+					class="h-full w-full flex items-center justify-center text-2xl flex-col gap-y-4 text-main-700"
+				>
+					<StraightFaceEmoji height={128} width={128} />
+					<p>No messages in <span class="font-medium">{currentChannel?.name}</span> yet</p>
+				</div>
+			{/if}
 		{/if}
 	</div>
 

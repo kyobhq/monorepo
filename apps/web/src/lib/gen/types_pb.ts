@@ -12,7 +12,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file types.proto.
  */
 export const file_types: GenFile = /*@__PURE__*/
-  fileDesc("Cgt0eXBlcy5wcm90bxIFdHlwZXMiswgKCVdTTWVzc2FnZRIxChJ1c2VyX2NoYW5nZV9zdGF0dXMYASABKAsyEy50eXBlcy5DaGFuZ2VTdGF0dXNIABIxChBuZXdfY2hhdF9tZXNzYWdlGAIgASgLMhUudHlwZXMuTmV3Q2hhdE1lc3NhZ2VIABIzChFlZGl0X2NoYXRfbWVzc2FnZRgDIAEoCzIWLnR5cGVzLkVkaXRDaGF0TWVzc2FnZUgAEjcKE2RlbGV0ZV9jaGF0X21lc3NhZ2UYBCABKAsyGC50eXBlcy5EZWxldGVDaGF0TWVzc2FnZUgAEiwKDXN0YXJ0X2NoYW5uZWwYBSABKAsyEy50eXBlcy5TdGFydENoYW5uZWxIABIuCg5zdGFydF9jYXRlZ29yeRgGIAEoCzIULnR5cGVzLlN0YXJ0Q2F0ZWdvcnlIABIqCgxraWxsX2NoYW5uZWwYByABKAsyEi50eXBlcy5LaWxsQ2hhbm5lbEgAEiwKDWtpbGxfY2F0ZWdvcnkYCCABKAsyEy50eXBlcy5LaWxsQ2F0ZWdvcnlIABI2ChNjcmVhdGVfb3JfZWRpdF9yb2xlGAkgASgLMhcudHlwZXMuQ3JlYXRlT3JFZGl0Um9sZUgAEigKC3JlbW92ZV9yb2xlGAogASgLMhEudHlwZXMuUmVtb3ZlUm9sZUgAEiQKCW1vdmVfcm9sZRgLIAEoCzIPLnR5cGVzLk1vdmVSb2xlSAASLwoPYWRkX3JvbGVfbWVtYmVyGAwgASgLMhQudHlwZXMuQWRkUm9sZU1lbWJlckgAEjUKEnJlbW92ZV9yb2xlX21lbWJlchgNIAEoCzIXLnR5cGVzLlJlbW92ZVJvbGVNZW1iZXJIABIuCg5mcmllbmRfcmVxdWVzdBgOIAEoCzIULnR5cGVzLkZyaWVuZFJlcXVlc3RIABI7ChVhY2NlcHRfZnJpZW5kX3JlcXVlc3QYDyABKAsyGi50eXBlcy5BY2NlcHRGcmllbmRSZXF1ZXN0SAASLAoNcmVtb3ZlX2ZyaWVuZBgQIAEoCzITLnR5cGVzLlJlbW92ZUZyaWVuZEgAEjIKEGFjY291bnRfZGVsZXRpb24YESABKAsyFi50eXBlcy5BY2NvdW50RGVsZXRpb25IABI5ChRhdmF0YXJfc2VydmVyX2NoYW5nZRgSIAEoCzIZLnR5cGVzLkF2YXRhclNlcnZlckNoYW5nZUgAEjsKFXByb2ZpbGVfc2VydmVyX2NoYW5nZRgTIAEoCzIaLnR5cGVzLlByb2ZpbGVTZXJ2ZXJDaGFuZ2VIABIqCgxlZGl0X2NoYW5uZWwYFCABKAsyEi50eXBlcy5FZGl0Q2hhbm5lbEgAEiwKDWVkaXRfY2F0ZWdvcnkYFSABKAsyEy50eXBlcy5FZGl0Q2F0ZWdvcnlIAEIJCgdjb250ZW50Ii4KC0VkaXRDaGFubmVsEh8KB2NoYW5uZWwYASABKAsyDi50eXBlcy5DaGFubmVsIjEKDEVkaXRDYXRlZ29yeRIhCghjYXRlZ29yeRgBIAEoCzIPLnR5cGVzLkNhdGVnb3J5IncKEkF2YXRhclNlcnZlckNoYW5nZRIRCglzZXJ2ZXJfaWQYASABKAkSFwoKYXZhdGFyX3VybBgCIAEoCUgAiAEBEhcKCmJhbm5lcl91cmwYAyABKAlIAYgBAUINCgtfYXZhdGFyX3VybEINCgtfYmFubmVyX3VybCJbChNQcm9maWxlU2VydmVyQ2hhbmdlEhEKCXNlcnZlcl9pZBgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgMEg4KBnB1YmxpYxgEIAEoCCJVCg1GcmllbmRSZXF1ZXN0EhUKDWZyaWVuZHNoaXBfaWQYASABKAkSGwoGc2VuZGVyGAIgASgLMgsudHlwZXMuVXNlchIQCghhY2NlcHRlZBgDIAEoCCJdChNBY2NlcHRGcmllbmRSZXF1ZXN0EhUKDWZyaWVuZHNoaXBfaWQYASABKAkSGwoGc2VuZGVyGAIgASgLMgsudHlwZXMuVXNlchISCgpjaGFubmVsX2lkGAMgASgJImEKDFJlbW92ZUZyaWVuZBIVCg1mcmllbmRzaGlwX2lkGAEgASgJEhsKBnNlbmRlchgCIAEoCzILLnR5cGVzLlVzZXISHQoIcmVjZWl2ZXIYAyABKAsyCy50eXBlcy5Vc2VyIn0KDENoYW5nZVN0YXR1cxIMCgR0eXBlGAEgASgJEhkKBHVzZXIYAiABKAsyCy50eXBlcy5Vc2VyEhIKCmNoYW5uZWxfaWQYAyABKAkSEQoJc2VydmVyX2lkGAQgASgJEg4KBnN0YXR1cxgFIAEoCRINCgVyb2xlcxgGIAMoCSIxCg5OZXdDaGF0TWVzc2FnZRIfCgdtZXNzYWdlGAEgASgLMg4udHlwZXMuTWVzc2FnZSIyCg9FZGl0Q2hhdE1lc3NhZ2USHwoHbWVzc2FnZRgBIAEoCzIOLnR5cGVzLk1lc3NhZ2UiNAoRRGVsZXRlQ2hhdE1lc3NhZ2USHwoHbWVzc2FnZRgBIAEoCzIOLnR5cGVzLk1lc3NhZ2UiLwoMU3RhcnRDaGFubmVsEh8KB2NoYW5uZWwYASABKAsyDi50eXBlcy5DaGFubmVsIi4KC0tpbGxDaGFubmVsEh8KB2NoYW5uZWwYASABKAsyDi50eXBlcy5DaGFubmVsIjIKDVN0YXJ0Q2F0ZWdvcnkSIQoIY2F0ZWdvcnkYASABKAsyDy50eXBlcy5DYXRlZ29yeSJMCgxLaWxsQ2F0ZWdvcnkSEQoJc2VydmVyX2lkGAEgASgJEhMKC2NhdGVnb3J5X2lkGAIgASgJEhQKDGNoYW5uZWxzX2lkcxgDIAMoCSItChBDcmVhdGVPckVkaXRSb2xlEhkKBHJvbGUYASABKAsyCy50eXBlcy5Sb2xlIicKClJlbW92ZVJvbGUSGQoEcm9sZRgBIAEoCzILLnR5cGVzLlJvbGUiZwoITW92ZVJvbGUSHwoKbW92ZWRfcm9sZRgBIAEoCzILLnR5cGVzLlJvbGUSIAoLdGFyZ2V0X3JvbGUYAiABKAsyCy50eXBlcy5Sb2xlEgwKBGZyb20YAyABKAUSCgoCdG8YBCABKAUiOwoNQWRkUm9sZU1lbWJlchIPCgd1c2VyX2lkGAEgASgJEhkKBHJvbGUYAiABKAsyCy50eXBlcy5Sb2xlIj4KEFJlbW92ZVJvbGVNZW1iZXISDwoHdXNlcl9pZBgBIAEoCRIZCgRyb2xlGAIgASgLMgsudHlwZXMuUm9sZSKkAgoHTWVzc2FnZRIKCgJpZBgBIAEoCRIbCgZhdXRob3IYAiABKAsyCy50eXBlcy5Vc2VyEhEKCXNlcnZlcl9pZBgDIAEoCRISCgpjaGFubmVsX2lkGAQgASgJEg8KB2NvbnRlbnQYBSABKAwSEAoIZXZlcnlvbmUYBiABKAgSFgoObWVudGlvbnNfdXNlcnMYByADKAkSGQoRbWVudGlvbnNfY2hhbm5lbHMYCCADKAkSEwoLYXR0YWNobWVudHMYCSABKAwSLgoKY3JlYXRlZF9hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAivAIKBFVzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSFAoMZGlzcGxheV9uYW1lGAMgASgJEg4KBmF2YXRhchgEIAEoCRIOCgZiYW5uZXIYBSABKAkSEAoIYWJvdXRfbWUYBiABKAwSEgoKZXhwZXJpZW5jZRgHIAEoBRISCgptYWluX2NvbG9yGAggASgJEiIKBWxpbmtzGAkgAygLMhMudHlwZXMuVXNlckxpbmtzUm93EiIKBWZhY3RzGAogAygLMhMudHlwZXMuVXNlckZhY3RzUm93Ei4KCmNyZWF0ZWRfYXQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYDCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wItUBCghDYXRlZ29yeRIKCgJpZBgBIAEoCRIQCghwb3NpdGlvbhgCIAEoBRIRCglzZXJ2ZXJfaWQYAyABKAkSDAoEbmFtZRgEIAEoCRINCgV1c2VycxgFIAMoCRINCgVyb2xlcxgGIAMoCRIMCgRlMmVlGAcgASgIEi4KCmNyZWF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIscBCgRSb2xlEgoKAmlkGAEgASgJEhEKCXNlcnZlcl9pZBgCIAEoCRIQCghwb3NpdGlvbhgDIAEoBRIMCgRuYW1lGAQgASgJEg0KBWNvbG9yGAUgASgJEhEKCWFiaWxpdGllcxgGIAMoCRIuCgpjcmVhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKMAgoHQ2hhbm5lbBIKCgJpZBgBIAEoCRIRCglzZXJ2ZXJfaWQYAiABKAkSEwoLY2F0ZWdvcnlfaWQYAyABKAkSDAoEbmFtZRgEIAEoCRITCgtkZXNjcmlwdGlvbhgFIAEoCRIMCgR0eXBlGAYgASgJEgwKBGUyZWUYByABKAgSDQoFdXNlcnMYCCADKAkSDQoFcm9sZXMYCSADKAkSEAoIcG9zaXRpb24YCiABKAUSLgoKY3JlYXRlZF9hdBgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgMIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiNgoMVXNlckxpbmtzUm93EgoKAmlkGAEgASgJEg0KBWxhYmVsGAIgASgJEgsKA3VybBgDIAEoCSI4CgxVc2VyRmFjdHNSb3cSCgoCaWQYASABKAkSDQoFbGFiZWwYAiABKAkSDQoFdmFsdWUYAyABKAkiIgoOR2V0U2VydmVyVXNlcnMSEAoIdXNlcl9pZHMYASADKAkiIAoKR2V0RnJpZW5kcxISCgpmcmllbmRfaWRzGAEgAygJIjUKD0FjY291bnREZWxldGlvbhIPCgd1c2VyX2lkGAEgASgJEhEKCXNlcnZlcl9pZBgCIAEoCUIcWhpnaXRodWIuY29tL29rem1vL255by9wcm90b2IGcHJvdG8z", [file_google_protobuf_timestamp]);
+  fileDesc("Cgt0eXBlcy5wcm90bxIFdHlwZXMiiQkKCVdTTWVzc2FnZRIxChJ1c2VyX2NoYW5nZV9zdGF0dXMYASABKAsyEy50eXBlcy5DaGFuZ2VTdGF0dXNIABIxChBuZXdfY2hhdF9tZXNzYWdlGAIgASgLMhUudHlwZXMuTmV3Q2hhdE1lc3NhZ2VIABIzChFlZGl0X2NoYXRfbWVzc2FnZRgDIAEoCzIWLnR5cGVzLkVkaXRDaGF0TWVzc2FnZUgAEjcKE2RlbGV0ZV9jaGF0X21lc3NhZ2UYBCABKAsyGC50eXBlcy5EZWxldGVDaGF0TWVzc2FnZUgAEiwKDXN0YXJ0X2NoYW5uZWwYBSABKAsyEy50eXBlcy5TdGFydENoYW5uZWxIABIuCg5zdGFydF9jYXRlZ29yeRgGIAEoCzIULnR5cGVzLlN0YXJ0Q2F0ZWdvcnlIABIoCgtraWxsX3NlcnZlchgHIAEoCzIRLnR5cGVzLktpbGxTZXJ2ZXJIABIqCgxraWxsX2NoYW5uZWwYCCABKAsyEi50eXBlcy5LaWxsQ2hhbm5lbEgAEiwKDWtpbGxfY2F0ZWdvcnkYCSABKAsyEy50eXBlcy5LaWxsQ2F0ZWdvcnlIABI2ChNjcmVhdGVfb3JfZWRpdF9yb2xlGAogASgLMhcudHlwZXMuQ3JlYXRlT3JFZGl0Um9sZUgAEigKC3JlbW92ZV9yb2xlGAsgASgLMhEudHlwZXMuUmVtb3ZlUm9sZUgAEiQKCW1vdmVfcm9sZRgMIAEoCzIPLnR5cGVzLk1vdmVSb2xlSAASLwoPYWRkX3JvbGVfbWVtYmVyGA0gASgLMhQudHlwZXMuQWRkUm9sZU1lbWJlckgAEjUKEnJlbW92ZV9yb2xlX21lbWJlchgOIAEoCzIXLnR5cGVzLlJlbW92ZVJvbGVNZW1iZXJIABIuCg5mcmllbmRfcmVxdWVzdBgPIAEoCzIULnR5cGVzLkZyaWVuZFJlcXVlc3RIABI7ChVhY2NlcHRfZnJpZW5kX3JlcXVlc3QYECABKAsyGi50eXBlcy5BY2NlcHRGcmllbmRSZXF1ZXN0SAASLAoNcmVtb3ZlX2ZyaWVuZBgRIAEoCzITLnR5cGVzLlJlbW92ZUZyaWVuZEgAEjIKEGFjY291bnRfZGVsZXRpb24YEiABKAsyFi50eXBlcy5BY2NvdW50RGVsZXRpb25IABI5ChRhdmF0YXJfc2VydmVyX2NoYW5nZRgTIAEoCzIZLnR5cGVzLkF2YXRhclNlcnZlckNoYW5nZUgAEjsKFXByb2ZpbGVfc2VydmVyX2NoYW5nZRgUIAEoCzIaLnR5cGVzLlByb2ZpbGVTZXJ2ZXJDaGFuZ2VIABIqCgxlZGl0X2NoYW5uZWwYFSABKAsyEi50eXBlcy5FZGl0Q2hhbm5lbEgAEiwKDWVkaXRfY2F0ZWdvcnkYFiABKAsyEy50eXBlcy5FZGl0Q2F0ZWdvcnlIABIqCgxsZWF2ZV9zZXJ2ZXIYFyABKAsyEi50eXBlcy5MZWF2ZVNlcnZlckgAQgkKB2NvbnRlbnQiLgoLRWRpdENoYW5uZWwSHwoHY2hhbm5lbBgBIAEoCzIOLnR5cGVzLkNoYW5uZWwiMQoMRWRpdENhdGVnb3J5EiEKCGNhdGVnb3J5GAEgASgLMg8udHlwZXMuQ2F0ZWdvcnkidwoSQXZhdGFyU2VydmVyQ2hhbmdlEhEKCXNlcnZlcl9pZBgBIAEoCRIXCgphdmF0YXJfdXJsGAIgASgJSACIAQESFwoKYmFubmVyX3VybBgDIAEoCUgBiAEBQg0KC19hdmF0YXJfdXJsQg0KC19iYW5uZXJfdXJsIlsKE1Byb2ZpbGVTZXJ2ZXJDaGFuZ2USEQoJc2VydmVyX2lkGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAwSDgoGcHVibGljGAQgASgIIlUKDUZyaWVuZFJlcXVlc3QSFQoNZnJpZW5kc2hpcF9pZBgBIAEoCRIbCgZzZW5kZXIYAiABKAsyCy50eXBlcy5Vc2VyEhAKCGFjY2VwdGVkGAMgASgIIl0KE0FjY2VwdEZyaWVuZFJlcXVlc3QSFQoNZnJpZW5kc2hpcF9pZBgBIAEoCRIbCgZzZW5kZXIYAiABKAsyCy50eXBlcy5Vc2VyEhIKCmNoYW5uZWxfaWQYAyABKAkiYQoMUmVtb3ZlRnJpZW5kEhUKDWZyaWVuZHNoaXBfaWQYASABKAkSGwoGc2VuZGVyGAIgASgLMgsudHlwZXMuVXNlchIdCghyZWNlaXZlchgDIAEoCzILLnR5cGVzLlVzZXIifQoMQ2hhbmdlU3RhdHVzEgwKBHR5cGUYASABKAkSGQoEdXNlchgCIAEoCzILLnR5cGVzLlVzZXISEgoKY2hhbm5lbF9pZBgDIAEoCRIRCglzZXJ2ZXJfaWQYBCABKAkSDgoGc3RhdHVzGAUgASgJEg0KBXJvbGVzGAYgAygJIjEKDk5ld0NoYXRNZXNzYWdlEh8KB21lc3NhZ2UYASABKAsyDi50eXBlcy5NZXNzYWdlIjIKD0VkaXRDaGF0TWVzc2FnZRIfCgdtZXNzYWdlGAEgASgLMg4udHlwZXMuTWVzc2FnZSI0ChFEZWxldGVDaGF0TWVzc2FnZRIfCgdtZXNzYWdlGAEgASgLMg4udHlwZXMuTWVzc2FnZSIvCgxTdGFydENoYW5uZWwSHwoHY2hhbm5lbBgBIAEoCzIOLnR5cGVzLkNoYW5uZWwiHwoKS2lsbFNlcnZlchIRCglzZXJ2ZXJfaWQYASABKAkiLgoLS2lsbENoYW5uZWwSHwoHY2hhbm5lbBgBIAEoCzIOLnR5cGVzLkNoYW5uZWwiMgoNU3RhcnRDYXRlZ29yeRIhCghjYXRlZ29yeRgBIAEoCzIPLnR5cGVzLkNhdGVnb3J5IkwKDEtpbGxDYXRlZ29yeRIRCglzZXJ2ZXJfaWQYASABKAkSEwoLY2F0ZWdvcnlfaWQYAiABKAkSFAoMY2hhbm5lbHNfaWRzGAMgAygJIi0KEENyZWF0ZU9yRWRpdFJvbGUSGQoEcm9sZRgBIAEoCzILLnR5cGVzLlJvbGUiJwoKUmVtb3ZlUm9sZRIZCgRyb2xlGAEgASgLMgsudHlwZXMuUm9sZSJnCghNb3ZlUm9sZRIfCgptb3ZlZF9yb2xlGAEgASgLMgsudHlwZXMuUm9sZRIgCgt0YXJnZXRfcm9sZRgCIAEoCzILLnR5cGVzLlJvbGUSDAoEZnJvbRgDIAEoBRIKCgJ0bxgEIAEoBSI7Cg1BZGRSb2xlTWVtYmVyEg8KB3VzZXJfaWQYASABKAkSGQoEcm9sZRgCIAEoCzILLnR5cGVzLlJvbGUiPgoQUmVtb3ZlUm9sZU1lbWJlchIPCgd1c2VyX2lkGAEgASgJEhkKBHJvbGUYAiABKAsyCy50eXBlcy5Sb2xlIqQCCgdNZXNzYWdlEgoKAmlkGAEgASgJEhsKBmF1dGhvchgCIAEoCzILLnR5cGVzLlVzZXISEQoJc2VydmVyX2lkGAMgASgJEhIKCmNoYW5uZWxfaWQYBCABKAkSDwoHY29udGVudBgFIAEoDBIQCghldmVyeW9uZRgGIAEoCBIWCg5tZW50aW9uc191c2VycxgHIAMoCRIZChFtZW50aW9uc19jaGFubmVscxgIIAMoCRITCgthdHRhY2htZW50cxgJIAEoDBIuCgpjcmVhdGVkX2F0GAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCK8AgoEVXNlchIKCgJpZBgBIAEoCRIQCgh1c2VybmFtZRgCIAEoCRIUCgxkaXNwbGF5X25hbWUYAyABKAkSDgoGYXZhdGFyGAQgASgJEg4KBmJhbm5lchgFIAEoCRIQCghhYm91dF9tZRgGIAEoDBISCgpleHBlcmllbmNlGAcgASgFEhIKCm1haW5fY29sb3IYCCABKAkSIgoFbGlua3MYCSADKAsyEy50eXBlcy5Vc2VyTGlua3NSb3cSIgoFZmFjdHMYCiADKAsyEy50eXBlcy5Vc2VyRmFjdHNSb3cSLgoKY3JlYXRlZF9hdBgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgMIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAi1QEKCENhdGVnb3J5EgoKAmlkGAEgASgJEhAKCHBvc2l0aW9uGAIgASgFEhEKCXNlcnZlcl9pZBgDIAEoCRIMCgRuYW1lGAQgASgJEg0KBXVzZXJzGAUgAygJEg0KBXJvbGVzGAYgAygJEgwKBGUyZWUYByABKAgSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAixwEKBFJvbGUSCgoCaWQYASABKAkSEQoJc2VydmVyX2lkGAIgASgJEhAKCHBvc2l0aW9uGAMgASgFEgwKBG5hbWUYBCABKAkSDQoFY29sb3IYBSABKAkSEQoJYWJpbGl0aWVzGAYgAygJEi4KCmNyZWF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIowCCgdDaGFubmVsEgoKAmlkGAEgASgJEhEKCXNlcnZlcl9pZBgCIAEoCRITCgtjYXRlZ29yeV9pZBgDIAEoCRIMCgRuYW1lGAQgASgJEhMKC2Rlc2NyaXB0aW9uGAUgASgJEgwKBHR5cGUYBiABKAkSDAoEZTJlZRgHIAEoCBINCgV1c2VycxgIIAMoCRINCgVyb2xlcxgJIAMoCRIQCghwb3NpdGlvbhgKIAEoBRIuCgpjcmVhdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCI2CgxVc2VyTGlua3NSb3cSCgoCaWQYASABKAkSDQoFbGFiZWwYAiABKAkSCwoDdXJsGAMgASgJIjgKDFVzZXJGYWN0c1JvdxIKCgJpZBgBIAEoCRINCgVsYWJlbBgCIAEoCRINCgV2YWx1ZRgDIAEoCSIiCg5HZXRTZXJ2ZXJVc2VycxIQCgh1c2VyX2lkcxgBIAMoCSIgCgpHZXRGcmllbmRzEhIKCmZyaWVuZF9pZHMYASADKAkiNQoPQWNjb3VudERlbGV0aW9uEg8KB3VzZXJfaWQYASABKAkSEQoJc2VydmVyX2lkGAIgASgJIjEKC0xlYXZlU2VydmVyEhEKCXNlcnZlcl9pZBgBIAEoCRIPCgd1c2VyX2lkGAIgASgJQhxaGmdpdGh1Yi5jb20vb2t6bW8vbnlvL3Byb3RvYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message types.WSMessage
@@ -59,94 +59,106 @@ export type WSMessage = Message$1<"types.WSMessage"> & {
     case: "startCategory";
   } | {
     /**
-     * @generated from field: types.KillChannel kill_channel = 7;
+     * @generated from field: types.KillServer kill_server = 7;
+     */
+    value: KillServer;
+    case: "killServer";
+  } | {
+    /**
+     * @generated from field: types.KillChannel kill_channel = 8;
      */
     value: KillChannel;
     case: "killChannel";
   } | {
     /**
-     * @generated from field: types.KillCategory kill_category = 8;
+     * @generated from field: types.KillCategory kill_category = 9;
      */
     value: KillCategory;
     case: "killCategory";
   } | {
     /**
-     * @generated from field: types.CreateOrEditRole create_or_edit_role = 9;
+     * @generated from field: types.CreateOrEditRole create_or_edit_role = 10;
      */
     value: CreateOrEditRole;
     case: "createOrEditRole";
   } | {
     /**
-     * @generated from field: types.RemoveRole remove_role = 10;
+     * @generated from field: types.RemoveRole remove_role = 11;
      */
     value: RemoveRole;
     case: "removeRole";
   } | {
     /**
-     * @generated from field: types.MoveRole move_role = 11;
+     * @generated from field: types.MoveRole move_role = 12;
      */
     value: MoveRole;
     case: "moveRole";
   } | {
     /**
-     * @generated from field: types.AddRoleMember add_role_member = 12;
+     * @generated from field: types.AddRoleMember add_role_member = 13;
      */
     value: AddRoleMember;
     case: "addRoleMember";
   } | {
     /**
-     * @generated from field: types.RemoveRoleMember remove_role_member = 13;
+     * @generated from field: types.RemoveRoleMember remove_role_member = 14;
      */
     value: RemoveRoleMember;
     case: "removeRoleMember";
   } | {
     /**
-     * @generated from field: types.FriendRequest friend_request = 14;
+     * @generated from field: types.FriendRequest friend_request = 15;
      */
     value: FriendRequest;
     case: "friendRequest";
   } | {
     /**
-     * @generated from field: types.AcceptFriendRequest accept_friend_request = 15;
+     * @generated from field: types.AcceptFriendRequest accept_friend_request = 16;
      */
     value: AcceptFriendRequest;
     case: "acceptFriendRequest";
   } | {
     /**
-     * @generated from field: types.RemoveFriend remove_friend = 16;
+     * @generated from field: types.RemoveFriend remove_friend = 17;
      */
     value: RemoveFriend;
     case: "removeFriend";
   } | {
     /**
-     * @generated from field: types.AccountDeletion account_deletion = 17;
+     * @generated from field: types.AccountDeletion account_deletion = 18;
      */
     value: AccountDeletion;
     case: "accountDeletion";
   } | {
     /**
-     * @generated from field: types.AvatarServerChange avatar_server_change = 18;
+     * @generated from field: types.AvatarServerChange avatar_server_change = 19;
      */
     value: AvatarServerChange;
     case: "avatarServerChange";
   } | {
     /**
-     * @generated from field: types.ProfileServerChange profile_server_change = 19;
+     * @generated from field: types.ProfileServerChange profile_server_change = 20;
      */
     value: ProfileServerChange;
     case: "profileServerChange";
   } | {
     /**
-     * @generated from field: types.EditChannel edit_channel = 20;
+     * @generated from field: types.EditChannel edit_channel = 21;
      */
     value: EditChannel;
     case: "editChannel";
   } | {
     /**
-     * @generated from field: types.EditCategory edit_category = 21;
+     * @generated from field: types.EditCategory edit_category = 22;
      */
     value: EditCategory;
     case: "editCategory";
+  } | {
+    /**
+     * @generated from field: types.LeaveServer leave_server = 23;
+     */
+    value: LeaveServer;
+    case: "leaveServer";
   } | { case: undefined; value?: undefined };
 };
 
@@ -442,6 +454,23 @@ export const StartChannelSchema: GenMessage<StartChannel> = /*@__PURE__*/
   messageDesc(file_types, 12);
 
 /**
+ * @generated from message types.KillServer
+ */
+export type KillServer = Message$1<"types.KillServer"> & {
+  /**
+   * @generated from field: string server_id = 1;
+   */
+  serverId: string;
+};
+
+/**
+ * Describes the message types.KillServer.
+ * Use `create(KillServerSchema)` to create a new message.
+ */
+export const KillServerSchema: GenMessage<KillServer> = /*@__PURE__*/
+  messageDesc(file_types, 13);
+
+/**
  * @generated from message types.KillChannel
  */
 export type KillChannel = Message$1<"types.KillChannel"> & {
@@ -456,7 +485,7 @@ export type KillChannel = Message$1<"types.KillChannel"> & {
  * Use `create(KillChannelSchema)` to create a new message.
  */
 export const KillChannelSchema: GenMessage<KillChannel> = /*@__PURE__*/
-  messageDesc(file_types, 13);
+  messageDesc(file_types, 14);
 
 /**
  * @generated from message types.StartCategory
@@ -473,7 +502,7 @@ export type StartCategory = Message$1<"types.StartCategory"> & {
  * Use `create(StartCategorySchema)` to create a new message.
  */
 export const StartCategorySchema: GenMessage<StartCategory> = /*@__PURE__*/
-  messageDesc(file_types, 14);
+  messageDesc(file_types, 15);
 
 /**
  * @generated from message types.KillCategory
@@ -500,7 +529,7 @@ export type KillCategory = Message$1<"types.KillCategory"> & {
  * Use `create(KillCategorySchema)` to create a new message.
  */
 export const KillCategorySchema: GenMessage<KillCategory> = /*@__PURE__*/
-  messageDesc(file_types, 15);
+  messageDesc(file_types, 16);
 
 /**
  * @generated from message types.CreateOrEditRole
@@ -517,7 +546,7 @@ export type CreateOrEditRole = Message$1<"types.CreateOrEditRole"> & {
  * Use `create(CreateOrEditRoleSchema)` to create a new message.
  */
 export const CreateOrEditRoleSchema: GenMessage<CreateOrEditRole> = /*@__PURE__*/
-  messageDesc(file_types, 16);
+  messageDesc(file_types, 17);
 
 /**
  * @generated from message types.RemoveRole
@@ -534,7 +563,7 @@ export type RemoveRole = Message$1<"types.RemoveRole"> & {
  * Use `create(RemoveRoleSchema)` to create a new message.
  */
 export const RemoveRoleSchema: GenMessage<RemoveRole> = /*@__PURE__*/
-  messageDesc(file_types, 17);
+  messageDesc(file_types, 18);
 
 /**
  * @generated from message types.MoveRole
@@ -566,7 +595,7 @@ export type MoveRole = Message$1<"types.MoveRole"> & {
  * Use `create(MoveRoleSchema)` to create a new message.
  */
 export const MoveRoleSchema: GenMessage<MoveRole> = /*@__PURE__*/
-  messageDesc(file_types, 18);
+  messageDesc(file_types, 19);
 
 /**
  * @generated from message types.AddRoleMember
@@ -588,7 +617,7 @@ export type AddRoleMember = Message$1<"types.AddRoleMember"> & {
  * Use `create(AddRoleMemberSchema)` to create a new message.
  */
 export const AddRoleMemberSchema: GenMessage<AddRoleMember> = /*@__PURE__*/
-  messageDesc(file_types, 19);
+  messageDesc(file_types, 20);
 
 /**
  * @generated from message types.RemoveRoleMember
@@ -610,7 +639,7 @@ export type RemoveRoleMember = Message$1<"types.RemoveRoleMember"> & {
  * Use `create(RemoveRoleMemberSchema)` to create a new message.
  */
 export const RemoveRoleMemberSchema: GenMessage<RemoveRoleMember> = /*@__PURE__*/
-  messageDesc(file_types, 20);
+  messageDesc(file_types, 21);
 
 /**
  * @generated from message types.Message
@@ -677,7 +706,7 @@ export type Message = Message$1<"types.Message"> & {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
-  messageDesc(file_types, 21);
+  messageDesc(file_types, 22);
 
 /**
  * @generated from message types.User
@@ -749,7 +778,7 @@ export type User = Message$1<"types.User"> & {
  * Use `create(UserSchema)` to create a new message.
  */
 export const UserSchema: GenMessage<User> = /*@__PURE__*/
-  messageDesc(file_types, 22);
+  messageDesc(file_types, 23);
 
 /**
  * @generated from message types.Category
@@ -806,7 +835,7 @@ export type Category = Message$1<"types.Category"> & {
  * Use `create(CategorySchema)` to create a new message.
  */
 export const CategorySchema: GenMessage<Category> = /*@__PURE__*/
-  messageDesc(file_types, 23);
+  messageDesc(file_types, 24);
 
 /**
  * @generated from message types.Role
@@ -858,7 +887,7 @@ export type Role = Message$1<"types.Role"> & {
  * Use `create(RoleSchema)` to create a new message.
  */
 export const RoleSchema: GenMessage<Role> = /*@__PURE__*/
-  messageDesc(file_types, 24);
+  messageDesc(file_types, 25);
 
 /**
  * @generated from message types.Channel
@@ -930,7 +959,7 @@ export type Channel = Message$1<"types.Channel"> & {
  * Use `create(ChannelSchema)` to create a new message.
  */
 export const ChannelSchema: GenMessage<Channel> = /*@__PURE__*/
-  messageDesc(file_types, 25);
+  messageDesc(file_types, 26);
 
 /**
  * @generated from message types.UserLinksRow
@@ -957,7 +986,7 @@ export type UserLinksRow = Message$1<"types.UserLinksRow"> & {
  * Use `create(UserLinksRowSchema)` to create a new message.
  */
 export const UserLinksRowSchema: GenMessage<UserLinksRow> = /*@__PURE__*/
-  messageDesc(file_types, 26);
+  messageDesc(file_types, 27);
 
 /**
  * @generated from message types.UserFactsRow
@@ -984,7 +1013,7 @@ export type UserFactsRow = Message$1<"types.UserFactsRow"> & {
  * Use `create(UserFactsRowSchema)` to create a new message.
  */
 export const UserFactsRowSchema: GenMessage<UserFactsRow> = /*@__PURE__*/
-  messageDesc(file_types, 27);
+  messageDesc(file_types, 28);
 
 /**
  * @generated from message types.GetServerUsers
@@ -1001,7 +1030,7 @@ export type GetServerUsers = Message$1<"types.GetServerUsers"> & {
  * Use `create(GetServerUsersSchema)` to create a new message.
  */
 export const GetServerUsersSchema: GenMessage<GetServerUsers> = /*@__PURE__*/
-  messageDesc(file_types, 28);
+  messageDesc(file_types, 29);
 
 /**
  * @generated from message types.GetFriends
@@ -1018,7 +1047,7 @@ export type GetFriends = Message$1<"types.GetFriends"> & {
  * Use `create(GetFriendsSchema)` to create a new message.
  */
 export const GetFriendsSchema: GenMessage<GetFriends> = /*@__PURE__*/
-  messageDesc(file_types, 29);
+  messageDesc(file_types, 30);
 
 /**
  * @generated from message types.AccountDeletion
@@ -1040,5 +1069,27 @@ export type AccountDeletion = Message$1<"types.AccountDeletion"> & {
  * Use `create(AccountDeletionSchema)` to create a new message.
  */
 export const AccountDeletionSchema: GenMessage<AccountDeletion> = /*@__PURE__*/
-  messageDesc(file_types, 30);
+  messageDesc(file_types, 31);
+
+/**
+ * @generated from message types.LeaveServer
+ */
+export type LeaveServer = Message$1<"types.LeaveServer"> & {
+  /**
+   * @generated from field: string server_id = 1;
+   */
+  serverId: string;
+
+  /**
+   * @generated from field: string user_id = 2;
+   */
+  userId: string;
+};
+
+/**
+ * Describes the message types.LeaveServer.
+ * Use `create(LeaveServerSchema)` to create a new message.
+ */
+export const LeaveServerSchema: GenMessage<LeaveServer> = /*@__PURE__*/
+  messageDesc(file_types, 32);
 

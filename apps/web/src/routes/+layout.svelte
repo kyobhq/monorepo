@@ -7,6 +7,7 @@
 	import '@fontsource/host-grotesk/600.css';
 	import '@fontsource/host-grotesk/700.css';
 	import { backend } from 'stores/backendStore.svelte';
+	import { coreStore } from 'stores/coreStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import { ws } from 'stores/websocketStore.svelte';
@@ -23,7 +24,7 @@
 				serverStore.servers = setup.servers;
 				ws.init(setup.user.id);
 				userStore.setupComplete = true;
-
+				coreStore.serversLoaded = true;
 				if (page.url.pathname === '/') goto('/servers');
 			},
 			() => goto('/signin')

@@ -58,6 +58,8 @@ func (s *server) Receive(ctx *actor.Context) {
 		s.startChannel(ctx, msg)
 	case *messages.KillChannel:
 		s.killChannel(ctx, msg)
+	case *messages.LeaveServer:
+		s.LeaveServer(msg)
 	case *messages.GetServerUsers:
 		ctx.Respond(&messages.GetServerUsers{
 			UserIds: slices.Collect(maps.Keys(s.users)),
@@ -155,5 +157,20 @@ func (s *server) BroadcastToServer(msg *messages.WSMessage) {
 	for userID := range s.users {
 		userPID := s.hub.GetUser(userID)
 		s.hub.BroadcastMessageToUser(userPID, msg)
+	}
+}
+
+func (s *server) LeaveServer(msg *messages.LeaveServer) {
+	delete(s.users, msg.UserId)
+
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_LeaveServer{
+			LeaveServer: msg,
+		},
+	}
+
+	for userID := range s.users {
+		userPID := s.hub.GetUser(userID)
+		s.hub.BroadcastMessageToUser(userPID, message)
 	}
 }

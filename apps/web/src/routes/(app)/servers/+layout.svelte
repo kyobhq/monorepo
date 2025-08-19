@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
+	import { coreStore } from 'stores/coreStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import TopGradient from 'ui/TopGradient/TopGradient.svelte';

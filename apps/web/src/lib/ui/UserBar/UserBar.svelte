@@ -1,10 +1,13 @@
 <script lang="ts">
+	import gsap from 'gsap';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
+	import { fly } from 'svelte/transition';
 	import Gear from 'ui/icons/Gear.svelte';
 	import Headphone from 'ui/icons/Headphone.svelte';
 	import Microphone from 'ui/icons/Microphone.svelte';
 
+	let userBarEl = $state<HTMLElement>();
 	let buttonEl = $state<HTMLElement>();
 
 	function handleMute() {
@@ -21,10 +24,22 @@
 			section: 'My Account'
 		};
 	}
+
+	$effect(() => {
+		if (!userBarEl) return;
+
+		gsap.from(userBarEl, {
+			opacity: 0,
+			scale: 0.95,
+			duration: 0.35,
+			ease: 'power2.out'
+		});
+	});
 </script>
 
 {#if userStore.user}
 	<div
+		bind:this={userBarEl}
 		class="absolute w-[calc(100%-1.25rem)] bottom-2.5 pr-2 left-1/2 -translate-x-1/2 box-style rounded-xl"
 	>
 		<div class="flex justify-between p-[2.5px]">

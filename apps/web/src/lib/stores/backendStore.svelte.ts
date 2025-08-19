@@ -162,6 +162,10 @@ export class BackendStore {
     });
   }
 
+  deleteServer(serverID: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`servers/${serverID}`, { method: 'delete' });
+  }
+
   deleteCategory(serverID: string, categoryID: string): ResultAsync<void, APIError> {
     const channels = channelStore.getCategoryChannels(serverID, categoryID);
     return this.makeRequest<void>(`channels/category/${categoryID}`, {

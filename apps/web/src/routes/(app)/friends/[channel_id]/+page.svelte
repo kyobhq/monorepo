@@ -5,6 +5,7 @@
 	import { channelStore } from 'stores/channelStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import { onMount, tick } from 'svelte';
+	import StraightFaceEmoji from 'ui/icons/StraightFaceEmoji.svelte';
 	import Message from 'ui/Message/Message.svelte';
 	import RichInput from 'ui/RichInput/RichInput.svelte';
 
@@ -76,7 +77,12 @@
 				<Message friend={currentFriend} {message} />
 			{/each}
 		{:else}
-			No messages with {currentFriend.display_name} yet :c
+			<div
+				class="h-full w-full flex items-center justify-center text-2xl flex-col gap-y-4 text-main-700"
+			>
+				<StraightFaceEmoji height={128} width={128} />
+				<p>No messages with <span class="font-medium">{currentFriend.display_name}</span> yet</p>
+			</div>
 		{/if}
 	</div>
 

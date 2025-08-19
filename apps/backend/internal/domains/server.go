@@ -227,6 +227,8 @@ func (s *serverService) LeaveServer(ctx *gin.Context, serverID string) *types.AP
 		}
 	}
 
+	s.actors.LeaveServer(serverID, userID)
+
 	return nil
 }
 
@@ -303,6 +305,8 @@ func (s *serverService) DeleteServer(ctx *gin.Context, serverID string) *types.A
 			Message: "Failed to delete server.",
 		}
 	}
+
+	s.actors.KillServer(serverID)
 
 	return nil
 }

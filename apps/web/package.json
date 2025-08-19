@@ -49,6 +49,7 @@
     "@tiptap/suggestion": "^3.0.9",
     "bits-ui": "^2.8.13",
     "emojibase-data": "^16.0.3",
+    "gsap": "^3.13.0",
     "ky": "^1.8.2",
     "neverthrow": "^8.2.0",
     "svelte-awesome-color-picker": "^4.0.2",

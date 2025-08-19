@@ -374,6 +374,25 @@ export class WebsocketStore {
             })
           }
           break;
+        case 'killServer':
+          {
+            if (!wsMess.content.value.serverId) return;
+            const serverID = wsMess.content.value.serverId;
+
+            if (page.url.pathname.includes(serverID)) goto("/servers")
+
+            serverStore.deleteServer(wsMess.content.value.serverId)
+          }
+          break;
+        case 'leaveServer':
+          {
+            if (!wsMess.content.value) return;
+            const serverID = wsMess.content.value.serverId;
+            const userID = wsMess.content.value.userId;
+
+            serverStore.deleteMember(serverID, userID)
+          }
+          break;
       }
     };
   }

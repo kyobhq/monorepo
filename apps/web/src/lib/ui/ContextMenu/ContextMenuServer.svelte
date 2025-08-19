@@ -9,6 +9,7 @@
 	import { serverStore } from 'stores/serverStore.svelte';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { hasPermissions } from 'utils/permissions';
+	import { logErr } from 'utils/print';
 
 	interface Props {
 		server: Server;
@@ -44,19 +45,39 @@
 	}
 
 	async function leaveServer() {
-		const res = await backend.leaveServer(server.id);
-		res.match(
-			() => {
-				serverStore.deleteServer(server.id);
-
-				if (page.params.server_id === server.id) {
-					goto('/servers');
-				}
-			},
-			(error) => {
-				console.error(`${error.code}: ${error.message}`);
+		coreStore.destructiveDialog = {
+			open: true,
+			title: `Leave ${server.name}`,
+			subtitle: server.public
+				? "You can always join it again from the discovery tab don't worry."
+				: "You'll need a valid invite to join this server again.",
+			buttonText: 'Leave Server',
+			onclick: async () => {
+				coreStore.destructiveDialog.open = false;
+				const res = await backend.leaveServer(server.id);
+				res.match(
+					() => {
+						if (page.params.server_id === server.id) goto('/servers');
+						serverStore.deleteServer(server.id);
+					},
+					(error) => logErr(error)
+				);
 			}
-		);
+		};
+	}
+
+	async function deleteServer() {
+		coreStore.destructiveDialog = {
+			open: true,
+			title: `Delete ${server.name}`,
+			subtitle: 'All content in this server will be permanently deleted.',
+			buttonText: 'Delete Server',
+			onclick: async () => {
+				coreStore.destructiveDialog.open = false;
+				const res = await backend.deleteServer(server.id);
+				if (res.isErr()) logErr(res.error);
+			}
+		};
 	}
 </script>
 
@@ -73,7 +94,7 @@
 			<ContextMenuItem onclick={openSettings} text="Edit Server" />
 		{/if}
 		{#if server.owner_id === userStore.user!.id}
-			<ContextMenuItem onclick={() => {}} text="Delete Server" destructive />
+			<ContextMenuItem onclick={deleteServer} text="Delete Server" destructive />
 		{:else}
 			<ContextMenuItem onclick={leaveServer} text="Leave Server" destructive />
 		{/if}

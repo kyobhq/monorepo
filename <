@@ -305,12 +305,7 @@ func (se *service) LeaveServer(serverID, userID string) {
 	serversPID := se.GetAllServerInstances(serverID)
 
 	for _, serverPID := range serversPID {
-		message := &message.LeaveServer{
-			ServerId: serverID,
-			UserId:   userID,
-		}
-
-		se.cluster.Engine().Send(serverPID, message)
+		se.cluster.Engine().Poison(serverPID)
 	}
 }
 

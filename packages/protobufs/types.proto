@@ -11,21 +11,23 @@ message WSMessage {
     DeleteChatMessage delete_chat_message = 4;
     StartChannel start_channel = 5;
     StartCategory start_category = 6;
-    KillChannel kill_channel = 7;
-    KillCategory kill_category = 8;
-    CreateOrEditRole create_or_edit_role = 9;
-    RemoveRole remove_role = 10;
-    MoveRole move_role = 11;
-    AddRoleMember add_role_member = 12;
-    RemoveRoleMember remove_role_member = 13;
-    FriendRequest friend_request = 14;
-    AcceptFriendRequest accept_friend_request = 15;
-    RemoveFriend remove_friend = 16;
-    AccountDeletion account_deletion = 17;
-    AvatarServerChange avatar_server_change = 18;
-    ProfileServerChange profile_server_change = 19;
-    EditChannel edit_channel = 20;
-    EditCategory edit_category = 21;
+    KillServer kill_server = 7;
+    KillChannel kill_channel = 8;
+    KillCategory kill_category = 9;
+    CreateOrEditRole create_or_edit_role = 10;
+    RemoveRole remove_role = 11;
+    MoveRole move_role = 12;
+    AddRoleMember add_role_member = 13;
+    RemoveRoleMember remove_role_member = 14;
+    FriendRequest friend_request = 15;
+    AcceptFriendRequest accept_friend_request = 16;
+    RemoveFriend remove_friend = 17;
+    AccountDeletion account_deletion = 18;
+    AvatarServerChange avatar_server_change = 19;
+    ProfileServerChange profile_server_change = 20;
+    EditChannel edit_channel = 21;
+    EditCategory edit_category = 22;
+    LeaveServer leave_server = 23;
   }
 }
 
@@ -91,6 +93,10 @@ message DeleteChatMessage {
 
 message StartChannel {
 	Channel channel = 1;
+}
+
+message KillServer {
+  string server_id = 1;
 }
 
 message KillChannel {
@@ -222,4 +228,9 @@ message GetFriends {
 message AccountDeletion {
   string user_id = 1;
   string server_id = 2;
+}
+
+message LeaveServer {
+  string server_id = 1;
+  string user_id = 2;
 }
