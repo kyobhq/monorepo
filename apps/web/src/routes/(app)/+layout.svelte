@@ -16,6 +16,9 @@
 	import FriendsDialog from 'ui/Dialog/FriendsDialog/FriendsDialog.svelte';
 	import { onNavigate } from '$app/navigation';
 	import CategorySettingsDialog from 'ui/Dialog/CategorySettingsDialog/CategorySettingsDialog.svelte';
+	import BanDialog from 'ui/Dialog/ModDialog/BanDialog.svelte';
+	import KickDialog from 'ui/Dialog/ModDialog/KickDialog.svelte';
+	import UserRestrictionDialog from 'ui/Dialog/ModDialog/UserRestrictionDialog.svelte';
 
 	let { children } = $props();
 
@@ -69,3 +72,6 @@
 <UserSettingsDialog />
 <ServerSettingsDialog />
 <UserProfile />
+<BanDialog />
+<KickDialog />
+<UserRestrictionDialog />

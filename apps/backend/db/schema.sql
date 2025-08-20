@@ -167,6 +167,7 @@ CREATE TABLE public.server_members (
     roles character varying(255)[],
     nickname character varying(255),
     ban boolean DEFAULT false NOT NULL,
+    ban_reason text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -180,6 +181,7 @@ CREATE TABLE public.servers (
     id character varying(255) NOT NULL,
     owner_id character varying(255) NOT NULL,
     name character varying(255) NOT NULL,
+    "position" integer DEFAULT 0 NOT NULL,
     avatar character varying(255),
     banner character varying(255),
     description jsonb,

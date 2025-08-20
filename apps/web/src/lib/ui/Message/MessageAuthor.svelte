@@ -4,6 +4,7 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
+	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
 	import { formatMessageTime } from 'utils/time';
 
 	interface Props {
@@ -34,7 +35,7 @@
 <div class="flex items-baseline gap-x-1.5 select-none w-fit relative z-[1]">
 	<button
 		bind:this={displayNameEl}
-		class="hover:underline hover:cursor-pointer"
+		class="relative hover:underline hover:cursor-pointer"
 		style="color: {firstRole ? firstRole.color : 'var(--ui-main-50)'}"
 		onclick={() => {
 			if (author.id === userStore.user!.id) {
@@ -42,8 +43,11 @@
 			} else {
 				coreStore.openProfile(author.id!, displayNameEl!, 'right');
 			}
-		}}>{author.display_name}</button
+		}}
 	>
+		{author.display_name}
+		<ContextMenuUser memberID={author.id!} />
+	</button>
 	<time class="text-xs text-main-600">{formatMessageTime(message.created_at)}</time>
 	{#if new Date(message.created_at) < new Date(message.updated_at)}
 		<p class="text-xs text-main-600">[edited]</p>

@@ -6,6 +6,9 @@
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
 	import { hasPermissions } from 'utils/permissions';
+	import TrashIcon from 'ui/icons/TrashIcon.svelte';
+	import EditIcon from 'ui/icons/EditIcon.svelte';
+	import FilledPlusIcon from 'ui/icons/FilledPlusIcon.svelte';
 
 	let { categoryId } = $props();
 
@@ -52,9 +55,9 @@
 {#if hasPermissions(page.params.server_id!, 'MANAGE_CHANNELS')}
 	<ContextMenuSkeleton>
 		{#snippet contextMenuContent()}
-			<ContextMenuItem onclick={openChannelDialog} text="Create channel" />
-			<ContextMenuItem onclick={openSettings} text="Edit category" />
-			<ContextMenuItem onclick={handleDelete} text="Delete category" destructive />
+			<ContextMenuItem Icon={FilledPlusIcon} onclick={openChannelDialog} text="Create channel" />
+			<ContextMenuItem Icon={EditIcon} onclick={openSettings} text="Edit category" />
+			<ContextMenuItem Icon={TrashIcon} onclick={handleDelete} text="Delete category" destructive />
 		{/snippet}
 	</ContextMenuSkeleton>
 {/if}

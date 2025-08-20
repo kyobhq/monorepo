@@ -3,6 +3,7 @@ package types
 import (
 	db "backend/db/gen_queries"
 	"encoding/json"
+	"time"
 )
 
 type Crop struct {
@@ -36,6 +37,17 @@ type UpdateServerAvatarParams struct {
 	Avatar    string `json:"avatar" validate:"omitempty"`
 	Banner    string `json:"banner" validate:"omitempty"`
 	MainColor string `json:"main_color" validate:"omitempty"`
+}
+
+type BanUserParams struct {
+	UserID   string    `json:"user_id" validate:"required"`
+	Reason   string    `json:"reason" validate:"omitempty"`
+	Duration time.Time `json:"duration" validate:"omitempty"`
+}
+
+type KickUserParams struct {
+	UserID string `json:"user_id" validate:"required"`
+	Reason string `json:"reason" validate:"omitempty"`
 }
 
 type ServerWithCategories struct {

@@ -30,8 +30,8 @@ CREATE TABLE friends(
 CREATE TABLE servers(
   id VARCHAR(255) PRIMARY KEY,
   owner_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  position INT NOT NULL DEFAULT 0,
   name VARCHAR(255) NOT NULL,
+  position INT NOT NULL DEFAULT 0,
   avatar VARCHAR(255),
   banner VARCHAR(255),
   description JSONB,
@@ -113,6 +113,7 @@ CREATE TABLE server_members(
   roles VARCHAR(255) ARRAY,
   nickname varchar(255),
   ban BOOLEAN NOT NULL DEFAULT FALSE,
+  ban_reason TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   UNIQUE(user_id, server_id)

@@ -11,9 +11,9 @@ SELECT * FROM servers WHERE id = $1 AND owner_id = $2;
 SELECT id FROM server_members WHERE server_id = $1 AND user_id = $2;
 
 -- name: GetServersFromUser :many
-SELECT DISTINCT s.*, sm.roles, sm.position, (SELECT count(id) FROM server_members smc WHERE smc.server_id=s.id) AS member_count
+SELECT DISTINCT s.*, sm.roles, sm.position, (SELECT count(id) FROM server_members smc WHERE smc.server_id=s.id AND ban=false) AS member_count
 FROM servers s
-INNER JOIN server_members sm ON sm.server_id = s.id AND sm.user_id = $1
+INNER JOIN server_members sm ON sm.server_id = s.id AND sm.user_id = $1 AND sm.ban = false
 WHERE s.id <> 'global';
 
 -- name: GetServerIDsFromUser :many
@@ -33,7 +33,7 @@ SELECT
 FROM server_members sm
 JOIN users u ON u.id = sm.user_id
 LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
-WHERE sm.server_id = $1
+WHERE sm.server_id = $1 AND sm.ban = false
 GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles
 ORDER BY min_role_position, u.username
 LIMIT $2 OFFSET $3;
@@ -67,7 +67,7 @@ SELECT
             FROM server_members sm
             JOIN users u ON u.id = sm.user_id
             LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
-            WHERE sm.server_id = s.id
+            WHERE sm.server_id = s.id AND sm.ban = false
             GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles, sm.created_at
             ORDER BY min_role_position, u.username
             LIMIT 50
@@ -108,7 +108,7 @@ SELECT
     (
         SELECT count(id)
         FROM server_members smc
-        WHERE smc.server_id = s.id
+        WHERE smc.server_id = s.id AND ban = false
     ) as member_count
 FROM servers s
 WHERE s.id = $1;
@@ -144,7 +144,7 @@ WITH ins AS (
   VALUES ($1, $2, $3, $4, $5)
   RETURNING *
 )
-SELECT s.*, ins.roles, ins.position, (SELECT COUNT(*) FROM server_members smc WHERE smc.server_id = ins.server_id) AS member_count
+SELECT s.*, ins.roles, ins.position, (SELECT COUNT(*) FROM server_members smc WHERE smc.server_id = ins.server_id AND ban=false) AS member_count
 FROM ins
 JOIN servers s ON s.id = ins.server_id;
 
@@ -169,4 +169,21 @@ DELETE FROM servers WHERE id = $1 AND owner_id = $2;
 SELECT id FROM servers;
 
 -- name: GetServersIDFromUser :many
-SELECT server_id FROM server_members WHERE user_id = $1;
+SELECT server_id FROM server_members WHERE user_id = $1 AND ban = false;
+
+-- name: BanUser :exec
+UPDATE server_members
+  set ban = true, ban_reason = $3
+WHERE user_id = $1 AND server_id = $2;
+
+-- name: KickUser :exec
+DELETE FROM server_members WHERE user_id = $1 AND server_id = $2;
+
+-- name: CheckBan :one
+SELECT ban_reason FROM server_members WHERE user_id = $1 AND server_id = $2 AND ban = true;
+
+-- name: GetBannedMembers :many
+SELECT u.id, u.display_name, u.avatar, u.username
+FROM server_members sm
+INNER JOIN users u ON sm.user_id = u.id
+WHERE sm.ban = true AND sm.server_id = $1;

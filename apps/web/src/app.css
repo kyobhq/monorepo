@@ -103,11 +103,11 @@ body {
 }
 
 @utility highlight-border {
-  @apply after:content-normal after:absolute after:inset-0 after:border after:border-main-50/10 after:transition-colors after:duration-100 after:z-[1] after:rounded-[inherit] after:mix-blend-lighten;
+  @apply after:content-normal after:absolute after:inset-0 after:border after:border-main-50/10 after:transition-colors after:duration-100 after:z-[1] after:rounded-[inherit] after:mix-blend-plus-lighter after:pointer-events-none;
 }
 
 @utility highlight-border-profile {
-  @apply after:content-normal after:absolute after:inset-0 after:border-3 after:border-main-600/10 after:transition-colors after:duration-100 after:z-[1] after:rounded-[inherit] after:mix-blend-lighten;
+  @apply after:content-normal after:absolute after:inset-0 after:border-3 after:border-main-600/10 after:transition-colors after:duration-100 after:z-[1] after:rounded-[inherit] after:mix-blend-plus-lighter;
 }
 
 @utility shadow-box {

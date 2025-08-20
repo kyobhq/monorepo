@@ -84,6 +84,10 @@ type Service interface {
 
 	RemoveFriend(friendshipID, senderID, receiverID, channelID string)
 
+	BanUser(serverID string, body *types.BanUserParams)
+
+	KickUser(serverID string, body *types.KickUserParams)
+
 	NotifyAccountDeletion(userID string, serverIDs []string)
 
 	NotifyFriendStatus(friendID string, msg *message.ChangeStatus)
@@ -668,5 +672,30 @@ func (se *service) EditCategory(categoryID string, body *types.EditCategoryParam
 		}
 
 		se.cluster.Engine().Send(serverPID, message)
+	}
+}
+
+func (se *service) BanUser(serverID string, body *types.BanUserParams) {
+	serverPIDs := se.GetAllServerInstances(serverID)
+
+	for _, serverPID := range serverPIDs {
+		se.cluster.Engine().Send(serverPID, &message.BanUser{
+			ServerId: serverID,
+			UserId:   body.UserID,
+			Reason:   body.Reason,
+			Duration: timestamppb.New(body.Duration),
+		})
+	}
+}
+
+func (se *service) KickUser(serverID string, body *types.KickUserParams) {
+	serverPIDs := se.GetAllServerInstances(serverID)
+
+	for _, serverPID := range serverPIDs {
+		se.cluster.Engine().Send(serverPID, &message.KickUser{
+			ServerId: serverID,
+			UserId:   body.UserID,
+			Reason:   body.Reason,
+		})
 	}
 }

@@ -156,8 +156,10 @@ export class ServerStore {
   }
 
   addMember(serverID: string, member: Member) {
-    if (this.servers[serverID].members.length > 50) return;
-    this.servers[serverID].members.push(member);
+    if (page.params.server_id === serverID) serverStore.memberCount += 1
+    if (this.servers[serverID].members.length < 50) {
+      this.servers[serverID].members.push(member);
+    }
   }
 
   setMemberOnline(serverID: string, memberID: string, status: string) {

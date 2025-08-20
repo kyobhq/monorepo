@@ -297,3 +297,17 @@ export const RemoveFriendSchema = v.object({
 });
 
 export interface RemoveFriendType extends v.InferInput<typeof RemoveFriendSchema> { }
+
+export const BanUserSchema = v.object({
+  user_id: v.string(),
+  reason: v.optional(v.string()),
+});
+
+export interface BanUserType extends v.InferInput<typeof BanUserSchema> { }
+
+export const KickUserSchema = v.object({
+  user_id: v.string(),
+  reason: v.optional(v.string())
+});
+
+export interface KickUserType extends v.InferInput<typeof KickUserSchema> { }

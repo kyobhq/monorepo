@@ -51,5 +51,8 @@ WHERE id = $5;
 -- name: DeleteMessage :exec
 DELETE FROM messages WHERE id = $1 AND author_id = $2;
 
+-- name: DeleteServerMessages :exec
+DELETE FROM messages WHERE server_id = $1 AND author_id = $2;
+
 -- name: GetMessageAuthor :one
 SELECT author_id FROM messages WHERE id = $1;

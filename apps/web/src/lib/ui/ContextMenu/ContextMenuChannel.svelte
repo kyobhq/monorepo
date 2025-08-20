@@ -7,6 +7,9 @@
 	import { backend } from 'stores/backendStore.svelte';
 	import { hasPermissions } from 'utils/permissions';
 	import { logErr } from 'utils/print';
+	import EditIcon from 'ui/icons/EditIcon.svelte';
+	import TrashIcon from 'ui/icons/TrashIcon.svelte';
+	import CopyIcon from 'ui/icons/CopyIcon.svelte';
 
 	let { categoryId, channelId } = $props();
 
@@ -40,10 +43,10 @@
 
 <ContextMenuSkeleton>
 	{#snippet contextMenuContent()}
-		<ContextMenuItem onclick={() => {}} text="Copy Link" />
+		<ContextMenuItem Icon={CopyIcon} onclick={() => {}} text="Copy Link" />
 		{#if hasPermissions(page.params.server_id!, 'MANAGE_CHANNELS')}
-			<ContextMenuItem onclick={openSettings} text="Edit Channel" />
-			<ContextMenuItem onclick={handleDelete} text="Delete Channel" destructive />
+			<ContextMenuItem Icon={EditIcon} onclick={openSettings} text="Edit Channel" />
+			<ContextMenuItem Icon={TrashIcon} onclick={handleDelete} text="Delete Channel" destructive />
 		{/if}
 	{/snippet}
 </ContextMenuSkeleton>

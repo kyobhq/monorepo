@@ -28,7 +28,22 @@ message WSMessage {
     EditChannel edit_channel = 21;
     EditCategory edit_category = 22;
     LeaveServer leave_server = 23;
+    BanUser ban_user = 24;
+    KickUser kick_user = 25;
   }
+}
+
+message BanUser {
+  string server_id = 1;
+  string user_id = 2;
+  string reason = 3;
+  google.protobuf.Timestamp duration = 4;
+}
+
+message KickUser {
+  string server_id = 1;
+  string user_id = 2;
+  string reason = 3;
 }
 
 message EditChannel {

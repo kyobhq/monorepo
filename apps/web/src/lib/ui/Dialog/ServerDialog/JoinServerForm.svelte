@@ -10,6 +10,7 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
+	import { logErr } from 'utils/print';
 
 	const { form, errors, enhance } = superForm(defaults(valibot(JoinServerSchema)), {
 		dataType: 'json',
@@ -38,13 +39,23 @@
 						serverStore.addServer(server);
 						coreStore.serverDialog = false;
 
-						// we wait for a tick and a microtask just to be sure we can go to the server, otherwise it just does nothing
-						await tick();
+						// we wait for a microtask just to be sure we can go to the server, otherwise it just does nothing
 						await new Promise((resolve) => setTimeout(resolve, 0));
 						goto(`/servers/${server.id}`);
 					},
-					(error) => {
-						console.error(`${error.code}: ${error.message}`);
+					async (error) => {
+						logErr(error);
+						if (error.code === 'USER_BANNED') {
+							coreStore.serverDialog = false;
+
+							await new Promise((resolve) => setTimeout(resolve, 0));
+							coreStore.restrictionDialog = {
+								open: true,
+								title: "You're banned from this server",
+								restriction: 'ban',
+								reason: error.message
+							};
+						}
 					}
 				);
 			}

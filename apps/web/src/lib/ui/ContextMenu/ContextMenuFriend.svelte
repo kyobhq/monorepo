@@ -5,6 +5,9 @@
 	import { backend } from 'stores/backendStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import { logErr } from 'utils/print';
+	import RemoveUserIcon from 'ui/icons/RemoveUserIcon.svelte';
+	import BlockUserIcon from 'ui/icons/BlockUserIcon.svelte';
+	import UpPhoneIcon from 'ui/icons/UpPhoneIcon.svelte';
 
 	interface Props {
 		friend: Friend;
@@ -31,8 +34,13 @@
 
 <ContextMenuSkeleton>
 	{#snippet contextMenuContent()}
-		<ContextMenuItem onclick={() => {}} text="Call" />
-		<ContextMenuItem onclick={handleRemoveFriend} text="Remove Friend" destructive />
-		<ContextMenuItem onclick={() => {}} text="Block" destructive />
+		<ContextMenuItem Icon={UpPhoneIcon} onclick={() => {}} text="Call" />
+		<ContextMenuItem
+			Icon={RemoveUserIcon}
+			onclick={handleRemoveFriend}
+			text="Remove Friend"
+			destructive
+		/>
+		<ContextMenuItem Icon={BlockUserIcon} onclick={() => {}} text="Block" destructive />
 	{/snippet}
 </ContextMenuSkeleton>

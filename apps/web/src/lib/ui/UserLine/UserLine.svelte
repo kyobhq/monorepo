@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
+	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
 
 	interface Props {
 		id: string;
@@ -33,7 +34,7 @@
 	bind:this={memberEl}
 	style="--hover-color: {color ? getHoverColor(color) : 'var(--ui-main-900)'}"
 	class={[
-		'flex items-center gap-x-2.5 p-1 pr-2.5 transition-colors duration-100 select-none rounded-sm z-[1] active-scale-down',
+		'relative flex items-center gap-x-2.5 p-1 pr-2.5 transition-colors duration-100 select-none rounded-sm z-[1] active-scale-down',
 		hoverable && `hover:cursor-pointer hover:bg-[var(--hover-color)]`,
 		status === 'offline' && 'opacity-40'
 	]}
@@ -54,4 +55,6 @@
 		<img src={avatar} alt={name} class="w-full h-full object-cover" />
 	</div>
 	<span style="color: {color ? color : 'var(--ui-main-300)'};">{name}</span>
+
+	<ContextMenuUser memberID={id} />
 </button>

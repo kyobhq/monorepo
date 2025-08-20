@@ -12,6 +12,8 @@ export class Core {
   categoryDialog = $state(false);
   friendsDialog = $state(false);
   channelDialog = $state({ open: false, category_id: '' });
+  modDialog = $state({ open: false, action: 'kick', server_id: '', user_id: '' });
+  restrictionDialog = $state({ open: false, restriction: '', title: '', reason: '' });
   settingsDialog = $state({ open: false, section: '' });
   serverSettingsDialog = $state({ open: false, server_id: '', section: '' });
   categorySettingsDialog = $state({ open: false, category_id: '', section: '' });

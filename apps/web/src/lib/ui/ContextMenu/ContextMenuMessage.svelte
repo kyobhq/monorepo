@@ -8,6 +8,11 @@
 	import { messageStore } from 'stores/messageStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import { hasPermissions } from 'utils/permissions';
+	import CopyIcon from 'ui/icons/CopyIcon.svelte';
+	import EditIcon from 'ui/icons/EditIcon.svelte';
+	import TrashIcon from 'ui/icons/TrashIcon.svelte';
+	import ReplyIcon from 'ui/icons/ReplyIcon.svelte';
+	import LinkIcon from 'ui/icons/LinkIcon.svelte';
 
 	let { message } = $props();
 	const isAuthor = $derived(message.author.id === userStore.user?.id);
@@ -56,16 +61,16 @@
 
 <ContextMenuSkeleton>
 	{#snippet contextMenuContent()}
-		<ContextMenuItem onclick={() => {}} text="Reply" />
-		<ContextMenuItem onclick={handleCopyText} text="Copy Text" />
+		<ContextMenuItem Icon={ReplyIcon} onclick={() => {}} text="Reply" />
+		<ContextMenuItem Icon={CopyIcon} onclick={handleCopyText} text="Copy Text" />
 		{#if message.server_id !== 'global'}
-			<ContextMenuItem onclick={() => {}} text="Copy Message Link" />
+			<ContextMenuItem Icon={LinkIcon} onclick={() => {}} text="Copy Message Link" />
 		{/if}
 		{#if isAuthor}
-			<ContextMenuItem onclick={handleEdit} text="Edit Message" />
+			<ContextMenuItem Icon={EditIcon} onclick={handleEdit} text="Edit Message" />
 		{/if}
 		{#if isAuthor || hasPermissions(page.params.server_id!, 'MANAGE_MESSAGES')}
-			<ContextMenuItem onclick={handleDelete} text="Delete Message" destructive />
+			<ContextMenuItem Icon={TrashIcon} onclick={handleDelete} text="Delete Message" destructive />
 		{/if}
 	{/snippet}
 </ContextMenuSkeleton>

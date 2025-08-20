@@ -11,6 +11,7 @@
 	import gsap from 'gsap';
 	import { afterNavigate } from '$app/navigation';
 	import { coreStore } from 'stores/coreStore.svelte';
+	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
 
 	const currentServer = $derived(serverStore.getServer(page.params.server_id!));
 	let membersEl = $state<HTMLElement>();

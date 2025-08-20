@@ -60,6 +60,10 @@ func (s *server) Receive(ctx *actor.Context) {
 		s.killChannel(ctx, msg)
 	case *messages.LeaveServer:
 		s.LeaveServer(msg)
+	case *messages.KickUser:
+		s.KickUser(msg)
+	case *messages.BanUser:
+		s.BanUser(msg)
 	case *messages.GetServerUsers:
 		ctx.Respond(&messages.GetServerUsers{
 			UserIds: slices.Collect(maps.Keys(s.users)),
@@ -173,4 +177,34 @@ func (s *server) LeaveServer(msg *messages.LeaveServer) {
 		userPID := s.hub.GetUser(userID)
 		s.hub.BroadcastMessageToUser(userPID, message)
 	}
+}
+
+func (s *server) BanUser(msg *messages.BanUser) {
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_BanUser{
+			BanUser: msg,
+		},
+	}
+
+	for userID := range s.users {
+		userPID := s.hub.GetUser(userID)
+		s.hub.BroadcastMessageToUser(userPID, message)
+	}
+
+	delete(s.users, msg.UserId)
+}
+
+func (s *server) KickUser(msg *messages.KickUser) {
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_KickUser{
+			KickUser: msg,
+		},
+	}
+
+	for userID := range s.users {
+		userPID := s.hub.GetUser(userID)
+		s.hub.BroadcastMessageToUser(userPID, message)
+	}
+
+	delete(s.users, msg.UserId)
 }

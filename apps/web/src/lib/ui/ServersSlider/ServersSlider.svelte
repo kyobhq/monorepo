@@ -7,7 +7,6 @@
 	import PlusIcon from 'ui/icons/PlusIcon.svelte';
 	import ServerButton from 'ui/ServerButton/ServerButton.svelte';
 	import gsap from 'gsap';
-	import { onMount } from 'svelte';
 
 	let { currentTab } = $props();
 	let serversSliderEl = $state<HTMLElement | undefined>(undefined);
@@ -20,7 +19,6 @@
 		if (!serversSliderEl) return;
 		const serverButtons = serversSliderEl.querySelectorAll('.server-button');
 		if (!serverButtons.length) return;
-		console.log(serverButtons);
 		gsap.from(serverButtons, {
 			opacity: 0,
 			scale: 0.8,

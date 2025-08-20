@@ -6,6 +6,7 @@ import type {
   Channel,
   Emoji,
   Friend,
+  Member,
   Message,
   Role,
   Server,
@@ -17,6 +18,7 @@ import type {
   AcceptFriendType,
   AddEmojisType,
   AddFriendType,
+  BanUserType,
   CreateCategoryType,
   CreateChannelType,
   CreateMessageType,
@@ -30,6 +32,7 @@ import type {
   EditPasswordType,
   EditServerType,
   EditUserType,
+  KickUserType,
   PinChannelType,
   RemoveFriendType
 } from '$lib/types/schemas';
@@ -179,7 +182,10 @@ export class BackendStore {
   }
 
   editCategory(categoryID: string, body: EditCategoryType): ResultAsync<void, APIError> {
-    return this.makeRequest<void>(`channels/category/${categoryID}`, { method: 'patch', json: body });
+    return this.makeRequest<void>(`channels/category/${categoryID}`, {
+      method: 'patch',
+      json: body
+    });
   }
 
   createMessage(body: CreateMessageType): ResultAsync<void, APIError> {
@@ -364,6 +370,22 @@ export class BackendStore {
 
   deleteAccount(): ResultAsync<void, APIError> {
     return this.makeRequest<void>('users', { method: 'delete' });
+  }
+
+  banUser(serverID: string, body: BanUserType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`servers/${serverID}/ban`, { method: 'post', json: body });
+  }
+
+  unbanUser(serverID: string, userID: string): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`servers/${serverID}/unban/${userID}`, { method: 'post' });
+  }
+
+  kickUser(serverID: string, body: KickUserType): ResultAsync<void, APIError> {
+    return this.makeRequest<void>(`servers/${serverID}/kick`, { method: 'post', json: body });
+  }
+
+  getBannedMembers(serverID: string): ResultAsync<Member[], APIError> {
+    return this.makeRequest<Member[]>(`servers/${serverID}/bans`);
   }
 }
 

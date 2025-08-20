@@ -82,6 +82,16 @@ func (h *serverHandler) GetInformations(c *gin.Context) {
 	c.JSON(http.StatusOK, serverInformations)
 }
 
+func (h *serverHandler) GetBannedMembers(c *gin.Context) {
+	bans, err := h.domain.GetBannedMembers(c)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, bans)
+}
+
 func (h *serverHandler) JoinServer(c *gin.Context) {
 	var body types.JoinServerParams
 
@@ -100,9 +110,7 @@ func (h *serverHandler) JoinServer(c *gin.Context) {
 }
 
 func (h *serverHandler) LeaveServer(c *gin.Context) {
-	serverID := c.Param("server_id")
-
-	err := h.domain.LeaveServer(c, serverID)
+	err := h.domain.LeaveServer(c)
 	if err != nil {
 		err.Respond(c)
 		return
@@ -112,9 +120,7 @@ func (h *serverHandler) LeaveServer(c *gin.Context) {
 }
 
 func (h *serverHandler) CreateInvite(c *gin.Context) {
-	serverID := c.Param("server_id")
-
-	invite, err := h.domain.CreateInvite(c, serverID)
+	invite, err := h.domain.CreateInvite(c)
 	if err != nil {
 		err.Respond(c)
 		return
@@ -124,9 +130,7 @@ func (h *serverHandler) CreateInvite(c *gin.Context) {
 }
 
 func (h *serverHandler) DeleteInvite(c *gin.Context) {
-	inviteID := c.Param("invite_id")
-
-	err := h.domain.DeleteInvite(c, inviteID)
+	err := h.domain.DeleteInvite(c)
 	if err != nil {
 		err.Respond(c)
 		return
@@ -204,11 +208,51 @@ func (h *serverHandler) UpdateAvatar(c *gin.Context) {
 }
 
 func (h *serverHandler) DeleteServer(c *gin.Context) {
-	serverID := c.Param("server_id")
-
-	err := h.domain.DeleteServer(c, serverID)
+	err := h.domain.DeleteServer(c)
 	if err != nil {
 		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+func (h *serverHandler) BanUser(c *gin.Context) {
+	var body types.BanUserParams
+
+	if verr := validation.ParseAndValidate(c.Request, &body); verr != nil {
+		verr.Respond(c)
+		return
+	}
+
+	if derr := h.domain.BanUser(c, &body); derr != nil {
+		derr.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+func (h *serverHandler) UnbanUser(c *gin.Context) {
+	err := h.domain.UnbanUser(c)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+func (h *serverHandler) KickUser(c *gin.Context) {
+	var body types.KickUserParams
+
+	if verr := validation.ParseAndValidate(c.Request, &body); verr != nil {
+		verr.Respond(c)
+		return
+	}
+
+	if derr := h.domain.KickUser(c, &body); derr != nil {
+		derr.Respond(c)
 		return
 	}
 

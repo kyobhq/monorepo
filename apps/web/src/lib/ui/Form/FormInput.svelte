@@ -40,7 +40,7 @@
 			bind:value={inputValue}
 			{placeholder}
 			class={[
-				'bg-main-900 placeholder:text-main-400 hover:bg-main-800/50 h-30 resize-none transition-colors duration-100 focus:ring-0',
+				'bg-main-900 border-[0.5px] border-main-800 placeholder:text-main-400 hover:bg-main-800 hover:border-main-600 px-3 py-2 transition-colors duration-100 focus:ring-0 rounded-sm h-30 resize-none',
 				error ? 'border-red-400' : 'border-main-800 hover:border-main-700'
 			]}
 		></textarea>

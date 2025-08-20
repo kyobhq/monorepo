@@ -10,6 +10,10 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { hasPermissions } from 'utils/permissions';
 	import { logErr } from 'utils/print';
+	import TrashIcon from 'ui/icons/TrashIcon.svelte';
+	import EditIcon from 'ui/icons/EditIcon.svelte';
+	import LinkIcon from 'ui/icons/LinkIcon.svelte';
+	import LeaveIcon from 'ui/icons/LeaveIcon.svelte';
 
 	interface Props {
 		server: Server;
@@ -85,18 +89,19 @@
 	{#snippet contextMenuContent()}
 		{#if hasPermissions(server.id, 'CREATE_INVITE')}
 			<ContextMenuItem
+				Icon={LinkIcon}
 				onclick={createInvite}
 				text={inviteCreated ? 'Check your clipboard!' : 'Get Invite Link'}
 				success={inviteCreated}
 			/>
 		{/if}
 		{#if hasPermissions(server.id, 'MANAGE_SERVER', 'MANAGE_ROLES')}
-			<ContextMenuItem onclick={openSettings} text="Edit Server" />
+			<ContextMenuItem Icon={EditIcon} onclick={openSettings} text="Edit Server" />
 		{/if}
 		{#if server.owner_id === userStore.user!.id}
-			<ContextMenuItem onclick={deleteServer} text="Delete Server" destructive />
+			<ContextMenuItem Icon={TrashIcon} onclick={deleteServer} text="Delete Server" destructive />
 		{:else}
-			<ContextMenuItem onclick={leaveServer} text="Leave Server" destructive />
+			<ContextMenuItem Icon={LeaveIcon} onclick={leaveServer} text="Leave Server" destructive />
 		{/if}
 	{/snippet}
 </ContextMenuSkeleton>

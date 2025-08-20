@@ -10,7 +10,7 @@
 	);
 </script>
 
-<div class="flex-1 overflow-y-auto border-[0.5px] border-main-800 bg-main-900 mt-6">
+<div class="flex-1 overflow-y-auto border-[0.5px] border-main-800 bg-main-900 mt-6 rounded-md">
 	<table class="w-full border-collapse bg-main-900">
 		<thead class="bg-main-900 sticky top-0 z-10">
 			<tr>
@@ -73,7 +73,21 @@
 						</td>
 						<td class="px-4 py-3 align-middle">
 							{#if member.roles && member.roles.length > 0}
-								{#each member.roles as role}{role}{/each}
+								{#each member.roles as roleID (roleID)}
+									{@const role = serverStore.getRole(
+										coreStore.serverSettingsDialog.server_id,
+										roleID
+									)}
+
+									{#if role && role.name !== 'Default Permissions'}
+										<div
+											class="py-1 px-2 rounded-md w-fit"
+											style="background-color: {role.color}26; color: {role.color}"
+										>
+											{role.name}
+										</div>
+									{/if}
+								{/each}
 							{:else}
 								<p class="text-main-400 text-sm select-none">No roles</p>
 							{/if}

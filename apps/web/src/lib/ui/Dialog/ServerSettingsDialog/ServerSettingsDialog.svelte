@@ -9,6 +9,7 @@
 	import ServerSettingsProfile from './profile/ServerSettingsProfile.svelte';
 	import ServerSettingsRoles from './roles/ServerSettingsRoles.svelte';
 	import { hasPermissions } from 'utils/permissions';
+	import ServerSettingsBans from './bans/ServerSettingsBans.svelte';
 
 	const serverID = $derived(coreStore.serverSettingsDialog.server_id);
 	const editingServer = $derived(serverStore.getServer(serverID));
@@ -50,7 +51,7 @@
 			<ServerSettingsInvites />
 		{:else if currentSection === 'Bans' && hasPermissions(serverID, 'BAN_MEMBERS')}
 			<h3 class="text-xl font-semibold select-none">{currentSection}</h3>
-			Bans server
+			<ServerSettingsBans />
 		{:else}
 			No permissions
 		{/if}

@@ -90,6 +90,11 @@ type Service interface {
 	GetFriends(ctx context.Context, userID string) ([]db.GetFriendsRow, error)
 	GetFriendIDs(ctx context.Context, userID string) ([]string, error)
 	DeleteAccount(ctx context.Context, userID string) error
+	BanUser(ctx context.Context, serverID string, body *types.BanUserParams) error
+	KickUser(ctx context.Context, serverID string, body *types.KickUserParams) error
+	UnbanUser(ctx context.Context, serverID, userID string) error
+	CheckBan(ctx context.Context, serverID, userID string) (pgtype.Text, error)
+	GetBannedMembers(ctx context.Context, serverID string) ([]db.GetBannedMembersRow, error)
 }
 
 type service struct {
@@ -704,6 +709,69 @@ func (s *service) GetFriendIDs(ctx context.Context, userID string) ([]string, er
 
 func (s *service) DeleteAccount(ctx context.Context, userID string) error {
 	return s.queries.DeleteUser(ctx, userID)
+}
+
+func (s *service) BanUser(ctx context.Context, serverID string, body *types.BanUserParams) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.queries.WithTx(tx)
+
+	qtx.BanUser(ctx, db.BanUserParams{
+		UserID:    body.UserID,
+		ServerID:  serverID,
+		BanReason: pgtype.Text{String: body.Reason, Valid: true},
+	})
+
+	qtx.DeleteServerMessages(ctx, db.DeleteServerMessagesParams{
+		ServerID: serverID,
+		AuthorID: body.UserID,
+	})
+
+	return tx.Commit(ctx)
+}
+
+func (s *service) KickUser(ctx context.Context, serverID string, body *types.KickUserParams) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.queries.WithTx(tx)
+
+	qtx.KickUser(ctx, db.KickUserParams{
+		UserID:   body.UserID,
+		ServerID: serverID,
+	})
+
+	qtx.DeleteServerMessages(ctx, db.DeleteServerMessagesParams{
+		ServerID: serverID,
+		AuthorID: body.UserID,
+	})
+
+	return tx.Commit(ctx)
+}
+
+func (s *service) UnbanUser(ctx context.Context, serverID, userID string) error {
+	return s.queries.KickUser(ctx, db.KickUserParams{
+		UserID:   userID,
+		ServerID: serverID,
+	})
+}
+
+func (s *service) CheckBan(ctx context.Context, serverID, userID string) (pgtype.Text, error) {
+	return s.queries.CheckBan(ctx, db.CheckBanParams{
+		UserID:   userID,
+		ServerID: serverID,
+	})
+}
+
+func (s *service) GetBannedMembers(ctx context.Context, serverID string) ([]db.GetBannedMembersRow, error) {
+	return s.queries.GetBannedMembers(ctx, serverID)
 }
 
 // Health checks the health of the database connection by pinging the database.

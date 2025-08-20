@@ -8,6 +8,7 @@ import { serverStore } from './serverStore.svelte';
 import { userStore } from './userStore.svelte';
 import { categoryStore } from './categoryStore.svelte';
 import { goto } from '$app/navigation';
+import { coreStore } from './coreStore.svelte';
 
 export class WebsocketStore {
   wsConn = $state<WebSocket>();
@@ -391,6 +392,52 @@ export class WebsocketStore {
             const userID = wsMess.content.value.userId;
 
             serverStore.deleteMember(serverID, userID)
+          }
+          break;
+        case 'banUser':
+          {
+            if (!wsMess.content.value) return;
+            const serverID = wsMess.content.value.serverId;
+            const userID = wsMess.content.value.userId;
+            const reason = wsMess.content.value.reason;
+
+            serverStore.deleteMember(serverID, userID)
+
+            if (userID === userStore.user?.id) {
+              if (page.url.pathname.includes(serverID)) {
+                goto('/servers')
+                coreStore.restrictionDialog = {
+                  open: true,
+                  title: "You've been banned",
+                  reason: reason,
+                  restriction: 'ban'
+                }
+              }
+              serverStore.deleteServer(serverID)
+            }
+          }
+          break;
+        case 'kickUser':
+          {
+            if (!wsMess.content.value) return;
+            const serverID = wsMess.content.value.serverId;
+            const userID = wsMess.content.value.userId;
+            const reason = wsMess.content.value.reason;
+
+            serverStore.deleteMember(serverID, userID)
+
+            if (userID === userStore.user?.id) {
+              if (page.url.pathname.includes(serverID)) {
+                goto('/servers')
+                coreStore.restrictionDialog = {
+                  open: true,
+                  title: "You've been kicked",
+                  reason: reason,
+                  restriction: 'kick'
+                }
+              }
+              serverStore.deleteServer(serverID)
+            }
           }
           break;
       }

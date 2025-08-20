@@ -8,6 +8,9 @@
 	import { userStore } from 'stores/userStore.svelte';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { channelStore } from 'stores/channelStore.svelte';
+	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
+	import { serverStore } from 'stores/serverStore.svelte';
+	import { page } from '$app/state';
 
 	interface Props {
 		server?: Server;
@@ -36,7 +39,7 @@
 	{#if !messageIsRecent}
 		<button
 			bind:this={avatarEl}
-			class="h-12 w-12 relative highlight-border mb-1 select-none shrink-0 hover:after:border-main-50/75 active:after:border-main-50/50 hover:cursor-pointer rounded-md overflow-hidden"
+			class="h-12 w-12 relative highlight-border z-[1] mb-1 select-none shrink-0 hover:after:border-main-50/75 active:after:border-main-50/50 hover:cursor-pointer rounded-md overflow-hidden"
 			onclick={() => {
 				if (author.id === userStore.user!.id) {
 					coreStore.openMyProfile(avatarEl!, 'right');
@@ -46,6 +49,7 @@
 			}}
 		>
 			<img src={author.avatar} alt="" class="w-full h-full object-cover" />
+			<ContextMenuUser memberID={author.id} />
 		</button>
 	{/if}
 	<div class="flex flex-col gap-y-1 relative w-[calc(100%-4rem)]">

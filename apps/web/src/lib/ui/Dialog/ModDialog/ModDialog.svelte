@@ -1,14 +1,21 @@
 <script lang="ts">
 	import { Dialog } from 'bits-ui';
-	import { coreStore } from 'stores/coreStore.svelte';
+	import type { Snippet } from 'svelte';
 	import CloseIcon from 'ui/icons/CloseIcon.svelte';
 	import { scaleBlur } from 'utils/transition';
+
+	interface Props {
+		title: string;
+		subtitle?: string;
+		children: Snippet;
+		open: boolean;
+		openState: any;
+	}
+
+	let { title, subtitle, children, open, openState = $bindable() }: Props = $props();
 </script>
 
-<Dialog.Root
-	onOpenChange={(s) => (coreStore.destructiveDialog.open = s)}
-	open={coreStore.destructiveDialog.open}
->
+<Dialog.Root onOpenChange={(s) => (openState = s)} {open}>
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 bg-black/45 z-[998] transition-opacity" />
 		<Dialog.Content forceMount={true}>
@@ -20,8 +27,10 @@
 						transition:scaleBlur={{}}
 					>
 						<div class="relative w-full py-5 px-4">
-							<p class="font-semibold text-xl">{coreStore.destructiveDialog.title}</p>
-							<p class="text-main-400 text-sm">{coreStore.destructiveDialog.subtitle}</p>
+							<p class="font-semibold text-xl">{title}</p>
+							{#if subtitle}
+								<p class="text-main-400 text-sm whitespace-pre-line max-w-[28rem]">{subtitle}</p>
+							{/if}
 
 							<Dialog.Close
 								type="button"
@@ -29,16 +38,8 @@
 							>
 								<CloseIcon height={18} width={18} />
 							</Dialog.Close>
-						</div>
 
-						<div class="flex justify-end p-3">
-							<button
-								type="button"
-								onclick={coreStore.destructiveDialog.onclick}
-								class="bg-red-400/20 border-[0.5px] border-red-400 px-2 py-1 hover:cursor-pointer hover:bg-red-400 transition-colors duration-75 text-red-400 hover:text-red-50 rounded-md"
-							>
-								{coreStore.destructiveDialog.buttonText}
-							</button>
+							{@render children()}
 						</div>
 					</div>
 				{/if}

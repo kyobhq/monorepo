@@ -10,7 +10,7 @@
 	);
 </script>
 
-<div class="flex-1 overflow-y-auto border-[0.5px] border-main-800 bg-main-900 mt-6">
+<div class="flex-1 overflow-y-auto border-[0.5px] border-main-800 bg-main-900 mt-6 rounded-md">
 	<table class="w-full border-collapse bg-main-900">
 		<thead class="bg-main-900 sticky top-0 z-10">
 			<tr>
