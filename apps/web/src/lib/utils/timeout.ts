@@ -1,16 +1,16 @@
-import { core } from "stores/core.svelte";
+import { coreStore } from 'stores/coreStore.svelte';
 
 export function setControllableTimeout(callback: () => void, delay: number) {
-  const timeoutId = setTimeout(callback, delay);
+	const timeoutId = setTimeout(callback, delay);
 
-  return {
-    executeNow() {
-      clearTimeout(timeoutId)
-      callback()
-    },
-    clear() {
-      clearTimeout(timeoutId)
-      core.callTimeout = undefined
-    }
-  }
+	return {
+		executeNow() {
+			clearTimeout(timeoutId);
+			callback();
+		},
+		clear() {
+			clearTimeout(timeoutId);
+			coreStore.callTimeout = undefined;
+		}
+	};
 }

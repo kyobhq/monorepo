@@ -1,79 +1,94 @@
 <script lang="ts">
-	import { beforeNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { backend } from 'stores/backendStore.svelte';
 	import { channelStore } from 'stores/channelStore.svelte';
+	import { coreStore } from 'stores/coreStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import StraightFaceEmoji from 'ui/icons/StraightFaceEmoji.svelte';
 	import Message from 'ui/Message/Message.svelte';
 	import RichInput from 'ui/RichInput/RichInput.svelte';
 
-	let scrollContainer = $state<HTMLDivElement>();
-	let messageCount = $state(0);
-	let isAtBottom = $state(true);
-
+	const SCROLL_THRESHOLD = 500;
 	const currentFriend = $derived(
 		userStore.friends.find((friend) => friend.channel_id === page.params.channel_id)
 	);
 
-	function handleScroll(ev: Event) {
-		// 0 is bottom
-		isAtBottom = Math.abs((ev.target as HTMLDivElement).scrollTop) <= 100;
-	}
+	let messagesLoaded = $state(false);
+	let canLoadMore = $state(true);
+	let showMessages = $derived(
+		coreStore.firstLoad.sidebar && coreStore.firstLoad.serverbar && messagesLoaded
+	);
 
-	const scrollToBottom = (smooth = false) => {
-		if (scrollContainer) {
-			scrollContainer.scrollTo({
-				top: scrollContainer.scrollHeight,
-				behavior: smooth ? 'smooth' : 'instant'
-			});
-		}
-	};
+	async function handleScroll(e: Event) {
+		if (!page.params.channel_id || !canLoadMore) return;
+		const target = e.target as HTMLDivElement;
+		const scrollY = target.clientHeight + Math.abs(target.scrollTop);
 
-	async function getMessages(channelID: string) {
-		const res = await backend.getMessages('global', channelID);
-		res.match(
-			(messages) => {
-				channelStore.messages = messages ? messages.reverse() : [];
-				tick().then(() => scrollToBottom(false));
-			},
-			(error) => {
-				console.error(`${error.code}: ${error.message}`);
+		if (target.scrollHeight - SCROLL_THRESHOLD <= scrollY) {
+			canLoadMore = false;
+			const hasMore = await channelStore.loadMoreMessages(
+				'global',
+				page.params.channel_id,
+				'before'
+			);
+
+			if (hasMore) {
+				setTimeout(() => {
+					canLoadMore = true;
+				}, 500);
 			}
-		);
+		} else if (
+			channelStore.messageCache[page.params.channel_id]?.offsetHeight > 0 &&
+			scrollY -
+				channelStore.messageCache[page.params.channel_id]?.offsetHeight -
+				target.clientHeight <=
+				SCROLL_THRESHOLD
+		) {
+			canLoadMore = false;
+
+			const hasMore = await channelStore.loadMoreMessages(
+				'global',
+				page.params.channel_id,
+				'after'
+			);
+
+			if (hasMore) {
+				setTimeout(() => {
+					canLoadMore = true;
+				}, 500);
+			}
+		}
 	}
 
 	onMount(async () => {
-		if (page.params.channel_id) await getMessages(page.params.channel_id);
-	});
-
-	beforeNavigate(async ({ from, to }) => {
-		if (
-			from?.params?.channel_id &&
-			to?.params?.channel_id &&
-			from?.params?.channel_id !== to?.params?.channel_id
-		) {
-			await getMessages(to.params.channel_id);
+		if (page.params.channel_id) {
+			await channelStore.ensureMessagesLoaded('global', page.params.channel_id);
+			messagesLoaded = true;
 		}
 	});
 
-	$effect(() => {
-		if (channelStore.messages.length !== messageCount && isAtBottom) {
-			tick().then(() => scrollToBottom(false));
+	afterNavigate(async ({ from, to }) => {
+		const fromChannelID = from?.params?.channel_id;
+		const toChannelID = to?.params?.channel_id;
+		if (!fromChannelID || !toChannelID) return;
+
+		const sameChannel = fromChannelID === toChannelID;
+		if (!sameChannel) {
+			await channelStore.ensureMessagesLoaded('global', toChannelID);
+			messagesLoaded = true;
+			canLoadMore = !(channelStore.messageCache[toChannelID]?.hasReachedEnd ?? false);
 		}
-		messageCount = channelStore.messages.length;
 	});
 </script>
 
 {#if currentFriend}
 	<div
 		class="flex flex-col-reverse w-full h-full gap-y-4 overflow-auto pb-4 pt-18"
-		bind:this={scrollContainer}
 		onscroll={handleScroll}
 	>
-		{#if channelStore.messages.length > 0}
-			{#each channelStore.messages as message (message.id)}
+		{#if showMessages && channelStore.messageCache[currentFriend.channel_id!]?.messages.length > 0}
+			{#each channelStore.messageCache[currentFriend.channel_id!].messages as message (message.id)}
 				<Message friend={currentFriend} {message} />
 			{/each}
 		{:else}

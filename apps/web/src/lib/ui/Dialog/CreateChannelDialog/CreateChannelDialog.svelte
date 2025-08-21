@@ -7,7 +7,6 @@
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
 	import FormInput from 'ui/Form/FormInput.svelte';
-	import Switch from 'ui/Switch/Switch.svelte';
 	import DefaultDialog from '../DefaultDialog/DefaultDialog.svelte';
 	import DialogFooter from '../DialogFooter/DialogFooter.svelte';
 

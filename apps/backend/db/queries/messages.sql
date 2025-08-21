@@ -2,21 +2,40 @@
 SELECT * FROM messages WHERE id = $1;
 
 -- name: GetMessagesFromChannel :many
-SELECT m.*, (
-  SELECT json_build_object(
-    'id', u.id, 
-    'avatar', u.avatar, 
-    'display_name', u.display_name,
-    'roles', sm.roles
-  ) 
-  FROM users u
-  LEFT JOIN server_members sm ON (u.id = sm.user_id AND sm.server_id = $2 AND $2 != 'global')
-  WHERE u.id = m.author_id
-) as author
-FROM messages m 
-WHERE channel_id = $1
-ORDER BY m.created_at
-LIMIT 50;
+WITH base AS (
+  SELECT m.*,
+    (
+      SELECT json_build_object(
+        'id', u.id,
+        'avatar', u.avatar,
+        'display_name', u.display_name,
+        'roles', sm.roles
+      )
+      FROM users u
+      LEFT JOIN server_members sm
+        ON u.id = sm.user_id
+      AND sm.server_id = $2
+      AND $2 != 'global'
+      WHERE u.id = m.author_id
+    ) AS author
+  FROM messages m
+  WHERE m.channel_id = $1
+    AND (
+      ($3::text = '') OR
+      m.created_at < (SELECT created_at FROM messages WHERE id = $3)
+    )
+    AND (
+      ($4::text = '') OR
+      m.created_at > (SELECT created_at FROM messages WHERE id = $4)
+    )
+  ORDER BY
+    CASE WHEN $4::text != '' THEN m.created_at END ASC,
+    CASE WHEN $4::text = ''  THEN m.created_at END DESC
+  LIMIT 50
+)
+SELECT *
+FROM base
+ORDER BY created_at DESC;
 
 -- name: CheckChannelMembership :execresult
 SELECT c.id FROM channels c, server_members sm WHERE c.id = $1 and c.server_id = sm.server_id and sm.user_id = $2;

@@ -11,6 +11,7 @@
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { logErr } from 'utils/print';
+	import { delay } from 'utils/time';
 
 	const { form, errors, enhance } = superForm(defaults(valibot(JoinServerSchema)), {
 		dataType: 'json',
@@ -39,8 +40,7 @@
 						serverStore.addServer(server);
 						coreStore.serverDialog = false;
 
-						// we wait for a microtask just to be sure we can go to the server, otherwise it just does nothing
-						await new Promise((resolve) => setTimeout(resolve, 0));
+						await delay(0);
 						goto(`/servers/${server.id}`);
 					},
 					async (error) => {
@@ -48,7 +48,7 @@
 						if (error.code === 'USER_BANNED') {
 							coreStore.serverDialog = false;
 
-							await new Promise((resolve) => setTimeout(resolve, 0));
+							await delay(0);
 							coreStore.restrictionDialog = {
 								open: true,
 								title: "You're banned from this server",

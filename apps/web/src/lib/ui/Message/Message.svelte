@@ -19,7 +19,7 @@
 
 	let { server, channel, friend, message }: Props = $props();
 
-	const messageIsRecent = $derived(channelStore.messageIsRecent(message.id));
+	const messageIsRecent = $derived(channelStore.messageIsRecent(channel?.id || '', message.id));
 
 	let avatarEl = $state<HTMLButtonElement>();
 	let onClickSave = $state<() => Promise<void>>();
