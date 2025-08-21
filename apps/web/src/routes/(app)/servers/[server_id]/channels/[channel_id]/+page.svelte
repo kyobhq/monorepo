@@ -3,17 +3,19 @@
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
 	import { channelStore } from 'stores/channelStore.svelte';
+	import { coreStore } from 'stores/coreStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import ChannelHeader from 'ui/ChannelHeader/ChannelHeader.svelte';
 	import StraightFaceEmoji from 'ui/icons/StraightFaceEmoji.svelte';
 	import Message from 'ui/Message/Message.svelte';
 	import RichInput from 'ui/RichInput/RichInput.svelte';
 
 	let scrollContainer = $state<HTMLDivElement>();
-	let messageCount = $state(0);
-	let isAtBottom = $state(true);
 	let messagesLoaded = $state(false);
+	let showMessages = $derived(
+		coreStore.firstLoad.sidebar && coreStore.firstLoad.serverbar && messagesLoaded
+	);
 
 	const currentServer = $derived.by(() => {
 		if (!page.params.server_id) return;
@@ -24,26 +26,16 @@
 		return channelStore.getChannel(page.params.server_id, page.params.channel_id);
 	});
 
-	function handleScroll(ev: Event) {
-		// 0 is bottom
-		isAtBottom = Math.abs((ev.target as HTMLDivElement).scrollTop) <= 100;
-	}
-
-	const scrollToBottom = (smooth = false) => {
-		if (scrollContainer) {
-			scrollContainer.scrollTo({
-				top: scrollContainer.scrollHeight,
-				behavior: smooth ? 'smooth' : 'instant'
-			});
-		}
-	};
-
 	async function getMessages(serverID: string, channelID: string) {
+		if (channelStore.messages[channelID]) {
+			messagesLoaded = true;
+			return;
+		}
+
 		const res = await backend.getMessages(serverID, channelID);
 		res.match(
-			(messages) => {
-				channelStore.messages = messages ? messages.reverse() : [];
-				tick().then(() => scrollToBottom(false));
+			async (messages) => {
+				channelStore.messages[channelID] = messages ? messages.reverse() : [];
 				messagesLoaded = true;
 			},
 			(error) => {
@@ -67,13 +59,6 @@
 			await getMessages(to.params.server_id, to.params.channel_id);
 		}
 	});
-
-	$effect(() => {
-		if (channelStore.messages.length !== messageCount && isAtBottom) {
-			tick().then(() => scrollToBottom(false));
-		}
-		messageCount = channelStore.messages.length;
-	});
 </script>
 
 {#if currentChannel && currentServer}
@@ -82,11 +67,10 @@
 	<div
 		class="flex flex-col-reverse w-full h-full overflow-auto pb-4 pt-18"
 		bind:this={scrollContainer}
-		onscroll={handleScroll}
 	>
-		{#if messagesLoaded}
-			{#if channelStore.messages.length > 0}
-				{#each channelStore.messages as message (message.id)}
+		{#if showMessages}
+			{#if channelStore.messages[currentChannel.id].length > 0}
+				{#each channelStore.messages[currentChannel.id] as message (message.id)}
 					<Message server={currentServer} channel={currentChannel} {message} />
 				{/each}
 			{:else}

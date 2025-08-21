@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	random "math/rand/v2"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -112,6 +114,37 @@ var (
 	dbInstance *service
 )
 
+var defaultAvatarImages = []string{
+	"https://images.nosync.app/rpsnws39aubzvpd0lw7uuzwl.jpeg",
+	"https://images.nosync.app/vywtoyl5tmg9abe0bcbyzzqi.jpeg",
+	"https://images.nosync.app/r3i8xi6ygr8v3p7zoqpegsnq.jpeg",
+	"https://images.nosync.app/z4hpduj9i47bak0h3g0ggp32_cat_love.jpg",
+	"https://images.nosync.app/gadxaj9y4pxrbzmq9wpyo0vh.jpeg",
+	"https://images.nosync.app/smairs9qevytfgizv67kwrby_amazin_pixelart.jpg",
+	"https://images.nosync.app/pz5ky23dvub3p5jwztok55c7_boy.jpg",
+	"https://images.nosync.app/d52ndlf98rc2edpqjagg4wfs.jpeg",
+	"https://images.nosync.app/tblj8or5lko334ctekbp2zsh.jpeg",
+	"https://images.nosync.app/e8948zpmmvt1erhag0asu1qd.jpeg",
+	"https://images.nosync.app/ko69kduh2rxleq4sf1vclvk2.jpeg",
+	"https://images.nosync.app/vx42u89qyydw4q222k9vqnc9.jpeg",
+	"https://images.nosync.app/zjlas8m322ybfoufhtsqp6jx.gif",
+	"https://images.nosync.app/nrpwmafwq6rjejf74nahqh8k.jpeg",
+	"https://images.nosync.app/g38jbb3g09qpiec6a0w2u0hs.jpeg",
+	"https://images.nosync.app/r17erh89ymnbuf7zgb8txgl7.jpeg",
+	"https://images.nosync.app/rg1r6wnj1gk1mg90d4pivjzv.jpeg",
+	"https://images.nosync.app/pz5ky23dvub3p5jwztok55c7_boy.jpg",
+	"https://images.nosync.app/x0nqdpp8dqhdqx6imyz2xbec.jpeg",
+	"https://images.nosync.app/ags6mrf5l044cpmn2m8n53bx.gif",
+	"https://images.nosync.app/hzojfv53wjxebimryxeadndq.png",
+	"https://images.nosync.app/as6vturcxwh2hvv7xh97i7x7.jpeg",
+	"https://images.nosync.app/vxgm7wzlulqg6l2gn7kgw877.jpeg",
+}
+
+func randomDefaultAvatar() string {
+	idx := random.IntN(len(defaultAvatarImages))
+	return defaultAvatarImages[idx]
+}
+
 func New() Service {
 	// Reuse Connection
 	if dbInstance != nil {
@@ -133,7 +166,7 @@ func New() Service {
 }
 
 func (s *service) CreateUser(ctx context.Context, user *types.SignUpParams) (db.User, error) {
-	avatarURL := pgtype.Text{String: "https://i.pinimg.com/1200x/ef/cf/e5/efcfe5321149cb491399bd159586a2ec.jpg", Valid: true}
+	avatarURL := pgtype.Text{String: randomDefaultAvatar(), Valid: true}
 	return s.queries.CreateUser(ctx, db.CreateUserParams{
 		ID:          cuid2.Generate(),
 		Email:       user.Email,

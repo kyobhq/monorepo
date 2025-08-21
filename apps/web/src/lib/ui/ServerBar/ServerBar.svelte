@@ -9,9 +9,7 @@
 	import { userStore } from 'stores/userStore.svelte';
 	import { page } from '$app/state';
 	import gsap from 'gsap';
-	import { afterNavigate } from '$app/navigation';
 	import { coreStore } from 'stores/coreStore.svelte';
-	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
 
 	const currentServer = $derived(serverStore.getServer(page.params.server_id!));
 	let membersEl = $state<HTMLElement>();
@@ -23,18 +21,13 @@
 			.getRoles(page.params.server_id)
 			.filter((role) => role.name !== 'Default Permissions');
 
-		if (roles.length === 0) {
-			return {
-				default: members
-			};
-		}
-
 		let roleGroups: Record<string, Member[]> = {};
 
 		for (const role of roles) {
 			roleGroups[role.id] = [];
 		}
 		roleGroups['default'] = [];
+		roleGroups['offline'] = [];
 
 		for (const member of members) {
 			let hasRole = false;
@@ -48,7 +41,8 @@
 			}
 
 			if (!hasRole) {
-				roleGroups['default'].push(member);
+				if (member.status === 'offline') roleGroups['offline'].push(member);
+				else roleGroups['default'].push(member);
 			}
 		}
 
@@ -68,7 +62,7 @@
 		if (!boxes.length) return;
 		gsap.from(boxes, {
 			opacity: 0,
-			scale: 0.95,
+			y: 8,
 			stagger: 0.06,
 			duration: 0.35,
 			ease: 'power2.out',
@@ -80,12 +74,15 @@
 </script>
 
 {#if currentServer && Object.keys(membersPerRole).length > 0}
-	<div class="bg-main-975 border-l-[0.5px] border-l-main-800 w-[16rem] overflow-hidden">
+	<div class="bg-main-975 border-l-[0.5px] border-l-main-800 w-[16rem] overflow-hidden h-screen">
 		<section class="p-2.5">
 			<Input Icon={MagnifyingGlass} placeholder={`Search ${currentServer.name}`} />
 		</section>
 		<BarSeparator title={`Members - ${serverStore.memberCount}`} />
-		<div class="flex flex-col gap-y-2 p-2.5" bind:this={membersEl}>
+		<div
+			class="flex flex-col gap-y-2 p-2.5 h-[calc(100%-6.8rem)] overflow-auto"
+			bind:this={membersEl}
+		>
 			{#each Object.keys(membersPerRole) as roleID, idx (idx)}
 				{@const role = serverStore.getRole(page.params.server_id || '', roleID)!}
 				<div class="collapsible-wrapper">

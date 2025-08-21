@@ -3,8 +3,7 @@ import { categoryStore } from './categoryStore.svelte';
 import { serverStore } from './serverStore.svelte';
 
 class ChannelStore {
-  currentChannel = $state<Channel | null>(null);
-  messages = $state<Message[]>([]);
+  messages = $state<Record<string, Message[]>>({});
 
   getFirstChannel(serverID: string) {
     const server = serverStore.getServer(serverID);
@@ -17,12 +16,14 @@ class ChannelStore {
     return firstChannel?.id || null;
   }
 
-  messageIsRecent(messageID: string) {
-    const messageIdx = this.messages.findIndex((message) => message.id === messageID);
+  messageIsRecent(channelID: string, messageID: string) {
+    if (!this.messages[channelID]) return;
+
+    const messageIdx = this.messages[channelID].findIndex((message) => message.id === messageID);
     if (messageIdx < 0) return false;
 
-    const message = this.messages[messageIdx];
-    const nextMessage = this.messages[messageIdx - 1];
+    const message = this.messages[channelID][messageIdx];
+    const nextMessage = this.messages[channelID][messageIdx - 1];
 
     if (!nextMessage || !message) return false;
     if (nextMessage.author.id !== message.author.id) return false;
@@ -77,12 +78,12 @@ class ChannelStore {
     if (channelOpts.roles) channel.roles = channelOpts.roles
   }
 
-  addMessage(message: Message) {
-    this.messages.unshift(message);
+  addMessage(channelID: string, message: Message) {
+    this.messages[channelID].unshift(message);
   }
 
-  editMessage(message: Partial<Message>) {
-    const index = this.messages.findIndex((m) => m.id === message.id);
+  editMessage(channelID: string, message: Partial<Message>) {
+    const index = this.messages[channelID].findIndex((m) => m.id === message.id);
     if (index !== -1) {
       this.messages[index] = {
         ...this.messages[index],
@@ -91,8 +92,8 @@ class ChannelStore {
     }
   }
 
-  deleteMessage(messageID: string) {
-    this.messages = this.messages.filter((message) => message.id !== messageID);
+  deleteMessage(channelID: string, messageID: string) {
+    this.messages[channelID] = this.messages[channelID].filter((message) => message.id !== messageID);
   }
 
   deleteChannel(serverID: string, categoryID: string, channelID: string) {

@@ -19,7 +19,7 @@
 		if (!boxes.length) return;
 		gsap.from(boxes, {
 			opacity: 0,
-			scale: 0.95,
+			y: 8,
 			stagger: 0.06,
 			duration: 0.35,
 			ease: 'power2.out',
@@ -32,7 +32,10 @@
 
 {#if currentServer}
 	<BarSeparator title={currentServer.name} />
-	<section class="relative flex flex-col gap-y-2 p-2.5 h-full" bind:this={sectionEl}>
+	<section
+		class="relative flex flex-col gap-y-2 px-2.5 pt-2.5 pb-[9rem] h-full overflow-auto"
+		bind:this={sectionEl}
+	>
 		<ContextMenuSideBar />
 		{#each Object.values(currentServer.categories).sort((a, b) => a.position - b.position) as category (category.id)}
 			<div class="collapsible-wrapper">

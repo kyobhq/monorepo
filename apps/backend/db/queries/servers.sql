@@ -35,7 +35,10 @@ JOIN users u ON u.id = sm.user_id
 LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
 WHERE sm.server_id = $1 AND sm.ban = false
 GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles
-ORDER BY min_role_position, u.username
+ORDER BY 
+    CASE WHEN u.id = ANY($4::text[]) THEN 0 ELSE 1 END,
+    min_role_position, 
+    u.username
 LIMIT $2 OFFSET $3;
 
 -- name: GetServerInformations :one
@@ -69,7 +72,10 @@ SELECT
             LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
             WHERE sm.server_id = s.id AND sm.ban = false
             GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles, sm.created_at
-            ORDER BY min_role_position, u.username
+            ORDER BY 
+                CASE WHEN u.id = ANY($2::text[]) THEN 0 ELSE 1 END,
+                min_role_position, 
+                u.username
             LIMIT 50
         ) ranked_members
     ) as members,

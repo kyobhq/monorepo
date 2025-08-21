@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "air",
     "build": "go build -o main cmd/api/main.go",
+    "seed": "go run ./cmd/seed",
     "test": "go test ./... -v",
     "itest": "go test ./internal/database -v",
     "db:up": "docker compose up -d",

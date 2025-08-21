@@ -15,7 +15,8 @@ SELECT m.*, (
 ) as author
 FROM messages m 
 WHERE channel_id = $1
-ORDER BY m.created_at;
+ORDER BY m.created_at
+LIMIT 50;
 
 -- name: CheckChannelMembership :execresult
 SELECT c.id FROM channels c, server_members sm WHERE c.id = $1 and c.server_id = sm.server_id and sm.user_id = $2;

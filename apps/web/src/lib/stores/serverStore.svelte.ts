@@ -95,7 +95,17 @@ export class ServerStore {
         abilities: [],
         members: []
       };
+    } else if (roleID === "offline") {
+      return {
+        id: roleID,
+        color: '',
+        name: 'Offline',
+        position: roles.length,
+        abilities: [],
+        members: []
+      };
     }
+
 
     return roles.find((role) => role.id === roleID);
   }

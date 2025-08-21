@@ -71,6 +71,7 @@ export class WebsocketStore {
             const message = wsMess.content.value.message;
             const contentStr = new TextDecoder().decode(message.content);
             const attachments = new TextDecoder().decode(message.attachments);
+            const channelID = wsMess.content.value.message.channelId
 
             const newMessage: Message = {
               id: message.id,
@@ -90,7 +91,7 @@ export class WebsocketStore {
               created_at: timestampDate(message.createdAt!).toISOString()
             };
 
-            channelStore.addMessage(newMessage);
+            channelStore.addMessage(channelID, newMessage);
           }
           break;
         case 'deleteChatMessage':
@@ -98,7 +99,9 @@ export class WebsocketStore {
             if (!wsMess.content.value.message) return;
             if (wsMess.content.value.message.channelId !== page.params.channel_id) return;
             const message = wsMess.content.value.message;
-            channelStore.deleteMessage(message.id);
+            const channelID = wsMess.content.value.message.channelId
+
+            channelStore.deleteMessage(channelID, message.id);
           }
           break;
         case 'editChatMessage':
@@ -106,6 +109,7 @@ export class WebsocketStore {
             if (!wsMess.content.value.message) return;
             if (wsMess.content.value.message.channelId !== page.params.channel_id) return;
 
+            const channelID = wsMess.content.value.message.channelId
             const message = wsMess.content.value.message;
             const contentStr = new TextDecoder().decode(message.content);
 
@@ -118,7 +122,7 @@ export class WebsocketStore {
               updated_at: timestampDate(message.updatedAt!).toISOString()
             };
 
-            channelStore.editMessage(editMessage);
+            channelStore.editMessage(channelID, editMessage);
           }
           break;
         case 'startCategory':
