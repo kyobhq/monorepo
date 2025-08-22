@@ -15,6 +15,7 @@
 	import { hasPermissions } from 'utils/permissions';
 	import { page } from '$app/state';
 	import { coreStore } from 'stores/coreStore.svelte';
+	import { channelStore } from 'stores/channelStore.svelte';
 
 	interface Props {
 		server?: Server;
@@ -37,12 +38,12 @@
 				.getText()
 				.match(/<@(.*)>/g)
 				?.map((match) => match.slice(2, -1)) || [];
-
-		if (!channel?.id && !friend?.channel_id) return;
+		const channelID = channel?.id || friend?.channel_id;
+		if (!channelID) return;
 
 		const payload: CreateMessageType = {
 			server_id: server?.id || 'global',
-			channel_id: channel?.id || friend?.channel_id || '',
+			channel_id: channelID,
 			content: message,
 			mentions_users: [...new Set(ids)],
 			mentions_roles: [],
