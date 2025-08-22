@@ -45,7 +45,8 @@ func (s *chatService) GetMessages(ctx *gin.Context) ([]db.GetMessagesFromChannel
 	beforeMessageID, _ := ctx.GetQuery("before")
 	afterMessageID, _ := ctx.GetQuery("after")
 
-	messages, err := s.db.GetMessages(ctx, serverID, channelID, beforeMessageID, afterMessageID)
+	userIDs := s.actors.GetActiveUsers(serverID)
+	messages, err := s.db.GetMessages(ctx, serverID, channelID, beforeMessageID, afterMessageID, userIDs)
 	if err != nil {
 		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_MESSAGES", "Failed to get messages", err)
 	}

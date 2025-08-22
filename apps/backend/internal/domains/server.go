@@ -26,6 +26,7 @@ type ServerService interface {
 	UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHeader, banner []*multipart.FileHeader, body *types.UpdateAvatarParams) (*string, *string, *types.APIError)
 	DeleteServer(ctx *gin.Context) *types.APIError
 	GetInformations(ctx *gin.Context) (*db.GetServerInformationsRow, *types.APIError)
+	GetMembers(ctx *gin.Context) ([]db.GetServerMembersRow, *types.APIError)
 	GetBannedMembers(ctx *gin.Context) ([]db.GetBannedMembersRow, *types.APIError)
 	BanUser(ctx *gin.Context, body *types.BanUserParams) *types.APIError
 	UnbanUser(ctx *gin.Context) *types.APIError
@@ -351,6 +352,29 @@ func (s *serverService) GetInformations(ctx *gin.Context) (*db.GetServerInformat
 	}
 
 	return &serverInformations, nil
+}
+
+func (s *serverService) GetMembers(ctx *gin.Context) ([]db.GetServerMembersRow, *types.APIError) {
+	serverID := ctx.Param("server_id")
+
+	offsetStr := ctx.DefaultQuery("offset", "0")
+	offset := 0
+	if o, err := fmt.Sscanf(offsetStr, "%d", &offset); err != nil || o != 1 {
+		offset = 0
+	}
+
+	userIDs := s.actors.GetActiveUsers(serverID)
+	members, err := s.db.GetServerMembers(ctx, serverID, int32(offset), userIDs)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_GET_MEMBERS",
+			Cause:   err.Error(),
+			Message: "Failed to get server members.",
+		}
+	}
+
+	return members, nil
 }
 
 func (s *serverService) DeleteInvite(ctx *gin.Context) *types.APIError {

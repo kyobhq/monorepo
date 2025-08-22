@@ -130,11 +130,6 @@ body {
   @apply active:scale-[0.985]
 }
 
-@utility active-channel {
-  background: var(--ui-main-900);
-  box-shadow: inset 0px 1px 0px rgba(240, 240, 255, 0.1), inset 0px 16px 6px -2px rgba(240, 240, 255, 0.02);
-}
-
 @utility active-setting {
   background: var(--ui-main-850);
   box-shadow: inset 0px 1px 0px rgba(240, 240, 255, 0.15), inset 0px 16px 6px -2px rgba(240, 240, 255, 0.035);

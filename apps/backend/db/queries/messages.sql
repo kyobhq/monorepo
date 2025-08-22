@@ -9,7 +9,11 @@ WITH base AS (
         'id', u.id,
         'avatar', u.avatar,
         'display_name', u.display_name,
-        'roles', sm.roles
+        'roles', sm.roles,
+        'status', CASE 
+            WHEN u.id = ANY($5::text[]) THEN 'online'
+            ELSE 'offline'
+        END
       )
       FROM users u
       LEFT JOIN server_members sm

@@ -36,13 +36,6 @@ func newServer(actorService Service) actor.Producer {
 func (s *server) Receive(ctx *actor.Context) {
 	switch msg := ctx.Message().(type) {
 	case actor.Started:
-		slog.Info("server started",
-			"pid", ctx.PID(),
-		)
-	case actor.Stopped:
-		slog.Info("server stopped",
-			"id", ctx.PID().GetID(),
-		)
 	case actor.InternalError:
 		slog.Error("server erroring",
 			"id", ctx.PID().GetID(),

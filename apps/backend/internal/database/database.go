@@ -75,7 +75,8 @@ type Service interface {
 	GetServers(ctx context.Context) ([]string, error)
 	GetChannels(ctx context.Context) ([]db.GetChannelsIDsRow, error)
 	GetServerInformations(ctx context.Context, userID, serverID string, userIDs []string) (db.GetServerInformationsRow, error)
-	GetMessages(ctx context.Context, serverID, channelID, beforeMessageID, afterMessageID string) ([]db.GetMessagesFromChannelRow, error)
+	GetServerMembers(ctx context.Context, serverID string, offset int32, userIDs []string) ([]db.GetServerMembersRow, error)
+	GetMessages(ctx context.Context, serverID, channelID, beforeMessageID, afterMessageID string, userIDs []string) ([]db.GetMessagesFromChannelRow, error)
 	DeleteMessage(ctx context.Context, messageID string, userID string) error
 	GetMessageAuthor(ctx context.Context, messageID string) (string, error)
 	EditMessage(ctx context.Context, messageID string, body *types.EditMessageParams) error
@@ -593,12 +594,21 @@ func (s *service) GetServerInformations(ctx context.Context, userID, serverID st
 	})
 }
 
-func (s *service) GetMessages(ctx context.Context, serverID, channelID, beforeMessageID, afterMessageID string) ([]db.GetMessagesFromChannelRow, error) {
+func (s *service) GetServerMembers(ctx context.Context, serverID string, offset int32, userIDs []string) ([]db.GetServerMembersRow, error) {
+	return s.queries.GetServerMembers(ctx, db.GetServerMembersParams{
+		ServerID: serverID,
+		Offset:   offset,
+		Column3:  userIDs,
+	})
+}
+
+func (s *service) GetMessages(ctx context.Context, serverID, channelID, beforeMessageID, afterMessageID string, userIDs []string) ([]db.GetMessagesFromChannelRow, error) {
 	return s.queries.GetMessagesFromChannel(ctx, db.GetMessagesFromChannelParams{
 		ServerID:  serverID,
 		ChannelID: channelID,
 		Column3:   beforeMessageID,
 		Column4:   afterMessageID,
+		Column5:   userIDs,
 	})
 }
 

@@ -28,18 +28,24 @@ SELECT
     u.username, 
     u.display_name, 
     u.avatar,
+    u.created_at as joined_kyob,
     sm.roles,
+    sm.created_at as joined_server,
+    CASE 
+        WHEN u.id = ANY($3::text[]) THEN 'online'
+        ELSE 'offline'
+    END as status,
     COALESCE(MIN(r.position), 999999) as min_role_position
 FROM server_members sm
 JOIN users u ON u.id = sm.user_id
 LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
 WHERE sm.server_id = $1 AND sm.ban = false
-GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles
+GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles, sm.created_at
 ORDER BY 
-    CASE WHEN u.id = ANY($4::text[]) THEN 0 ELSE 1 END,
+    CASE WHEN u.id = ANY($3::text[]) THEN 0 ELSE 1 END,
     min_role_position, 
     u.username
-LIMIT $2 OFFSET $3;
+LIMIT 50 OFFSET $2;
 
 -- name: GetServerInformations :one
 SELECT 

@@ -27,9 +27,7 @@
 	let scrollContainer = $state<HTMLDivElement>();
 	let messagesLoaded = $state(false);
 	let canLoadMore = $state(true);
-	let showMessages = $derived(
-		coreStore.firstLoad.sidebar && coreStore.firstLoad.serverbar && messagesLoaded
-	);
+	let showMessages = $derived(coreStore.firstLoad.sidebar && messagesLoaded);
 
 	async function handleScroll(e: Event) {
 		if (!canLoadMore || !scrollSet) return;
@@ -66,6 +64,7 @@
 	onMount(async () => {
 		if (page.params.server_id && page.params.channel_id) {
 			await channelStore.ensureMessagesLoaded(page.params.server_id, page.params.channel_id);
+			await delay(100);
 			messagesLoaded = true;
 		}
 	});

@@ -3,6 +3,7 @@
 	import type { Member, Message, Role } from '$lib/types/types';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
+	import { messageStore } from 'stores/messageStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
 	import { formatMessageTime } from 'utils/time';
@@ -19,8 +20,8 @@
 		let topRole: Role | undefined;
 
 		const userRoles =
-			serverStore.getMemberRoles(page.params.server_id, author.id!) ??
-			serverStore.getUserRoles(page.params.server_id);
+			messageStore.getAuthorRoles(author.id!) || serverStore.getUserRoles(page.params.server_id);
+
 		for (const userRole of userRoles) {
 			const role = serverStore.getRole(page.params.server_id!, userRole);
 			if (!topRole || (role && role.position < topRole.position)) {

@@ -206,6 +206,13 @@ export class BackendStore {
 		return this.makeRequest<ServerInformations>(`servers/${serverID}`);
 	}
 
+	getServerMembers(serverID: string, offset: number = 0): ResultAsync<Member[], APIError> {
+		const params = new URLSearchParams({
+			offset: offset.toString()
+		});
+		return this.makeRequest<Member[]>(`servers/${serverID}/members?${params}`);
+	}
+
 	getMessages({
 		serverID,
 		channelID,

@@ -5,10 +5,8 @@
 	import MessageEditSentence from './MessageEditSentence.svelte';
 	import MessageBubble from './MessageBubble.svelte';
 	import MessageAuthor from './MessageAuthor.svelte';
-	import { userStore } from 'stores/userStore.svelte';
-	import { coreStore } from 'stores/coreStore.svelte';
 	import { channelStore } from 'stores/channelStore.svelte';
-	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
+	import MessageAvatar from './MessageAvatar.svelte';
 
 	interface Props {
 		server?: Server;
@@ -21,34 +19,22 @@
 
 	const messageIsRecent = $derived(channelStore.messageIsRecent(channel?.id || '', message.id));
 
-	let avatarEl = $state<HTMLButtonElement>();
 	let onClickSave = $state<() => Promise<void>>();
-	let author = $derived(
-		message.author.id === userStore.user!.id ? userStore.user! : message.author
-	);
+	let author = $derived(messageStore.getAuthor(message.author.id!) || message.author);
+	let hoverAvatar = $state(false);
 </script>
 
 <div
+	role="group"
 	class={[
 		'flex gap-x-2.5 items-end hover:bg-main-950/50 px-6 transition-colors duration-75 relative first:mb-0',
 		messageIsRecent ? 'mb-0.5' : 'mb-4'
 	]}
+	onmouseenter={() => (hoverAvatar = true)}
+	onmouseleave={() => (hoverAvatar = false)}
 >
 	{#if !messageIsRecent}
-		<button
-			bind:this={avatarEl}
-			class="h-12 w-12 relative highlight-border z-[1] mb-1 select-none shrink-0 hover:after:border-main-50/75 active:after:border-main-50/50 hover:cursor-pointer rounded-xl overflow-hidden"
-			onclick={() => {
-				if (author.id === userStore.user!.id) {
-					coreStore.openMyProfile(avatarEl!, 'right');
-				} else {
-					coreStore.openProfile(author.id, avatarEl!, 'right');
-				}
-			}}
-		>
-			<img src={author.avatar} alt="" class="w-full h-full object-cover" />
-			<ContextMenuUser memberID={author.id} />
-		</button>
+		<MessageAvatar {author} bind:hoverAvatar />
 	{/if}
 	<div class="flex flex-col gap-y-1 relative w-[calc(100%-4rem)]">
 		{#if messageStore.editMessage?.id === message.id}

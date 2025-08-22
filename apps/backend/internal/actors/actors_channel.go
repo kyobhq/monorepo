@@ -27,14 +27,6 @@ func newChannel(actorService Service, users []string) actor.Producer {
 
 func (c *channel) Receive(ctx *actor.Context) {
 	switch msg := ctx.Message().(type) {
-	case actor.Started:
-		slog.Info("channel started",
-			"id", ctx.PID().GetID(),
-		)
-	case actor.Stopped:
-		slog.Info("channel stopped",
-			"id", ctx.PID().GetID(),
-		)
 	case actor.InternalError:
 		slog.Error("channel erroring",
 			"id", ctx.PID().GetID(),

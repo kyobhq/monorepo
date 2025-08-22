@@ -24,10 +24,10 @@
 		{#each settings as setting, idx (idx)}
 			<button
 				class={[
-					'text-left px-2.5 py-1.5 transition duration-100 hover:cursor-pointer rounded-lg',
+					'text-left px-2.5 py-1.5 transition hover:cursor-pointer rounded-lg',
 					activeSection === setting
-						? 'active-setting'
-						: 'text-main-300 hover:bg-main-800/60 hover:text-main-200 active:bg-main-800/80'
+						? 'text-main-50 bg-main-800'
+						: 'text-main-300 hover:bg-main-800/60 hover:text-main-50 active:bg-main-800/80'
 				]}
 				onclick={() => navigationFn(setting)}
 			>

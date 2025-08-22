@@ -1,8 +1,6 @@
 <script lang="ts">
 	import SideBar from 'ui/SideBar/SideBar.svelte';
-	import ServerBar from 'ui/ServerBar/ServerBar.svelte';
 	import { page } from '$app/state';
-	import { serverStore } from 'stores/serverStore.svelte';
 	import ServerDialog from 'ui/Dialog/ServerDialog/ServerDialog.svelte';
 	import CreateCategoryDialog from 'ui/Dialog/CreateCategoryDialog/CreateCategoryDialog.svelte';
 	import CreateChannelDialog from 'ui/Dialog/CreateChannelDialog/CreateChannelDialog.svelte';
@@ -22,8 +20,6 @@
 
 	let { children } = $props();
 
-	const currentTab = $derived(page.url.pathname.split('/')[1]);
-	const currentServer = $derived(serverStore.getServer(page.params.server_id || '') || undefined);
 	let mainEl = $state<HTMLElement>();
 
 	function handleRichInputLength() {
@@ -52,14 +48,11 @@
 		bind:this={mainEl}
 		class={[
 			'flex flex-col h-screen relative',
-			page.url.pathname.includes('servers') ? 'w-[calc(100%-19.5rem-16rem)]' : 'w-full'
+			page.url.pathname.includes('servers') ? 'w-[calc(100%-19.5rem)]' : 'w-full'
 		]}
 	>
 		{@render children()}
 	</main>
-	{#if currentTab === 'servers' && currentServer}
-		<ServerBar />
-	{/if}
 </div>
 
 <FriendsDialog />

@@ -1,59 +1,20 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { serverStore } from 'stores/serverStore.svelte';
-	import BarSeparator from 'ui/BarSeparator/BarSeparator.svelte';
-	import Channel from 'ui/Channel/Channel.svelte';
-	import CollapsibleBox from 'ui/CollapsibleBox/CollapsibleBox.svelte';
-	import ContextMenuSideBar from 'ui/ContextMenu/ContextMenuSideBar.svelte';
-	import gsap from 'gsap';
-	import { coreStore } from 'stores/coreStore.svelte';
+	import BarSeparatorServers from 'ui/BarSeparator/BarSeparatorServers.svelte';
+	import MembersList from 'ui/MembersList/MembersList.svelte';
+	import ChannelsList from 'ui/ChannelsList/ChannelsList.svelte';
 
 	const currentServer = $derived(serverStore.getServer(page.params.server_id || '') || undefined);
 
-	let sectionEl = $state<HTMLElement | undefined>(undefined);
-
-	$effect(() => {
-		if (!sectionEl || coreStore.firstLoad.sidebar) return;
-		const boxes = sectionEl.querySelectorAll('.collapsible-wrapper');
-		if (!boxes.length) return;
-		gsap.from(boxes, {
-			opacity: 0,
-			y: 8,
-			stagger: 0.06,
-			duration: 0.35,
-			ease: 'power2.out',
-			onComplete: () => {
-				coreStore.firstLoad.sidebar = true;
-			}
-		});
-	});
+	let serverTab = $state<'channels' | 'members'>('channels');
 </script>
 
 {#if currentServer}
-	<BarSeparator title={currentServer.name} />
-	<section
-		class="relative flex flex-col gap-y-2 px-2.5 pt-2.5 pb-[9rem] h-full overflow-auto"
-		bind:this={sectionEl}
-	>
-		<ContextMenuSideBar />
-		{#each Object.values(currentServer.categories).sort((a, b) => a.position - b.position) as category (category.id)}
-			<div class="collapsible-wrapper">
-				<CollapsibleBox header={category.name} categoryId={category.id}>
-					{#if category.channels}
-						{#each Object.values(category.channels).sort((a, b) => a.position - b.position) as channel (channel.id)}
-							<Channel
-								id={channel.id}
-								categoryId={category.id}
-								type={channel.type}
-								name={channel.name}
-								onclick={() => goto(`/servers/${channel.server_id}/channels/${channel.id}`)}
-								active={page.url.pathname.includes(channel.id)}
-							/>
-						{/each}
-					{/if}
-				</CollapsibleBox>
-			</div>
-		{/each}
-	</section>
+	<BarSeparatorServers title={currentServer.name} bind:tab={serverTab} />
+	{#if serverTab === 'channels'}
+		<ChannelsList server={currentServer} />
+	{:else if serverTab === 'members'}
+		<MembersList />
+	{/if}
 {/if}

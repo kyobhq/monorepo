@@ -82,6 +82,16 @@ func (h *serverHandler) GetInformations(c *gin.Context) {
 	c.JSON(http.StatusOK, serverInformations)
 }
 
+func (h *serverHandler) GetMembers(c *gin.Context) {
+	members, err := h.domain.GetMembers(c)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, members)
+}
+
 func (h *serverHandler) GetBannedMembers(c *gin.Context) {
 	bans, err := h.domain.GetBannedMembers(c)
 	if err != nil {

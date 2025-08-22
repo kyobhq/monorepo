@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
-	import { coreStore } from 'stores/coreStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import TopGradient from 'ui/TopGradient/TopGradient.svelte';
@@ -20,7 +19,6 @@
 		const serverInformations = await backend.getServerInformations(page.params.server_id);
 		serverInformations.match(
 			(server) => {
-				serverStore.setMembers(page.params.server_id!, server.members);
 				serverStore.setRoles(page.params.server_id!, server.roles);
 				serverStore.setUserRoles(page.params.server_id!, server.user_roles);
 				serverStore.setInvites(page.params.server_id!, server.invites);

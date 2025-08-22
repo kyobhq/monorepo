@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Server } from '$lib/types/types';
+	import AnimatedAvatar from 'ui/AnimatedAvatar/AnimatedAvatar.svelte';
 	import ContextMenuServer from 'ui/ContextMenu/ContextMenuServer.svelte';
 
 	interface Props {
@@ -9,6 +10,7 @@
 	}
 
 	let { server, active, onclick }: Props = $props();
+	let hoverAvatar = $state(false);
 </script>
 
 <button
@@ -17,7 +19,14 @@
 		active ? 'after:inner-active rounded-lg' : 'after:inner-main-700 rounded-xl hover:rounded-lg'
 	]}
 	{onclick}
+	onmouseenter={() => (hoverAvatar = true)}
+	onmouseleave={() => (hoverAvatar = false)}
 >
-	<img src={server.avatar} alt="server-icon" class="h-full w-full rounded-[inherit]" />
+	<AnimatedAvatar
+		src={server.avatar}
+		alt="server-icon"
+		class="h-full w-full rounded-[inherit] overflow-hidden"
+		hover={hoverAvatar}
+	/>
 	<ContextMenuServer {server} />
 </button>

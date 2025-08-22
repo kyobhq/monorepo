@@ -61,6 +61,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	server := handlers.NewServerHandlers(s.serverSvc)
 	protected.POST("/servers", server.CreateServer)
 	protected.GET("/servers/:server_id", server.GetInformations)
+	protected.GET("/servers/:server_id/members", server.GetMembers)
 	protected.GET("/servers/:server_id/bans", server.GetBannedMembers)
 	protected.POST("/servers/join", server.JoinServer)
 	protected.POST("/servers/:server_id/leave", server.LeaveServer)

@@ -16,11 +16,11 @@ export class ServerStore {
 
     for (const server of Object.values(this.servers)) {
       const user_roles = server?.user_roles || [];
-      allAbilities[server.id] = []
+      allAbilities[server.id] = [];
 
       for (const user_role of user_roles) {
         const role = this.getRole(server.id, user_role);
-        if (role?.abilities) allAbilities[server.id].push(...role.abilities)
+        if (role?.abilities) allAbilities[server.id].push(...role.abilities);
       }
 
       if (userStore.user!.id === server.owner_id) allAbilities[server.id].push('OWNER');
@@ -47,16 +47,43 @@ export class ServerStore {
     return this.servers[id];
   }
 
+  addMember(serverID: string, member: Member) {
+    if (this.getMember(serverID, member.id!)) return;
+    if (page.params.server_id === serverID) serverStore.memberCount += 1;
+
+    this.servers[serverID].members.push(member);
+  }
+
+  addMembers(serverID: string, members: Member[]) {
+    this.servers[serverID].members.push(...members);
+  }
+
+  resetMembersList(serverID: string) {
+    this.servers[serverID].members = this.servers[serverID].members.slice(0, 50)
+  }
+
+  setMemberOnline(serverID: string, memberID: string, status: string) {
+    if (page.params.server_id !== serverID || serverID === '') return;
+
+    this.servers[serverID].members.find((m) => m.id === memberID)!.status = status;
+  }
+
+  setMemberOffline(serverID: string, memberID: string) {
+    if (page.params.server_id !== serverID || serverID === '') return;
+
+    this.servers[serverID].members.find((m) => m.id === memberID)!.status = 'offline';
+  }
+
   deleteMember(serverID: string, userID: string) {
-    this.servers[serverID].members = this.servers[serverID].members.filter((member) => member.id !== userID)
+    this.servers[serverID].members = this.servers[serverID].members.filter((m) => m.id !== userID);
   }
 
   getMember(serverID: string, userID: string) {
-    return this.servers[serverID].members.find((member) => member.id === userID);
+    return this.servers[serverID].members.find((m) => m.id === userID);
   }
 
   getMemberRoles(serverID: string, userID: string) {
-    return this.servers[serverID].members.find((member) => member.id === userID)?.roles;
+    return this.servers[serverID].members.find((m) => m.id === userID)!.roles;
   }
 
   setMembers(serverID: string, members: Member[]) {
@@ -76,11 +103,11 @@ export class ServerStore {
   }
 
   getUserRoles(serverID: string) {
-    return this.servers[serverID].user_roles || []
+    return this.servers[serverID].user_roles || [];
   }
 
   getRoles(serverID: string) {
-    return this.servers[serverID].roles
+    return this.servers[serverID].roles;
   }
 
   getRole(serverID: string, roleID: string): Role | undefined {
@@ -95,7 +122,7 @@ export class ServerStore {
         abilities: [],
         members: []
       };
-    } else if (roleID === "offline") {
+    } else if (roleID === 'offline') {
       return {
         id: roleID,
         color: '',
@@ -105,7 +132,6 @@ export class ServerStore {
         members: []
       };
     }
-
 
     return roles.find((role) => role.id === roleID);
   }
@@ -140,7 +166,7 @@ export class ServerStore {
       position: roles.length,
       members: []
     };
-    this.servers[serverID].roles.push(newRole)
+    this.servers[serverID].roles.push(newRole);
 
     const res = await backend.createOrUpdateRole(serverID, newRole);
     res.match(
@@ -163,27 +189,6 @@ export class ServerStore {
 
   getLastPosition() {
     return Object.values(this.servers).length;
-  }
-
-  addMember(serverID: string, member: Member) {
-    if (page.params.server_id === serverID) serverStore.memberCount += 1
-    if (this.servers[serverID].members.length < 50) {
-      this.servers[serverID].members.push(member);
-    }
-  }
-
-  setMemberOnline(serverID: string, memberID: string, status: string) {
-    if (page.params.server_id !== serverID || serverID === "") return;
-
-    const member = this.servers[serverID].members.find((member) => member.id === memberID);
-    if (member) member.status = status;
-  }
-
-  setMemberOffline(serverID: string, memberID: string) {
-    if (page.params.server_id !== serverID || serverID === "") return;
-
-    const member = this.servers[serverID].members.find((member) => member.id === memberID);
-    if (member) member.status = 'offline';
   }
 
   deleteServer(serverID: string) {

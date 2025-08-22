@@ -2,6 +2,7 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
+	import AnimatedAvatar from 'ui/AnimatedAvatar/AnimatedAvatar.svelte';
 
 	interface Props {
 		id: string;
@@ -52,7 +53,7 @@
 			border && 'after:absolute after:inset-0 after:inner-main-700'
 		]}
 	>
-		<img src={avatar} alt={name} class="w-full h-full object-cover" />
+		<AnimatedAvatar src={avatar} alt={name} class="w-full h-full" />
 	</div>
 	<span style="color: {color ? color : 'var(--ui-main-300)'};">{name}</span>
 
