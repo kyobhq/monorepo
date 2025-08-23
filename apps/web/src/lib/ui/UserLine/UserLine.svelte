@@ -25,6 +25,7 @@
 	}: Props = $props();
 
 	let memberEl = $state<HTMLButtonElement>();
+	let hoverAvatar = $state(false);
 
 	function getHoverColor(color: string) {
 		return color + '40';
@@ -46,6 +47,8 @@
 			coreStore.openProfile(id, memberEl!, 'left');
 		}
 	}}
+	onmouseenter={() => (hoverAvatar = true)}
+	onmouseleave={() => (hoverAvatar = false)}
 >
 	<div
 		class={[
@@ -53,7 +56,7 @@
 			border && 'after:absolute after:inset-0 after:inner-main-700'
 		]}
 	>
-		<AnimatedAvatar src={avatar} alt={name} class="w-full h-full" />
+		<AnimatedAvatar src={avatar} alt={name} class="w-full h-full" hover={hoverAvatar} />
 	</div>
 	<span style="color: {color ? color : 'var(--ui-main-300)'};">{name}</span>
 

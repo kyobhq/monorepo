@@ -5,7 +5,8 @@
 	import MemberLine from './MemberLine.svelte';
 	import { backend } from 'stores/backendStore.svelte';
 	import { logErr } from 'utils/print';
-	import { beforeNavigate, onNavigate } from '$app/navigation';
+	import { onNavigate } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let idx = $state(0);
 	let loadingMembers = $state(false);
@@ -55,6 +56,17 @@
 		return filteredRoleGroups;
 	});
 
+	async function fetchMembers(offset: number) {
+		const res = await backend.getServerMembers(page.params.server_id || '', offset);
+		res.match(
+			(members) => {
+				if (members.length < MEMBERS_PER_PAGE || !members?.length) canLoadMore = false;
+				serverStore.addMembers(page.params.server_id || '', members);
+			},
+			(err) => logErr(err)
+		);
+	}
+
 	async function handleScroll(e: Event) {
 		const target = e.target as HTMLDivElement;
 		const limit = target.scrollHeight - target.clientHeight - THRESHOLD;
@@ -62,20 +74,14 @@
 		if (target.scrollTop > limit && !loadingMembers && canLoadMore) {
 			loadingMembers = true;
 			idx += 1;
-			const res = await backend.getServerMembers(
-				page.params.server_id || '',
-				idx * MEMBERS_PER_PAGE
-			);
-			res.match(
-				(members) => {
-					if (members.length < MEMBERS_PER_PAGE || !members?.length) canLoadMore = false;
-					serverStore.addMembers(page.params.server_id || '', members);
-				},
-				(err) => logErr(err)
-			);
+			await fetchMembers(idx * MEMBERS_PER_PAGE);
 			loadingMembers = false;
 		}
 	}
+
+	onMount(() => {
+		fetchMembers(0);
+	});
 
 	onNavigate(({ from, to }) => {
 		const fromServerID = from?.params?.server_id;
