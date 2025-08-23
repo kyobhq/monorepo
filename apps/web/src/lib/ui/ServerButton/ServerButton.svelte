@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Server } from '$lib/types/types';
-	import AnimatedAvatar from 'ui/AnimatedAvatar/AnimatedAvatar.svelte';
+	import Avatar from 'ui/Avatar/Avatar.svelte';
 	import ContextMenuServer from 'ui/ContextMenu/ContextMenuServer.svelte';
 
 	interface Props {
@@ -22,7 +22,7 @@
 	onmouseenter={() => (hoverAvatar = true)}
 	onmouseleave={() => (hoverAvatar = false)}
 >
-	<AnimatedAvatar
+	<Avatar
 		src={server.avatar}
 		alt="server-icon"
 		class="h-full w-full rounded-[inherit] overflow-hidden"

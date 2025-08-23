@@ -47,6 +47,24 @@ ORDER BY
     u.username
 LIMIT 50 OFFSET $2;
 
+-- name: SearchServerMembers :many
+SELECT 
+    u.id, 
+    u.username, 
+    u.display_name, 
+    u.avatar,
+    u.created_at as joined_kyob,
+    sm.roles,
+    sm.created_at as joined_server
+FROM server_members sm
+JOIN users u ON u.id = sm.user_id
+LEFT JOIN roles r ON r.server_id = sm.server_id AND r.id = ANY(sm.roles)
+WHERE sm.server_id = $1 AND sm.ban = false AND u.display_name ILIKE $2 OR u.username ILIKE $2
+GROUP BY sm.user_id, u.id, u.username, u.display_name, u.avatar, sm.roles, sm.created_at
+ORDER BY 
+    u.username
+LIMIT 50;
+
 -- name: GetServerInformations :one
 SELECT 
     (

@@ -98,6 +98,7 @@ type Service interface {
 	UnbanUser(ctx context.Context, serverID, userID string) error
 	CheckBan(ctx context.Context, serverID, userID string) (pgtype.Text, error)
 	GetBannedMembers(ctx context.Context, serverID string) ([]db.GetBannedMembersRow, error)
+	SearchServerMembers(ctx context.Context, serverID, query string) ([]db.SearchServerMembersRow, error)
 }
 
 type service struct {
@@ -116,29 +117,17 @@ var (
 )
 
 var defaultAvatarImages = []string{
-	"https://images.nosync.app/rpsnws39aubzvpd0lw7uuzwl.jpeg",
-	"https://images.nosync.app/vywtoyl5tmg9abe0bcbyzzqi.jpeg",
-	"https://images.nosync.app/r3i8xi6ygr8v3p7zoqpegsnq.jpeg",
-	"https://images.nosync.app/z4hpduj9i47bak0h3g0ggp32_cat_love.jpg",
-	"https://images.nosync.app/gadxaj9y4pxrbzmq9wpyo0vh.jpeg",
-	"https://images.nosync.app/smairs9qevytfgizv67kwrby_amazin_pixelart.jpg",
-	"https://images.nosync.app/pz5ky23dvub3p5jwztok55c7_boy.jpg",
-	"https://images.nosync.app/d52ndlf98rc2edpqjagg4wfs.jpeg",
-	"https://images.nosync.app/tblj8or5lko334ctekbp2zsh.jpeg",
-	"https://images.nosync.app/e8948zpmmvt1erhag0asu1qd.jpeg",
-	"https://images.nosync.app/ko69kduh2rxleq4sf1vclvk2.jpeg",
-	"https://images.nosync.app/vx42u89qyydw4q222k9vqnc9.jpeg",
-	"https://images.nosync.app/zjlas8m322ybfoufhtsqp6jx.gif",
-	"https://images.nosync.app/nrpwmafwq6rjejf74nahqh8k.jpeg",
-	"https://images.nosync.app/g38jbb3g09qpiec6a0w2u0hs.jpeg",
-	"https://images.nosync.app/r17erh89ymnbuf7zgb8txgl7.jpeg",
-	"https://images.nosync.app/rg1r6wnj1gk1mg90d4pivjzv.jpeg",
-	"https://images.nosync.app/pz5ky23dvub3p5jwztok55c7_boy.jpg",
-	"https://images.nosync.app/x0nqdpp8dqhdqx6imyz2xbec.jpeg",
-	"https://images.nosync.app/ags6mrf5l044cpmn2m8n53bx.gif",
-	"https://images.nosync.app/hzojfv53wjxebimryxeadndq.png",
-	"https://images.nosync.app/as6vturcxwh2hvv7xh97i7x7.jpeg",
-	"https://images.nosync.app/vxgm7wzlulqg6l2gn7kgw877.jpeg",
+	"https://d2vxg81co3irvv.cloudfront.net/h5l2kgkgl5388cn02q4qfxsp.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/avlu2a8o91gpvalk6gmgjx5r-avatar-dmplh84i8bft0ww7g60qrt15.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/wn3yuwwghg7efv5an78bojyc.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/ru3piutctxqesrv1xom8d8nn.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/rx38ak222ydoxb5kevww01ce-avatar-nf3531et6izcz2k6uyk5nm84.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/qilvsvq39rbmnybr4s24e86d-avatar-xtzdeamrkmtmh11odhtb9p2y.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/vlxth3gbqa3bmcsysy581pzy-avatar-frh262c7w15ntm8jia4jjrud.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/jnclk7c4el73kaqc726qlw7c-avatar-u0090mlv8r3zu5d850unedvu.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/u8b6rr2uz0xn3ubx41o6o6wx.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/f6983q524yum1ntx468j5gzu-avatar-mpkv59uvddg7jjf26gbigoas.webp",
+	"https://d2vxg81co3irvv.cloudfront.net/qvn4bem4ms537cnn3kjyyv0l-avatar-rmk4i0evo7ls9v75jllzeuw0.webp",
 }
 
 func randomDefaultAvatar() string {
@@ -817,6 +806,13 @@ func (s *service) CheckBan(ctx context.Context, serverID, userID string) (pgtype
 
 func (s *service) GetBannedMembers(ctx context.Context, serverID string) ([]db.GetBannedMembersRow, error) {
 	return s.queries.GetBannedMembers(ctx, serverID)
+}
+
+func (s *service) SearchServerMembers(ctx context.Context, serverID, query string) ([]db.SearchServerMembersRow, error) {
+	return s.queries.SearchServerMembers(ctx, db.SearchServerMembersParams{
+		ServerID:    serverID,
+		DisplayName: "%" + query + "%",
+	})
 }
 
 // Health checks the health of the database connection by pinging the database.

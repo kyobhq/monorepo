@@ -7,6 +7,7 @@ import (
 	"backend/internal/files"
 	"backend/internal/permissions"
 	"backend/internal/types"
+	"backend/internal/validation"
 	"backend/proto"
 	"fmt"
 	"mime/multipart"
@@ -14,6 +15,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nrednav/cuid2"
 )
 
 type ServerService interface {
@@ -31,6 +33,7 @@ type ServerService interface {
 	BanUser(ctx *gin.Context, body *types.BanUserParams) *types.APIError
 	UnbanUser(ctx *gin.Context) *types.APIError
 	KickUser(ctx *gin.Context, body *types.KickUserParams) *types.APIError
+	SearchMembers(ctx *gin.Context) ([]db.SearchServerMembersRow, *types.APIError)
 }
 
 type serverService struct {
@@ -59,7 +62,7 @@ func (s *serverService) CreateServer(ctx *gin.Context, serverAvatar []*multipart
 		}
 	}
 
-	avatarURL, perr := s.files.ProcessAndUploadImage(serverAvatar[0], body.Crop)
+	avatarURL, perr := s.files.ProcessAndUploadAvatar(cuid2.Generate(), "avatar", serverAvatar[0], body.Crop)
 	if perr != nil {
 		return nil, perr
 	}
@@ -371,6 +374,23 @@ func (s *serverService) GetMembers(ctx *gin.Context) ([]db.GetServerMembersRow, 
 			Code:    "ERR_GET_MEMBERS",
 			Cause:   err.Error(),
 			Message: "Failed to get server members.",
+		}
+	}
+
+	return members, nil
+}
+
+func (s *serverService) SearchMembers(ctx *gin.Context) ([]db.SearchServerMembersRow, *types.APIError) {
+	serverID := ctx.Param("server_id")
+	query := validation.SanitizeQuery(ctx.Query("query"))
+
+	members, err := s.db.SearchServerMembers(ctx, serverID, query)
+	if err != nil {
+		return nil, &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_SEARCH_MEMBERS",
+			Message: "Failed to search members.",
+			Cause:   err.Error(),
 		}
 	}
 

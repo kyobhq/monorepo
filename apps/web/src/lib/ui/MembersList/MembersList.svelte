@@ -79,10 +79,6 @@
 		}
 	}
 
-	onMount(() => {
-		fetchMembers(0);
-	});
-
 	onNavigate(({ from, to }) => {
 		const fromServerID = from?.params?.server_id;
 		const toServerID = to?.params?.server_id;

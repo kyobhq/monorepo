@@ -37,7 +37,7 @@ import type {
 	RemoveFriendType
 } from '$lib/types/schemas';
 import { channelStore } from './channelStore.svelte';
-import { SvelteMap } from 'svelte/reactivity';
+import { SvelteMap, SvelteURLSearchParams } from 'svelte/reactivity';
 
 const client = ky.create({
 	prefixUrl: `${import.meta.env.VITE_API_URL}/protected`,
@@ -207,7 +207,7 @@ export class BackendStore {
 	}
 
 	getServerMembers(serverID: string, offset: number = 0): ResultAsync<Member[], APIError> {
-		const params = new URLSearchParams({
+		const params = new SvelteURLSearchParams({
 			offset: offset.toString()
 		});
 		return this.makeRequest<Member[]>(`servers/${serverID}/members?${params}`);
@@ -409,6 +409,13 @@ export class BackendStore {
 
 	getBannedMembers(serverID: string): ResultAsync<Member[], APIError> {
 		return this.makeRequest<Member[]>(`servers/${serverID}/bans`);
+	}
+
+	searchServerMembers(serverID: string, query: string): ResultAsync<Member[], APIError> {
+		const params = new SvelteURLSearchParams({
+			query: query
+		});
+		return this.makeRequest<Member[]>(`servers/${serverID}/search?${params}`);
 	}
 }
 

@@ -102,6 +102,16 @@ func (h *serverHandler) GetBannedMembers(c *gin.Context) {
 	c.JSON(http.StatusOK, bans)
 }
 
+func (h *serverHandler) SearchMembers(c *gin.Context) {
+	members, err := h.domain.SearchMembers(c)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, members)
+}
+
 func (h *serverHandler) JoinServer(c *gin.Context) {
 	var body types.JoinServerParams
 

@@ -2,7 +2,7 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
-	import AnimatedAvatar from 'ui/AnimatedAvatar/AnimatedAvatar.svelte';
+	import Avatar from 'ui/Avatar/Avatar.svelte';
 
 	interface Props {
 		id: string;
@@ -36,7 +36,7 @@
 	bind:this={memberEl}
 	style="--hover-color: {color ? getHoverColor(color) : 'var(--ui-main-900)'}"
 	class={[
-		'relative flex items-center gap-x-2.5 p-1 pr-2.5 transition-colors duration-100 select-none rounded-sm z-[1] active-scale-down',
+		'relative flex items-center gap-x-2.5 p-1 pr-2.5 transition-colors duration-100 select-none rounded-lg z-[1] active-scale-down',
 		hoverable && `hover:cursor-pointer hover:bg-[var(--hover-color)]`,
 		status === 'offline' && 'opacity-40'
 	]}
@@ -52,11 +52,11 @@
 >
 	<div
 		class={[
-			'relative w-8 h-8 rounded-[2px] overflow-hidden',
+			'relative w-8 h-8 rounded-md overflow-hidden',
 			border && 'after:absolute after:inset-0 after:inner-main-700'
 		]}
 	>
-		<AnimatedAvatar src={avatar} alt={name} class="w-full h-full" hover={hoverAvatar} />
+		<Avatar src={avatar} alt={name} class="w-full h-full" hover={hoverAvatar} />
 	</div>
 	<span style="color: {color ? color : 'var(--ui-main-300)'};">{name}</span>
 

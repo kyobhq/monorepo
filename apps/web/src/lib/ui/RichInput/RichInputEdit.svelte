@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { Channel, Friend, Server } from '$lib/types/types';
 	import { editorStore } from 'stores/editorStore.svelte';
-	import MentionsList from './extensions/mentions/MentionsList.svelte';
-	import EmojisList from './extensions/emojis/EmojisList.svelte';
 	import { Editor } from '@tiptap/core';
 	import { onDestroy, onMount } from 'svelte';
 	import { createEditorConfig } from './richInputConfig';
@@ -12,6 +10,7 @@
 	import { backend } from 'stores/backendStore.svelte';
 	import { page } from '$app/state';
 	import { coreStore } from 'stores/coreStore.svelte';
+	import RichInputList from './RichInputList.svelte';
 
 	interface Props {
 		server?: Server;
@@ -124,19 +123,8 @@
 </script>
 
 <div class="flex w-full flex-col gap-y-1">
-	{#if editorStore.currentInput === 'edit' && editorStore.mentionProps}
-		<MentionsList
-			props={editorStore.mentionProps}
-			bind:this={editorStore.mentionsListEl}
-			class="w-full"
-		/>
-	{/if}
-	{#if editorStore.currentInput === 'edit' && editorStore.emojiProps}
-		<EmojisList
-			props={editorStore.emojiProps}
-			bind:this={editorStore.emojisListEl}
-			class="w-full"
-		/>
+	{#if editorStore.currentInput === 'edit' && editorStore.listOpen}
+		<RichInputList />
 	{/if}
 	<div class="max-h-[10rem] w-full" bind:this={element}></div>
 </div>

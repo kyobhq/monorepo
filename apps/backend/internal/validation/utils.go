@@ -146,3 +146,10 @@ func Validate[T any](body *T) *types.APIError {
 
 	return nil
 }
+
+var sanitizeQueryRegex = regexp.MustCompile(`[%_ .!?|\\\/\x60~=+\-*&^$#@]+`)
+
+func SanitizeQuery(query string) string {
+	query = strings.TrimSpace(query)
+	return sanitizeQueryRegex.ReplaceAllString(query, "")
+}

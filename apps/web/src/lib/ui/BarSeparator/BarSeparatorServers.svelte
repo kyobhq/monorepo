@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
-	import { serverStore } from 'stores/serverStore.svelte';
 
 	interface Props {
 		title: string;

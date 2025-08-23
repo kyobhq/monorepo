@@ -38,16 +38,19 @@ export const EmojisSuggestion = EmojiExtended.configure({
         return {
           onStart: (props) => {
             editorStore.emojiProps = props;
+            editorStore.listOpen = true;
           },
           onUpdate: (props) => {
             editorStore.emojiProps = props;
           },
           onExit: () => {
             editorStore.emojiProps = null;
+            editorStore.listOpen = false;
           },
           onKeyDown: (props) => {
             if (props.event.key === 'Escape') {
               editorStore.emojiProps = null;
+              editorStore.listOpen = false;
               return true;
             }
 

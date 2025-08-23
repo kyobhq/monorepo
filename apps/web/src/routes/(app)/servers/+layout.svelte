@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { backend } from 'stores/backendStore.svelte';
 	import { serverStore } from 'stores/serverStore.svelte';
@@ -19,6 +20,7 @@
 		const serverInformations = await backend.getServerInformations(page.params.server_id);
 		serverInformations.match(
 			(server) => {
+				serverStore.setMembers(page.params.server_id!, server.members);
 				serverStore.setRoles(page.params.server_id!, server.roles);
 				serverStore.setUserRoles(page.params.server_id!, server.user_roles);
 				serverStore.setInvites(page.params.server_id!, server.invites);
@@ -44,6 +46,15 @@
 
 		currentServerId = serverId;
 		getServerInformations();
+	});
+
+	beforeNavigate(({ from, to }) => {
+		const fromServerId = from?.params?.server_id;
+		const toServerId = to?.params?.server_id;
+
+		if (fromServerId && toServerId && fromServerId !== toServerId) {
+			serverStore.setCacheTimeout(fromServerId);
+		}
 	});
 </script>
 

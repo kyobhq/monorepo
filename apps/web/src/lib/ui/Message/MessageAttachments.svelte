@@ -6,7 +6,7 @@
 	import AttachmentVideo from './attachments/AttachmentVideo.svelte';
 	import AttachmentFile from './attachments/AttachmentFile.svelte';
 
-	let { attachments }: { attachments: Attachment[] } = $props();
+	let { attachments, hover }: { attachments: Attachment[]; hover: boolean } = $props();
 
 	let images = $state<Attachment[]>([]);
 	let videos = $state<Attachment[]>([]);
@@ -36,7 +36,7 @@
 {#if medias.length > 0}
 	<div class={medias.length > 1 ? 'grid w-fit max-w-[50%] grid-cols-3 gap-2' : 'max-w-[15%]'}>
 		{#each images as image, idx (idx)}
-			<AttachmentImage {image} {medias} />
+			<AttachmentImage {image} {medias} {hover} />
 		{/each}
 		{#each videos as video, idx (idx)}
 			<AttachmentVideo {video} />

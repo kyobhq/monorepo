@@ -135,8 +135,8 @@ func (h *userHandler) UpdateAvatar(c *gin.Context) {
 		return
 	}
 
-	crapBannerJSON := c.Request.FormValue("crop_banner")
-	if err := json.Unmarshal([]byte(crapBannerJSON), &body.CropBanner); err != nil {
+	cropBannerJSON := c.Request.FormValue("crop_banner")
+	if err := json.Unmarshal([]byte(cropBannerJSON), &body.CropBanner); err != nil {
 		types.NewAPIError(http.StatusBadRequest, "ERR_PARSE_CROP", "Failed to parse cropping informations from form.", err).Respond(c)
 		return
 	}

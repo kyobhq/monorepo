@@ -2,9 +2,9 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
 	import ContextMenuUser from 'ui/ContextMenu/ContextMenuUser.svelte';
-	import AnimatedAvatar from 'ui/AnimatedAvatar/AnimatedAvatar.svelte';
+	import Avatar from 'ui/Avatar/Avatar.svelte';
 
-	let { author, hoverAvatar = $bindable() } = $props();
+	let { author, hoverAvatar } = $props();
 	let avatarEl = $state<HTMLButtonElement>();
 </script>
 
@@ -19,6 +19,6 @@
 		}
 	}}
 >
-	<AnimatedAvatar src={author.avatar} alt="" class="w-full h-full" hover={hoverAvatar} />
+	<Avatar src={author.avatar} alt="" class="w-full h-full" hover={hoverAvatar} />
 	<ContextMenuUser memberID={author.id!} />
 </button>

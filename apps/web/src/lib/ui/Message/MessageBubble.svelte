@@ -14,6 +14,7 @@
 		server?: Server;
 		channel?: Channel;
 		friend?: Friend;
+		hoverMessage: boolean;
 		message: Message;
 		messageIsRecent: boolean;
 		onClickSave?: () => Promise<void>;
@@ -25,6 +26,7 @@
 		friend,
 		message,
 		messageIsRecent,
+		hoverMessage,
 		onClickSave = $bindable()
 	}: Props = $props();
 
@@ -78,6 +80,6 @@
 		</div>
 	{/if}
 	{#if message.attachments?.length > 0}
-		<MessageAttachments attachments={message.attachments} />
+		<MessageAttachments attachments={message.attachments} hover={hoverMessage} />
 	{/if}
 </div>

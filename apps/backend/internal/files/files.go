@@ -26,8 +26,7 @@ type Service interface {
 	UploadFile(key string, mimeType string, fileData io.Reader, fileName string) error
 	ProcessAndUploadFiles(files []*multipart.FileHeader) ([]byte, *types.APIError)
 	ProcessAndUploadEmojis(files []*multipart.FileHeader) ([]string, *types.APIError)
-	ProcessAndUploadImage(imageToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError)
-	ProcessAndUploadAvatar(userID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError)
+	ProcessAndUploadAvatar(entityID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError)
 	DeleteFile(key string) error
 }
 
@@ -100,29 +99,50 @@ func (s *service) ProcessAndUploadFiles(filesToUpload []*multipart.FileHeader) (
 		var fileData io.Reader = file
 
 		if strings.Contains(mimeType, "image") {
-			key = fmt.Sprintf("attachment-%s.webp", randomID)
-
-			webpData, err := convertToWebp(file)
+			processedImg, err := processImageVersions(file, nil, mimeType)
 			if err != nil {
 				return nil, &types.APIError{
 					Status:  http.StatusInternalServerError,
-					Code:    "ERR_CONVERT_IMAGE_TO_WEBP",
+					Code:    "ERR_PROCESS_IMAGE",
 					Cause:   err.Error(),
-					Message: "Failed to convert image to webp.",
+					Message: "Failed to process image.",
 				}
 			}
-			fileData = bytes.NewReader(webpData)
+
+			key = fmt.Sprintf("attachment-%s.webp", randomID)
+			fileData = bytes.NewReader(processedImg.StaticData)
+			if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
+				return nil, &types.APIError{
+					Status:  http.StatusInternalServerError,
+					Code:    "ERR_UPLOAD_FILE",
+					Cause:   err.Error(),
+					Message: "Failed to upload file.",
+				}
+			}
+
+			if processedImg.IsGIF && processedImg.AnimatedData != nil {
+				key = fmt.Sprintf("attachment-%s-animated.webp", randomID)
+				fileData = bytes.NewReader(processedImg.AnimatedData)
+				if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
+					return nil, &types.APIError{
+						Status:  http.StatusInternalServerError,
+						Code:    "ERR_UPLOAD_FILE",
+						Cause:   err.Error(),
+						Message: "Failed to upload animated file.",
+					}
+				}
+			}
 		} else {
 			extension := getSecureExtension(mimeType)
 			key = fmt.Sprintf("attachment-%s.%s", randomID, extension)
-		}
 
-		if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_UPLOAD_FILE",
-				Cause:   err.Error(),
-				Message: "Failed to upload file.",
+			if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
+				return nil, &types.APIError{
+					Status:  http.StatusInternalServerError,
+					Code:    "ERR_UPLOAD_FILE",
+					Cause:   err.Error(),
+					Message: "Failed to upload file.",
+				}
 			}
 		}
 		defer file.Close()
@@ -227,75 +247,7 @@ func (s *service) ProcessAndUploadEmojis(emojisToUpload []*multipart.FileHeader)
 	return emojis, nil
 }
 
-func (s *service) ProcessAndUploadImage(imageToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError) {
-	file, err := imageToUpload.Open()
-	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_OPEN_FILE",
-			Cause:   err.Error(),
-			Message: "Failed to open file.",
-		}
-	}
-	defer file.Close()
-
-	buffer := make([]byte, 512)
-	n, err := file.Read(buffer)
-	if err != nil && err != io.EOF {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_READ_FILE",
-			Cause:   err.Error(),
-			Message: "Failed to read file.",
-		}
-	}
-
-	mimeType := http.DetectContentType(buffer[:n])
-	if !strings.Contains(mimeType, "image") {
-		return nil, &types.APIError{
-			Status:  http.StatusBadRequest,
-			Code:    "ERR_INVALID_MIME_TYPE",
-			Message: "Invalid mime type.",
-		}
-	}
-
-	if seeker, ok := file.(io.Seeker); ok {
-		seeker.Seek(0, io.SeekStart)
-	}
-
-	randomID := cuid2.Generate()
-	var key string
-	var fileData io.Reader = file
-
-	key = fmt.Sprintf("%s.webp", randomID)
-
-	imageData, err := cropImage(file, crop)
-	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_CROP_IMAGE",
-			Cause:   err.Error(),
-			Message: "Failed to crop the image.",
-		}
-	}
-
-	fileData = bytes.NewReader(imageData)
-	if err := s.UploadFile(key, mimeType, fileData, imageToUpload.Filename); err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPLOAD_FILE",
-			Cause:   err.Error(),
-			Message: "Failed to upload file.",
-		}
-	}
-	defer file.Close()
-
-	fileURL := fmt.Sprintf("%s/%s", s.cdnURL, key)
-
-	return &fileURL, nil
-}
-
-func (s *service) ProcessAndUploadAvatar(userID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError) {
+func (s *service) ProcessAndUploadAvatar(entityID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError) {
 	file, err := avatarToUpload.Open()
 	if err != nil {
 		return nil, &types.APIError{
@@ -331,30 +283,44 @@ func (s *service) ProcessAndUploadAvatar(userID, imageType string, avatarToUploa
 		seeker.Seek(0, io.SeekStart)
 	}
 
+	staticID := cuid2.Generate()
 	var key string
-	var fileData io.Reader = file
+	var fileData io.Reader
 
-	key = fmt.Sprintf("%s-%s-%s.webp", userID, imageType, cuid2.Generate())
-
-	imageData, err := cropImage(file, crop)
+	processedImg, err := processImageVersions(file, &crop, mimeType)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,
-			Code:    "ERR_CROP_IMAGE",
+			Code:    "ERR_PROCESS_IMAGE",
 			Cause:   err.Error(),
-			Message: "Failed to crop the image.",
+			Message: "Failed to process avatar image.",
 		}
 	}
 
-	fileData = bytes.NewReader(imageData)
+	key = fmt.Sprintf("%s-%s-%s.webp", entityID, imageType, staticID)
+	fileData = bytes.NewReader(processedImg.StaticData)
 	if err := s.UploadFile(key, mimeType, fileData, avatarToUpload.Filename); err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,
 			Code:    "ERR_UPLOAD_FILE",
 			Cause:   err.Error(),
-			Message: "Failed to upload file.",
+			Message: "Failed to upload avatar.",
 		}
 	}
+
+	if processedImg.IsGIF && processedImg.AnimatedData != nil {
+		key = fmt.Sprintf("%s-%s-%s-animated.webp", entityID, imageType, staticID)
+		fileData = bytes.NewReader(processedImg.AnimatedData)
+		if err := s.UploadFile(key, mimeType, fileData, avatarToUpload.Filename); err != nil {
+			return nil, &types.APIError{
+				Status:  http.StatusInternalServerError,
+				Code:    "ERR_UPLOAD_FILE",
+				Cause:   err.Error(),
+				Message: "Failed to upload animated avatar.",
+			}
+		}
+	}
+
 	defer file.Close()
 
 	fileURL := fmt.Sprintf("%s/%s", s.cdnURL, key)
@@ -424,7 +390,73 @@ func sanitizeFilename(filename string) string {
 	return filename
 }
 
-func convertToWebp(file multipart.File) ([]byte, error) {
+type ProcessedImage struct {
+	StaticData   []byte
+	AnimatedData []byte // nil if not a GIF
+	IsGIF        bool
+}
+
+func processImageVersions(file multipart.File, crop *types.Crop, mimeType string) (*ProcessedImage, error) {
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file content: %w", err)
+	}
+
+	isGIF := mimeType == "image/gif"
+	result := &ProcessedImage{IsGIF: isGIF}
+
+	staticData, err := convertToWebpFromBytes(fileBytes, crop, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to crop static image: %w", err)
+	}
+	result.StaticData = staticData
+
+	if isGIF {
+		animatedData, err := convertToWebpFromBytes(fileBytes, crop, true)
+		if err != nil {
+			return nil, fmt.Errorf("failed to crop animated image: %w", err)
+		}
+		result.AnimatedData = animatedData
+	}
+
+	return result, nil
+}
+
+func convertToWebpFromBytes(fileBytes []byte, crop *types.Crop, isAnimated bool) ([]byte, error) {
+	var intSet vips.IntParameter
+	if isAnimated {
+		intSet = vips.IntParameter{}
+		intSet.Set(-1)
+	} else {
+		intSet = vips.IntParameter{}
+		intSet.Set(1)
+	}
+
+	params := vips.NewImportParams()
+	params.NumPages = intSet
+
+	image, err := vips.LoadImageFromBuffer(fileBytes, params)
+	if err != nil {
+		return nil, err
+	}
+	defer image.Close()
+
+	if crop != nil {
+		err = image.ExtractArea(crop.X, crop.Y, crop.Width, crop.Height)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	buf, _, err := image.ExportWebp(getWebpDefaultConfig())
+	if err != nil {
+		return nil, err
+	}
+
+	return buf, nil
+}
+
+func processEmoji(file multipart.File) ([]byte, error) {
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file content: %w", err)
@@ -442,13 +474,7 @@ func convertToWebp(file multipart.File) ([]byte, error) {
 	}
 	defer image.Close()
 
-	webp := vips.NewWebpExportParams()
-	webp.Lossless = false
-	webp.NearLossless = false
-	webp.Quality = 85
-	webp.StripMetadata = true
-
-	buf, _, err := image.ExportWebp(webp)
+	buf, _, err := image.ExportWebp(getWebpDefaultConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -476,71 +502,11 @@ func bytesToHuman(bytes int64) string {
 	}
 }
 
-func processEmoji(file multipart.File) ([]byte, error) {
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file content: %w", err)
+func getWebpDefaultConfig() *vips.WebpExportParams {
+	return &vips.WebpExportParams{
+		Lossless:      false,
+		NearLossless:  false,
+		Quality:       85,
+		StripMetadata: true,
 	}
-
-	intSet := vips.IntParameter{}
-	intSet.Set(-1)
-
-	params := vips.NewImportParams()
-	params.NumPages = intSet
-
-	image, err := vips.LoadImageFromBuffer(fileBytes, params)
-	if err != nil {
-		return nil, err
-	}
-	defer image.Close()
-
-	webp := vips.NewWebpExportParams()
-	webp.Lossless = false
-	webp.NearLossless = false
-	webp.Quality = 85
-	webp.StripMetadata = true
-
-	buf, _, err := image.ExportWebp(webp)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf, nil
-}
-
-func cropImage(file multipart.File, crop types.Crop) ([]byte, error) {
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file content: %w", err)
-	}
-
-	intSet := vips.IntParameter{}
-	intSet.Set(-1)
-
-	params := vips.NewImportParams()
-	params.NumPages = intSet
-
-	image, err := vips.LoadImageFromBuffer(fileBytes, params)
-	if err != nil {
-		return nil, err
-	}
-	defer image.Close()
-
-	err = image.ExtractArea(crop.X, crop.Y, crop.Width, crop.Height)
-	if err != nil {
-		return nil, err
-	}
-
-	webp := vips.NewWebpExportParams()
-	webp.Lossless = false
-	webp.NearLossless = false
-	webp.Quality = 85
-	webp.StripMetadata = true
-
-	buf, _, err := image.ExportWebp(webp)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf, nil
 }

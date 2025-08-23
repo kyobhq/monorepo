@@ -15,7 +15,7 @@
 	import { hasPermissions } from 'utils/permissions';
 	import { page } from '$app/state';
 	import { coreStore } from 'stores/coreStore.svelte';
-	import { channelStore } from 'stores/channelStore.svelte';
+	import RichInputList from './RichInputList.svelte';
 
 	interface Props {
 		server?: Server;
@@ -106,19 +106,8 @@
 	class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5"
 	style="width: {coreStore.richInputLength}px;"
 >
-	{#if editorStore.currentInput === 'main' && editorStore.mentionProps}
-		<MentionsList
-			props={editorStore.mentionProps}
-			bind:this={editorStore.mentionsListEl}
-			class="w-full"
-		/>
-	{/if}
-	{#if editorStore.currentInput === 'main' && editorStore.emojiProps}
-		<EmojisList
-			props={editorStore.emojiProps}
-			bind:this={editorStore.emojisListEl}
-			class="w-full"
-		/>
+	{#if editorStore.currentInput === 'main' && editorStore.listOpen}
+		<RichInputList />
 	{/if}
 	{#if attachments.length > 0}
 		<Attachments bind:attachments />

@@ -5,7 +5,7 @@
 	import Gear from 'ui/icons/Gear.svelte';
 	import Headphone from 'ui/icons/Headphone.svelte';
 	import Microphone from 'ui/icons/Microphone.svelte';
-	import AnimatedAvatar from 'ui/AnimatedAvatar/AnimatedAvatar.svelte';
+	import Avatar from 'ui/Avatar/Avatar.svelte';
 
 	let userBarEl = $state<HTMLElement>();
 	let buttonEl = $state<HTMLElement>();
@@ -52,12 +52,7 @@
 				onmouseleave={() => (hoverAvatar = false)}
 			>
 				<figure class="relative h-12 w-12 highlight-border rounded-lg overflow-hidden">
-					<AnimatedAvatar
-						src={userStore.user.avatar}
-						alt=""
-						class="w-full h-full"
-						hover={hoverAvatar}
-					/>
+					<Avatar src={userStore.user.avatar} alt="" class="w-full h-full" hover={hoverAvatar} />
 				</figure>
 				<div class="flex flex-col gap-y-0.5">
 					<p class="leading-none font-medium truncate w-24">{userStore.user.display_name}</p>

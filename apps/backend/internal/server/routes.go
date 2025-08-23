@@ -63,6 +63,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	protected.GET("/servers/:server_id", server.GetInformations)
 	protected.GET("/servers/:server_id/members", server.GetMembers)
 	protected.GET("/servers/:server_id/bans", server.GetBannedMembers)
+	protected.GET("/servers/:server_id/search", server.SearchMembers)
 	protected.POST("/servers/join", server.JoinServer)
 	protected.POST("/servers/:server_id/leave", server.LeaveServer)
 	protected.POST("/servers/:server_id/invite", server.CreateInvite)

@@ -21,7 +21,7 @@
 
 	let onClickSave = $state<() => Promise<void>>();
 	let author = $derived(messageStore.getAuthor(message.author.id!) || message.author);
-	let hoverAvatar = $state(false);
+	let hover = $state(false);
 </script>
 
 <div
@@ -30,17 +30,25 @@
 		'flex gap-x-2.5 items-end hover:bg-main-950/50 px-6 transition-colors duration-75 relative first:mb-0',
 		messageIsRecent ? 'mb-0.5' : 'mb-4'
 	]}
-	onmouseenter={() => (hoverAvatar = true)}
-	onmouseleave={() => (hoverAvatar = false)}
+	onmouseenter={() => (hover = true)}
+	onmouseleave={() => (hover = false)}
 >
 	{#if !messageIsRecent}
-		<MessageAvatar {author} bind:hoverAvatar />
+		<MessageAvatar {author} hoverAvatar={hover} />
 	{/if}
 	<div class="flex flex-col gap-y-1 relative w-[calc(100%-4rem)]">
 		{#if messageStore.editMessage?.id === message.id}
 			<MessageEditSentence bind:onClickSave />
 		{/if}
-		<MessageBubble {server} {channel} {friend} {message} {messageIsRecent} bind:onClickSave />
+		<MessageBubble
+			{server}
+			{channel}
+			{friend}
+			{message}
+			{messageIsRecent}
+			hoverMessage={hover}
+			bind:onClickSave
+		/>
 		{#if !messageIsRecent}
 			<MessageAuthor {author} {message} />
 		{/if}

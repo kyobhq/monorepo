@@ -9,6 +9,7 @@
 	import { delay } from 'utils/time';
 	import ChatSpacer from './ChatSpacer.svelte';
 	import ChatNoMessages from './ChatNoMessages.svelte';
+	import { fade } from 'svelte/transition';
 
 	interface Props {
 		serverID: string;
@@ -106,20 +107,23 @@
 	});
 </script>
 
-<div
-	bind:this={scrollContainer}
-	class="flex flex-col-reverse w-full h-full overflow-auto pb-4 pt-18"
-	onscroll={handleScroll}
->
+<div class="w-full h-[calc(100%-4.5rem)]">
 	{#if showMessages}
-		{#if channelStore.messageCache[channelID]?.messages.length > 0}
-			<ChatSpacer {channelID} />
+		<div
+			transition:fade={{ duration: 100 }}
+			bind:this={scrollContainer}
+			class="flex flex-col-reverse w-full h-full overflow-auto pb-4 pt-18"
+			onscroll={handleScroll}
+		>
+			{#if channelStore.messageCache[channelID]?.messages.length > 0}
+				<ChatSpacer {channelID} />
 
-			{#each channelStore.messageCache[channelID].messages as message (message.id)}
-				<Message server={currentServer} channel={currentChannel!} {message} />
-			{/each}
-		{:else}
-			<ChatNoMessages channelName={currentChannel?.name} />
-		{/if}
+				{#each channelStore.messageCache[channelID].messages as message (message.id)}
+					<Message server={currentServer} channel={currentChannel!} {message} />
+				{/each}
+			{:else}
+				<ChatNoMessages channelName={currentChannel?.name} />
+			{/if}
+		</div>
 	{/if}
 </div>

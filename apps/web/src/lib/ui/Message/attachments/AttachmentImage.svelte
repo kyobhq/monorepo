@@ -1,5 +1,6 @@
 <script lang="ts">
-	let { image, medias } = $props();
+	let { image, medias, hover } = $props();
+	let isAnimated = $derived(image.url.includes('-animated.webp'));
 </script>
 
 <button
@@ -8,5 +9,30 @@
 		medias.length > 1 && 'aspect-square'
 	]}
 >
-	<img src={image.url} alt="Attachment" class="h-full w-full object-cover" />
+	<div role="img" aria-label="Attachment">
+		{#if isAnimated}
+			{#if hover}
+				<img
+					src={image.url}
+					alt=""
+					class="w-full h-full object-cover"
+					style="pointer-events: none;"
+				/>
+			{:else}
+				<img
+					src={image.url.replace('-animated.webp', '.webp')}
+					alt=""
+					class="w-full h-full object-cover"
+					style="pointer-events: none;"
+				/>
+			{/if}
+		{:else}
+			<img
+				src={image.url}
+				alt=""
+				class="w-full h-full object-cover"
+				style="pointer-events: none;"
+			/>
+		{/if}
+	</div>
 </button>
