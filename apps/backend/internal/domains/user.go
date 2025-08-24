@@ -8,6 +8,7 @@ import (
 	"backend/internal/database"
 	"backend/internal/files"
 	"backend/internal/types"
+	"backend/internal/utils"
 	"encoding/json"
 	"fmt"
 	"mime/multipart"
@@ -52,12 +53,7 @@ func NewUserService(db database.Service, broker broker.Service, files files.Serv
 func (s *userService) GetUserByID(ctx *gin.Context, userID string) (*db.User, *types.APIError) {
 	user, err := s.db.GetUserByID(ctx, userID)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_USER_BY_ID",
-			Cause:   err.Error(),
-			Message: "Failed to get user by ID.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_USER_BY_ID", "Failed to get user by ID.", err)
 	}
 
 	return &user, nil
@@ -66,31 +62,18 @@ func (s *userService) GetUserByID(ctx *gin.Context, userID string) (*db.User, *t
 func (s *userService) UpdateEmail(ctx *gin.Context, body *types.UpdateEmailParams) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	userID := u.(*db.User).ID
 
 	updatedUser, err := s.db.UpdateUserEmail(ctx, userID, body)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPDATE_ACCOUNT",
-			Cause:   err.Error(),
-			Message: "Failed to update account.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_UPDATE_ACCOUNT", "Failed to update account.", err)
 	}
 
 	token, err := ctx.Cookie("token")
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_MISSING_TOKEN",
-			Message: "Session token not found.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_MISSING_TOKEN", "Session token not found.", err)
 	}
 	s.broker.RefreshCachedUser(ctx, token, updatedUser)
 
@@ -100,11 +83,7 @@ func (s *userService) UpdateEmail(ctx *gin.Context, body *types.UpdateEmailParam
 func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHeader, banner []*multipart.FileHeader, body *types.UpdateAvatarParams) (*string, *string, *types.APIError) {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return nil, nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return nil, nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	user := u.(*db.User)
 	var oldAvatar, oldBanner string
@@ -150,21 +129,12 @@ func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHea
 
 	updatedUser, err := s.db.UpdateUserAvatarNBanner(ctx, user.ID, avatarURL, bannerURL)
 	if err != nil {
-		return nil, nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPDATE_AVATAR_BANNER",
-			Cause:   err.Error(),
-			Message: "Failed to update avatar/banner.",
-		}
+		return nil, nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPDATE_AVATAR_BANNER", "Failed to update avatar/banner.", err)
 	}
 
 	token, err := ctx.Cookie("token")
 	if err != nil {
-		return nil, nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_MISSING_TOKEN",
-			Message: "Session token not found.",
-		}
+		return nil, nil, types.NewAPIError(http.StatusUnauthorized, "ERR_MISSING_TOKEN", "Session token not found.", err)
 	}
 	s.broker.RefreshCachedUser(ctx, token, updatedUser)
 
@@ -174,11 +144,7 @@ func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHea
 func (s *userService) UpdateProfile(ctx *gin.Context, body *types.UpdateProfileParams) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	userID := u.(*db.User).ID
 
@@ -186,38 +152,21 @@ func (s *userService) UpdateProfile(ctx *gin.Context, body *types.UpdateProfileP
 	var facts []types.Fact
 
 	if err := json.Unmarshal(body.Links, &links); err != nil || len(links) > 2 {
-		return &types.APIError{
-			Status:  http.StatusBadRequest,
-			Code:    "ERR_INVALID_LINKS",
-			Message: "You can only have 2 links.",
-		}
+		return types.NewAPIError(http.StatusBadRequest, "ERR_INVALID_LINKS", "You can only have 2 links.", nil)
 	}
 
 	if err := json.Unmarshal(body.Facts, &facts); err != nil || len(facts) > 3 {
-		return &types.APIError{
-			Status:  http.StatusBadRequest,
-			Code:    "ERR_INVALID_FACTS",
-			Message: "You can only have 3 facts.",
-		}
+		return types.NewAPIError(http.StatusBadRequest, "ERR_INVALID_FACTS", "You can only have 3 facts.", nil)
 	}
 
 	updatedUser, err := s.db.UpdateUserProfile(ctx, userID, body)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPDATE_PROFILE",
-			Cause:   err.Error(),
-			Message: "Failed to update profile.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_UPDATE_PROFILE", "Failed to update profile.", err)
 	}
 
 	token, err := ctx.Cookie("token")
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_MISSING_TOKEN",
-			Message: "Session token not found.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_MISSING_TOKEN", "Session token not found.", err)
 	}
 	s.broker.RefreshCachedUser(ctx, token, updatedUser)
 
@@ -227,215 +176,265 @@ func (s *userService) UpdateProfile(ctx *gin.Context, body *types.UpdateProfileP
 func (s *userService) UpdatePassword(ctx *gin.Context, body *types.UpdatePasswordParams) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	userID := u.(*db.User).ID
 
 	password, err := s.db.GetUserPassword(ctx, userID)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_PASSWORD",
-			Cause:   err.Error(),
-			Message: "Failed to get user password.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_GET_PASSWORD", "Failed to get user password.", err)
 	}
 
 	if valid, err := crypto.VerifyPassword(body.Current, password); err != nil || !valid {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_INVALID_PASSWORD",
-			Message: "Invalid password.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_INVALID_PASSWORD", "Invalid password.", err)
 	}
 
 	hashedPassword, err := crypto.HashPassword(body.New)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_HASH_PASSWORD",
-			Cause:   err.Error(),
-			Message: "Failed to hash password.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_HASH_PASSWORD", "Failed to hash password.", err)
 	}
 
 	if err := s.db.UpdateUserPassword(ctx, userID, hashedPassword); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPDATE_PASSWORD",
-			Cause:   err.Error(),
-			Message: "Failed to update password.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_UPDATE_PASSWORD", "Failed to update password.", err)
 	}
 
 	return nil
 }
 
-func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
-	var res types.Setup
+type messageStateMaps struct {
+	readMap     map[string]string
+	sentMap     map[string]string
+	mentionsMap map[string]json.RawMessage
+}
 
+func (s *userService) buildMessageStateMaps(ctx *gin.Context, userID string, channelIDs []string) (*messageStateMaps, error) {
+	if len(channelIDs) == 0 {
+		return &messageStateMaps{
+			readMap:     make(map[string]string),
+			sentMap:     make(map[string]string),
+			mentionsMap: make(map[string]json.RawMessage),
+		}, nil
+	}
+
+	messagesRead, err := s.db.GetLatestMessagesRead(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	messagesSent, err := s.db.GetLatestMessagesSent(ctx, channelIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	readMap := make(map[string]string)
+	mentionsMap := make(map[string]json.RawMessage)
+	sentMap := make(map[string]string)
+
+	for _, message := range messagesRead {
+		readMap[message.ChannelID] = message.LastReadMessageID.String
+		mentionsMap[message.ChannelID] = message.UnreadMentionIds
+	}
+
+	for _, message := range messagesSent {
+		sentMap[message.ChannelID] = message.ID
+		if readMap[message.ChannelID] == "" {
+			readMap[message.ChannelID] = message.ID
+		}
+	}
+
+	return &messageStateMaps{
+		readMap:     readMap,
+		sentMap:     sentMap,
+		mentionsMap: mentionsMap,
+	}, nil
+}
+
+func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	user := u.(*db.User)
 	user.Password = ""
 
 	emojis, err := s.db.GetEmojis(ctx, user.ID)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_EMOJIS",
-			Cause:   err.Error(),
-			Message: "Failed to get user's emojis.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_EMOJIS", "Failed to get user's emojis.", err)
 	}
 
-	servers, err := s.db.GetUserServers(ctx, user.ID)
+	friendsData, friendChannelIDs, err := s.fetchFriendsData(ctx, user.ID)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_SERVERS",
-			Cause:   err.Error(),
-			Message: "Failed to get user's servers.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_FETCH_FRIENDS", "Failed to fetch friends data.", err)
 	}
 
-	friends, err := s.db.GetFriends(ctx, user.ID)
+	serversData, serverChannelIDs, err := s.fetchServersData(ctx, user.ID)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_SERVERS",
-			Cause:   err.Error(),
-			Message: "Failed to get user's servers.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_FETCH_SERVERS", "Failed to fetch servers data.", err)
 	}
 
-	res.User = user
-	res.Emojis = emojis
-	res.Friends = friends
-	res.Servers = make(map[string]types.ServerWithCategories)
-	if len(servers) > 0 {
-		serversMap, err := s.processServers(ctx, user.ID, servers)
-		if err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_SETUP_SERVERS",
-				Cause:   err.Error(),
-				Message: "Failed to organize servers for user.",
-			}
-		}
-
-		res.Servers = serversMap
+	allChannelIDs := append(friendChannelIDs, serverChannelIDs...)
+	messageStates, err := s.buildMessageStateMaps(ctx, user.ID, allChannelIDs)
+	if err != nil {
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_MESSAGE_STATES", "Failed to get message states.", err)
 	}
 
-	return &res, nil
+	friends := s.processFriendsWithData(friendsData, messageStates)
+	serversMap := s.processServersWithData(serversData, messageStates)
+
+	return &types.Setup{
+		User:    user,
+		Emojis:  emojis,
+		Friends: friends,
+		Servers: serversMap,
+	}, nil
 }
 
-func (s *userService) processServers(ctx *gin.Context, userID string, servers []db.GetServersFromUserRow) (map[string]types.ServerWithCategories, error) {
+func (s *userService) fetchFriendsData(ctx *gin.Context, userID string) ([]db.GetFriendsRow, []string, error) {
+	dbFriends, err := s.db.GetFriends(ctx, userID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	channelIDs := make([]string, 0, len(dbFriends))
+	for _, friend := range dbFriends {
+		if friend.ChannelID.String != "" {
+			channelIDs = append(channelIDs, friend.ChannelID.String)
+		}
+	}
+
+	return dbFriends, channelIDs, nil
+}
+
+func (s *userService) processFriendsWithData(dbFriends []db.GetFriendsRow, messageStates *messageStateMaps) []types.Friend {
+	friends := make([]types.Friend, 0, len(dbFriends))
+	for _, friend := range dbFriends {
+		friends = append(friends, types.Friend{
+			GetFriendsRow:   friend,
+			LastMessageRead: messageStates.readMap[friend.ChannelID.String],
+			LastMessageSent: messageStates.sentMap[friend.ChannelID.String],
+		})
+	}
+	return friends
+}
+
+type serverDataBundle struct {
+	servers    []db.GetServersFromUserRow
+	categories []db.ChannelCategory
+	channels   []db.Channel
+	roles      []db.GetRolesFromServersRow
+}
+
+func (s *userService) fetchServersData(ctx *gin.Context, userID string) (*serverDataBundle, []string, error) {
+	servers, err := s.db.GetUserServers(ctx, userID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(servers) == 0 {
+		return &serverDataBundle{servers: servers}, []string{}, nil
+	}
 	serverIDs := make([]string, 0, len(servers))
 	for _, server := range servers {
 		serverIDs = append(serverIDs, server.ID)
 	}
 
-	allCategories, err := s.db.GetCategoriesFromServers(ctx, serverIDs)
-	if err != nil {
-		return nil, err
+	type fetchResult struct {
+		categories []db.ChannelCategory
+		channels   []db.Channel
+		roles      []db.GetRolesFromServersRow
+		err        error
 	}
 
-	allChannels, err := s.db.GetChannelsFromServers(ctx, serverIDs)
-	if err != nil {
-		return nil, err
+	resultChan := make(chan fetchResult, 3)
+
+	go func() {
+		categories, err := s.db.GetCategoriesFromServers(ctx, serverIDs)
+		resultChan <- fetchResult{categories: categories, err: err}
+	}()
+
+	go func() {
+		channels, err := s.db.GetChannelsFromServers(ctx, serverIDs)
+		resultChan <- fetchResult{channels: channels, err: err}
+	}()
+
+	go func() {
+		roles, err := s.db.GetRolesFromServers(ctx, serverIDs)
+		resultChan <- fetchResult{roles: roles, err: err}
+	}()
+
+	var allCategories []db.ChannelCategory
+	var allChannels []db.Channel
+	var allRoles []db.GetRolesFromServersRow
+
+	for i := 0; i < 3; i++ {
+		data := <-resultChan
+		if data.err != nil {
+			return nil, nil, data.err
+		}
+		if data.categories != nil {
+			allCategories = data.categories
+		}
+		if data.channels != nil {
+			allChannels = data.channels
+		}
+		if data.roles != nil {
+			allRoles = data.roles
+		}
 	}
 
-	allRoles, err := s.db.GetRolesFromServers(ctx, serverIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	allMessagesReadMap := make(map[string]string)
-	allMessagesMentionsMap := make(map[string]json.RawMessage)
-	allMessagesRead, err := s.db.GetLatestMessagesRead(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	channelIDs := make([]string, len(allChannels))
-	for i, channel := range allChannels {
-		channelIDs[i] = channel.ID
-	}
-
-	allMessagesSentMap := make(map[string]string)
-	allMessagesSent, err := s.db.GetLatestMessagesSent(ctx, channelIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, message := range allMessagesRead {
-		allMessagesReadMap[message.ChannelID] = message.LastReadMessageID.String
-		allMessagesMentionsMap[message.ChannelID] = message.UnreadMentionIds
-	}
-
-	for _, message := range allMessagesSent {
-		allMessagesSentMap[message.ChannelID] = message.ID
-	}
-
-	categoriesByServer := make(map[string][]db.ChannelCategory)
-	for _, category := range allCategories {
-		categoriesByServer[category.ServerID] = append(categoriesByServer[category.ServerID], category)
-	}
-
-	channelsByCategory := make(map[string][]db.Channel)
+	channelIDs := make([]string, 0, len(allChannels))
 	for _, channel := range allChannels {
-		channelsByCategory[channel.CategoryID.String] = append(channelsByCategory[channel.CategoryID.String], channel)
+		channelIDs = append(channelIDs, channel.ID)
 	}
 
-	rolesByServer := make(map[string][]db.GetRolesFromServersRow)
-	for _, server := range servers {
-		rolesByServer[server.ID] = []db.GetRolesFromServersRow{}
-	}
-	for _, role := range allRoles {
-		rolesByServer[role.ServerID] = append(rolesByServer[role.ServerID], role)
+	return &serverDataBundle{
+		servers:    servers,
+		categories: allCategories,
+		channels:   allChannels,
+		roles:      allRoles,
+	}, channelIDs, nil
+}
+
+func (s *userService) processServersWithData(data *serverDataBundle, messageStates *messageStateMaps) map[string]types.ServerWithCategories {
+	if len(data.servers) == 0 {
+		return make(map[string]types.ServerWithCategories)
 	}
 
-	result := make(map[string]types.ServerWithCategories)
-	members := make([]types.Member, 0)
-	for _, server := range servers {
+	categoriesByServer := utils.GroupBy(data.categories, func(c db.ChannelCategory) string { return c.ServerID })
+	channelsByCategory := utils.GroupBy(data.channels, func(c db.Channel) string { return c.CategoryID.String })
+	rolesByServer := utils.GroupBy(data.roles, func(r db.GetRolesFromServersRow) string { return r.ServerID })
+
+	result := make(map[string]types.ServerWithCategories, len(data.servers))
+
+	for _, server := range data.servers {
 		categoryMap := make(map[string]types.CategoryWithChannels)
+
 		for _, category := range categoriesByServer[server.ID] {
 			channelMap := make(map[string]types.ServerChannel)
+
 			for _, channel := range channelsByCategory[category.ID] {
 				channelMap[channel.ID] = types.ServerChannel{
-					channel,
-					allMessagesReadMap[channel.ID],
-					allMessagesSentMap[channel.ID],
-					allMessagesMentionsMap[channel.ID],
+					Channel:         channel,
+					LastMessageRead: messageStates.readMap[channel.ID],
+					LastMessageSent: messageStates.sentMap[channel.ID],
+					LastMentions:    messageStates.mentionsMap[channel.ID],
 				}
 			}
 
 			categoryMap[category.ID] = types.CategoryWithChannels{
-				category,
-				channelMap,
+				ChannelCategory: category,
+				Channels:        channelMap,
 			}
 		}
 
 		result[server.ID] = types.ServerWithCategories{
-			server,
-			categoryMap,
-			members,
-			rolesByServer[server.ID],
+			GetServersFromUserRow: server,
+			Categories:            categoryMap,
+			Roles:                 rolesByServer[server.ID],
 		}
 	}
 
-	return result, nil
+	return result
 }
 
 func (s *userService) GetUserProfile(ctx *gin.Context) (*db.GetUserProfileRow, *types.APIError) {
@@ -443,12 +442,7 @@ func (s *userService) GetUserProfile(ctx *gin.Context) (*db.GetUserProfileRow, *
 
 	user, err := s.db.GetUserProfile(ctx, userID)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_USER_PROFILE",
-			Cause:   err.Error(),
-			Message: "Failed to get user profile.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_USER_PROFILE", "Failed to get user profile.", err)
 	}
 
 	return &user, nil
@@ -457,11 +451,7 @@ func (s *userService) GetUserProfile(ctx *gin.Context) (*db.GetUserProfileRow, *
 func (s *userService) UploadEmojis(ctx *gin.Context, emojis []*multipart.FileHeader, shortcodes []string, body *types.UploadEmojiParams) (*[]types.EmojiResponse, *types.APIError) {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	userID := u.(*db.User).ID
 
@@ -490,12 +480,7 @@ func (s *userService) UploadEmojis(ctx *gin.Context, emojis []*multipart.FileHea
 	}
 
 	if err := s.db.UploadEmojis(ctx, userID, emojisToUpload); err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPLOAD_EMOJIS",
-			Cause:   err.Error(),
-			Message: "Failed to upload emojis.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPLOAD_EMOJIS", "Failed to upload emojis.", err)
 	}
 
 	return &emojisResponse, nil
@@ -504,23 +489,14 @@ func (s *userService) UploadEmojis(ctx *gin.Context, emojis []*multipart.FileHea
 func (s *userService) UpdateEmoji(ctx *gin.Context, body *types.UpdateEmojiParams) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 
 	userID := u.(*db.User).ID
 	emojiID := ctx.Param("emoji_id")
 
 	if err := s.db.UpdateEmoji(ctx, emojiID, userID, body); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPDATE_EMOJI",
-			Cause:   err.Error(),
-			Message: "Failed to update emoji.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_UPDATE_EMOJI", "Failed to update emoji.", err)
 	}
 
 	return nil
@@ -529,23 +505,14 @@ func (s *userService) UpdateEmoji(ctx *gin.Context, body *types.UpdateEmojiParam
 func (s *userService) DeleteEmoji(ctx *gin.Context) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 
 	userID := u.(*db.User).ID
 	emojiID := ctx.Param("emoji_id")
 
 	if err := s.db.DeleteEmoji(ctx, emojiID, userID); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_DELETE_EMOJI",
-			Cause:   err.Error(),
-			Message: "Failed to delete emoji.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_EMOJI", "Failed to delete emoji.", err)
 	}
 
 	return nil
@@ -554,51 +521,28 @@ func (s *userService) DeleteEmoji(ctx *gin.Context) *types.APIError {
 func (s *userService) DeleteAccount(ctx *gin.Context) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	userID := u.(*db.User).ID
 
 	token, err := ctx.Cookie("token")
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_MISSING_TOKEN",
-			Message: "Session token not found.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_MISSING_TOKEN", "Session token not found.", err)
 	}
 
 	servers, err := s.db.GetUserServerIDs(ctx, userID)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_DELETE_ACCOUNT",
-			Message: "Failed to delete account.",
-			Cause:   err.Error(),
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_ACCOUNT", "Failed to delete account.", err)
 	}
 
 	err = s.db.DeleteAccount(ctx, userID)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_DELETE_ACCOUNT",
-			Message: "Failed to delete account.",
-			Cause:   err.Error(),
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_ACCOUNT", "Failed to delete account.", err)
 	}
 
 	err = s.broker.RemoveCachedUser(ctx, token)
 	if err != nil {
-		fmt.Println(&types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_DELETE_CACHE_USER",
-			Message: "Failed to delete cached user",
-			Cause:   err.Error(),
-		})
+		fmt.Println(types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_CACHE_USER", "Failed to delete cached user", err))
 	}
 
 	s.actors.NotifyAccountDeletion(userID, servers)
@@ -609,21 +553,12 @@ func (s *userService) DeleteAccount(ctx *gin.Context) *types.APIError {
 func (s *userService) Sync(ctx *gin.Context, body *types.SyncParams) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	userID := u.(*db.User).ID
 
 	if err := s.db.Sync(ctx, userID, body); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_SYNC",
-			Message: "Failed to sync.",
-			Cause:   err.Error(),
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_SYNC", "Failed to sync.", err)
 	}
 
 	return nil

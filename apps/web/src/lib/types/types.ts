@@ -17,8 +17,8 @@ export interface Channel {
   description: string;
   type: ChannelTypes;
   unread: boolean;
-  last_message_sent?: string;
-  last_message_read?: string;
+  last_message_sent: string;
+  last_message_read: string;
   last_mentions?: string[];
   messages?: Message[];
   users?: string[];
@@ -110,8 +110,8 @@ export interface Friend extends Partial<User> {
   channel_id?: string;
   friendship_id: string;
   friendship_sender_id: string;
-  last_message_sent?: string;
-  last_message_read?: string;
+  last_message_sent: string;
+  last_message_read: string;
   accepted: boolean;
   status: string;
 }

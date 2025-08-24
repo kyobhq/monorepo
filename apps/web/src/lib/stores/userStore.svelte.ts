@@ -58,10 +58,17 @@ export class UserStore {
     const channels = serverStore.getAllChannels();
 
     for (const channel of channels) {
-      if (channel.last_message_read) {
+      if (channel.last_message_read !== channel.last_message_sent) {
         lastState.channel_ids.push(channel.id);
-        lastState.last_message_ids.push(channel.last_message_read || '');
+        lastState.last_message_ids.push(channel.last_message_read);
         lastState.mentions_ids.push(channel.last_mentions || []);
+      }
+    }
+
+    for (const friend of userStore.friends) {
+      if (friend.channel_id && friend.last_message_sent !== friend.last_message_read) {
+        lastState.channel_ids.push(friend.channel_id);
+        lastState.last_message_ids.push(friend.last_message_read);
       }
     }
 

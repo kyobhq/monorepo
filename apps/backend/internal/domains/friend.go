@@ -31,32 +31,18 @@ func NewFriendService(db database.Service, actors actors.Service) *friendService
 func (s *friendService) SendRequest(ctx *gin.Context, body *types.SendRequestParams) (*db.GetFriendsRow, *types.APIError) {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "UNAUTHORIZED",
-			Message: "Unauthorized",
-		}
+		return nil, types.NewAPIError(http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
 	}
 	user := u.(*db.User)
 
 	receiver, err := s.db.GetUser(ctx, body.ReceiverUsername)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusNotFound,
-			Code:    "ERR_USER_NOT_FOUND",
-			Cause:   err.Error(),
-			Message: "User not found",
-		}
+		return nil, types.NewAPIError(http.StatusNotFound, "ERR_USER_NOT_FOUND", "User not found", err)
 	}
 
 	friendship, err := s.db.CreateFriendRequest(ctx, user.ID, receiver.ID)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_FRIENDSHIP_CREATION",
-			Cause:   err.Error(),
-			Message: "Failed to create friend request",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_FRIENDSHIP_CREATION", "Failed to create friend request", err)
 	}
 
 	s.actors.SendFriendRequest(friendship.ID, receiver.ID, user)
@@ -76,22 +62,13 @@ func (s *friendService) SendRequest(ctx *gin.Context, body *types.SendRequestPar
 func (s *friendService) AcceptRequest(ctx *gin.Context, body *types.AcceptRequestParams) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "UNAUTHORIZED",
-			Message: "Unauthorized",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
 	}
 	user := u.(*db.User)
 
 	channelID, err := s.db.AcceptFriendRequest(ctx, body.FriendshipID, body.SenderID, user.ID)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_FRIENDSHIP_ACCEPT",
-			Cause:   err.Error(),
-			Message: "Failed to accept friend request",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_FRIENDSHIP_ACCEPT", "Failed to accept friend request", err)
 	}
 
 	s.actors.AcceptFriendRequest(body.FriendshipID, body.SenderID, user.ID, *channelID)
@@ -102,21 +79,12 @@ func (s *friendService) AcceptRequest(ctx *gin.Context, body *types.AcceptReques
 func (s *friendService) RemoveFriend(ctx *gin.Context, body *types.RemoveFriendParams) *types.APIError {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "UNAUTHORIZED",
-			Message: "Unauthorized",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
 	}
 	user := u.(*db.User)
 
 	if err := s.db.RemoveFriend(ctx, body.FriendshipID, user.ID); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_FRIENDSHIP_REMOVE",
-			Cause:   err.Error(),
-			Message: "Failed to remove friend",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_FRIENDSHIP_REMOVE", "Failed to remove friend", err)
 	}
 
 	if body.ChannelID != "" {

@@ -62,13 +62,33 @@ INSERT INTO messages (
 RETURNING *;
 
 -- name: SaveUnreadMessagesState :exec
-INSERT INTO user_channel_read_state (user_id, channel_id, last_read_message_id, unread_mention_ids)
-SELECT $1, unnest(@channel_ids::VARCHAR[]), unnest(@last_read_message_ids::VARCHAR[]), unnest(@unread_mention_ids::JSONB[])
-ON CONFLICT (user_id, channel_id)
-DO UPDATE SET 
+WITH sync_data AS (
+  SELECT 
+    $1 as user_id,
+    unnest(@channel_ids::VARCHAR[]) as channel_id,
+    unnest(@last_read_message_ids::VARCHAR[]) as last_read_message_id,
+    unnest(@unread_mention_ids::JSONB[]) as unread_mention_ids
+),
+upsert_records AS (
+  INSERT INTO user_channel_read_state (user_id, channel_id, last_read_message_id, unread_mention_ids)
+  SELECT user_id, channel_id, last_read_message_id, unread_mention_ids
+  FROM sync_data
+  ON CONFLICT (user_id, channel_id)
+  DO UPDATE SET 
     last_read_message_id = EXCLUDED.last_read_message_id,
     unread_mention_ids = EXCLUDED.unread_mention_ids,
-    updated_at = NOW();
+    updated_at = NOW()
+  RETURNING channel_id
+),
+channels_to_delete AS (
+  SELECT channel_id 
+  FROM user_channel_read_state 
+  WHERE user_id = $1 
+  AND channel_id NOT IN (SELECT channel_id FROM sync_data)
+)
+DELETE FROM user_channel_read_state ucrs
+WHERE ucrs.user_id = $1 
+AND ucrs.channel_id IN (SELECT channel_id FROM channels_to_delete);
 
 -- name: UpdateMessage :exec
 UPDATE messages 

@@ -26,8 +26,14 @@ type UpdateProfileParams struct {
 type Setup struct {
 	User    *db.User                        `json:"user"`
 	Servers map[string]ServerWithCategories `json:"servers"`
-	Friends []db.GetFriendsRow              `json:"friends"`
+	Friends []Friend                        `json:"friends"`
 	Emojis  []db.GetEmojisRow               `json:"emojis"`
+}
+
+type Friend struct {
+	db.GetFriendsRow
+	LastMessageRead string `json:"last_message_read"`
+	LastMessageSent string `json:"last_message_sent"`
 }
 
 type UpdatePasswordParams struct {
@@ -67,5 +73,5 @@ type EmojiResponse struct {
 type SyncParams struct {
 	ChannelIDs     []string          `json:"channel_ids"`
 	LastMessageIDs []string          `json:"last_message_ids"`
-	MentionIDs     []json.RawMessage `json:"mention_ids"`
+	MentionIDs     []json.RawMessage `json:"mentions_ids"`
 }

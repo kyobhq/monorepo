@@ -68,24 +68,14 @@ func (s *service) ProcessAndUploadFiles(filesToUpload []*multipart.FileHeader) (
 	for _, fileHeader := range filesToUpload {
 		file, err := fileHeader.Open()
 		if err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_OPEN_FILE",
-				Cause:   err.Error(),
-				Message: "Failed to open file.",
-			}
+			return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_OPEN_FILE", "Failed to open file.", err)
 		}
 		defer file.Close()
 
 		buffer := make([]byte, 512)
 		n, err := file.Read(buffer)
 		if err != nil && err != io.EOF {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_READ_FILE",
-				Cause:   err.Error(),
-				Message: "Failed to read file.",
-			}
+			return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_READ_FILE", "Failed to read file.", err)
 		}
 
 		mimeType := http.DetectContentType(buffer[:n])
@@ -101,35 +91,20 @@ func (s *service) ProcessAndUploadFiles(filesToUpload []*multipart.FileHeader) (
 		if strings.Contains(mimeType, "image") {
 			processedImg, err := processImageVersions(file, nil, mimeType)
 			if err != nil {
-				return nil, &types.APIError{
-					Status:  http.StatusInternalServerError,
-					Code:    "ERR_PROCESS_IMAGE",
-					Cause:   err.Error(),
-					Message: "Failed to process image.",
-				}
+				return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_PROCESS_IMAGE", "Failed to process image.", err)
 			}
 
 			key = fmt.Sprintf("attachment-%s.webp", randomID)
 			fileData = bytes.NewReader(processedImg.StaticData)
 			if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
-				return nil, &types.APIError{
-					Status:  http.StatusInternalServerError,
-					Code:    "ERR_UPLOAD_FILE",
-					Cause:   err.Error(),
-					Message: "Failed to upload file.",
-				}
+				return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPLOAD_FILE", "Failed to upload file.", err)
 			}
 
 			if processedImg.IsGIF && processedImg.AnimatedData != nil {
 				key = fmt.Sprintf("attachment-%s-animated.webp", randomID)
 				fileData = bytes.NewReader(processedImg.AnimatedData)
 				if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
-					return nil, &types.APIError{
-						Status:  http.StatusInternalServerError,
-						Code:    "ERR_UPLOAD_FILE",
-						Cause:   err.Error(),
-						Message: "Failed to upload animated file.",
-					}
+					return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPLOAD_FILE", "Failed to upload animated file.", err)
 				}
 			}
 		} else {
@@ -137,12 +112,7 @@ func (s *service) ProcessAndUploadFiles(filesToUpload []*multipart.FileHeader) (
 			key = fmt.Sprintf("attachment-%s.%s", randomID, extension)
 
 			if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
-				return nil, &types.APIError{
-					Status:  http.StatusInternalServerError,
-					Code:    "ERR_UPLOAD_FILE",
-					Cause:   err.Error(),
-					Message: "Failed to upload file.",
-				}
+				return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPLOAD_FILE", "Failed to upload file.", err)
 			}
 		}
 		defer file.Close()
@@ -163,12 +133,7 @@ func (s *service) ProcessAndUploadFiles(filesToUpload []*multipart.FileHeader) (
 
 	res, err := json.Marshal(files)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_MARSHAL_FILES",
-			Cause:   err.Error(),
-			Message: "Failed to marshal files.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_MARSHAL_FILES", "Failed to marshal files.", err)
 	}
 
 	return res, nil
@@ -180,33 +145,19 @@ func (s *service) ProcessAndUploadEmojis(emojisToUpload []*multipart.FileHeader)
 	for _, fileHeader := range emojisToUpload {
 		file, err := fileHeader.Open()
 		if err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_OPEN_FILE",
-				Cause:   err.Error(),
-				Message: "Failed to open file.",
-			}
+			return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_OPEN_FILE", "Failed to open file.", err)
 		}
 		defer file.Close()
 
 		buffer := make([]byte, 512)
 		n, err := file.Read(buffer)
 		if err != nil && err != io.EOF {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_READ_FILE",
-				Cause:   err.Error(),
-				Message: "Failed to read file.",
-			}
+			return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_READ_FILE", "Failed to read file.", err)
 		}
 
 		mimeType := http.DetectContentType(buffer[:n])
 		if !strings.Contains(mimeType, "image") {
-			return nil, &types.APIError{
-				Status:  http.StatusBadRequest,
-				Code:    "ERR_INVALID_MIME_TYPE",
-				Message: "Invalid mime type.",
-			}
+			return nil, types.NewAPIError(http.StatusBadRequest, "ERR_INVALID_MIME_TYPE", "Invalid mime type.", nil)
 		}
 
 		if seeker, ok := file.(io.Seeker); ok {
@@ -220,22 +171,12 @@ func (s *service) ProcessAndUploadEmojis(emojisToUpload []*multipart.FileHeader)
 
 		emojiData, err := processEmoji(file)
 		if err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_PROCESS_EMOJI",
-				Cause:   err.Error(),
-				Message: "Failed to process the emoji.",
-			}
+			return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_PROCESS_EMOJI", "Failed to process the emoji.", err)
 		}
 
 		fileData = bytes.NewReader(emojiData)
 		if err := s.UploadFile(key, mimeType, fileData, fileHeader.Filename); err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_UPLOAD_EMOJI",
-				Cause:   err.Error(),
-				Message: "Failed to upload emoji.",
-			}
+			return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPLOAD_EMOJI", "Failed to upload emoji.", err)
 		}
 		defer file.Close()
 
@@ -250,33 +191,19 @@ func (s *service) ProcessAndUploadEmojis(emojisToUpload []*multipart.FileHeader)
 func (s *service) ProcessAndUploadAvatar(entityID, imageType string, avatarToUpload *multipart.FileHeader, crop types.Crop) (*string, *types.APIError) {
 	file, err := avatarToUpload.Open()
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_OPEN_FILE",
-			Cause:   err.Error(),
-			Message: "Failed to open file.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_OPEN_FILE", "Failed to open file.", err)
 	}
 	defer file.Close()
 
 	buffer := make([]byte, 512)
 	n, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_READ_FILE",
-			Cause:   err.Error(),
-			Message: "Failed to read file.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_READ_FILE", "Failed to read file.", err)
 	}
 
 	mimeType := http.DetectContentType(buffer[:n])
 	if !strings.Contains(mimeType, "image") {
-		return nil, &types.APIError{
-			Status:  http.StatusBadRequest,
-			Code:    "ERR_INVALID_MIME_TYPE",
-			Message: "Invalid mime type.",
-		}
+		return nil, types.NewAPIError(http.StatusBadRequest, "ERR_INVALID_MIME_TYPE", "Invalid mime type.", nil)
 	}
 
 	if seeker, ok := file.(io.Seeker); ok {
@@ -289,35 +216,20 @@ func (s *service) ProcessAndUploadAvatar(entityID, imageType string, avatarToUpl
 
 	processedImg, err := processImageVersions(file, &crop, mimeType)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_PROCESS_IMAGE",
-			Cause:   err.Error(),
-			Message: "Failed to process avatar image.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_PROCESS_IMAGE", "Failed to process avatar image.", err)
 	}
 
 	key = fmt.Sprintf("%s-%s-%s.webp", entityID, imageType, staticID)
 	fileData = bytes.NewReader(processedImg.StaticData)
 	if err := s.UploadFile(key, mimeType, fileData, avatarToUpload.Filename); err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPLOAD_FILE",
-			Cause:   err.Error(),
-			Message: "Failed to upload avatar.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPLOAD_FILE", "Failed to upload avatar.", err)
 	}
 
 	if processedImg.IsGIF && processedImg.AnimatedData != nil {
 		key = fmt.Sprintf("%s-%s-%s-animated.webp", entityID, imageType, staticID)
 		fileData = bytes.NewReader(processedImg.AnimatedData)
 		if err := s.UploadFile(key, mimeType, fileData, avatarToUpload.Filename); err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_UPLOAD_FILE",
-				Cause:   err.Error(),
-				Message: "Failed to upload animated avatar.",
-			}
+			return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPLOAD_FILE", "Failed to upload animated avatar.", err)
 		}
 	}
 

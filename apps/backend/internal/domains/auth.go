@@ -31,52 +31,28 @@ func NewAuthService(db database.Service, broker broker.Service) *authService {
 
 func (s *authService) SignIn(ctx *gin.Context, user *types.SignInParams) (*string, *types.APIError) {
 	if user.Email == "admin" {
-		return nil, &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_ADMIN",
-			Message: "no",
-		}
+		return nil, types.NewAPIError(http.StatusForbidden, "ERR_ADMIN", "no", nil)
 	}
 
 	dbUser, err := s.db.GetUser(ctx, user.Email)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusNotFound,
-			Code:    "ERR_USER_NOT_FOUND",
-			Cause:   err.Error(),
-			Message: "User not found.",
-		}
+		return nil, types.NewAPIError(http.StatusNotFound, "ERR_USER_NOT_FOUND", "User not found.", err)
 	}
 
 	match, err := crypto.VerifyPassword(user.Password, dbUser.Password)
 	if err != nil || !match {
-		return nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_INVALID_CREDENTIALS",
-			Cause:   err.Error(),
-			Message: "Given credentials are invalid.",
-		}
+		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_INVALID_CREDENTIALS", "Given credentials are invalid.", err)
 	}
 
 	token, err := crypto.GenerateRandomBytes(64)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_TOKEN_GENERATION",
-			Cause:   err.Error(),
-			Message: "Failed to generate auth token.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_TOKEN_GENERATION", "Failed to generate auth token.", err)
 	}
 
 	b64Token := base64.RawStdEncoding.EncodeToString(token)
 	err = s.broker.CacheUser(ctx, b64Token, dbUser)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_CACHING_USER",
-			Cause:   err.Error(),
-			Message: "Failed to cache the user in memdb.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CACHING_USER", "Failed to cache the user in memdb.", err)
 	}
 
 	return &b64Token, nil
@@ -85,45 +61,25 @@ func (s *authService) SignIn(ctx *gin.Context, user *types.SignInParams) (*strin
 func (s *authService) SignUp(ctx *gin.Context, user *types.SignUpParams) (*string, *types.APIError) {
 	hashedPassword, err := crypto.HashPassword(user.Password)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_PASSWORD_HASHING_FAILED",
-			Cause:   err.Error(),
-			Message: "Failed to hash the password.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_PASSWORD_HASHING_FAILED", "Failed to hash the password.", err)
 	}
 
 	user.Password = hashedPassword
 
 	dbUser, err := s.db.CreateUser(ctx, user)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_FAILED_USER_CREATION",
-			Cause:   err.Error(),
-			Message: "Failed to create the user account.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_FAILED_USER_CREATION", "Failed to create the user account.", err)
 	}
 
 	token, err := crypto.GenerateRandomBytes(64)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_TOKEN_GENERATION",
-			Cause:   err.Error(),
-			Message: "Failed to generate auth token.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_TOKEN_GENERATION", "Failed to generate auth token.", err)
 	}
 
 	b64Token := base64.RawStdEncoding.EncodeToString(token)
 	err = s.broker.CacheUser(ctx, b64Token, dbUser)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_CACHING_USER",
-			Cause:   err.Error(),
-			Message: "Failed to cache the user in memdb.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CACHING_USER", "Failed to cache the user in memdb.", err)
 	}
 
 	return &b64Token, nil
@@ -132,22 +88,12 @@ func (s *authService) SignUp(ctx *gin.Context, user *types.SignUpParams) (*strin
 func (s *authService) Logout(ctx *gin.Context) *types.APIError {
 	token, err := ctx.Cookie("token")
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusNotFound,
-			Code:    "ERR_MISSING_TOKEN",
-			Cause:   err.Error(),
-			Message: "No token found.",
-		}
+		return types.NewAPIError(http.StatusNotFound, "ERR_MISSING_TOKEN", "No token found.", err)
 	}
 
 	err = s.broker.RemoveCachedUser(ctx, token)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_REMOVE_CACHED_USER",
-			Cause:   err.Error(),
-			Message: "Failed to disconnect user.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_REMOVE_CACHED_USER", "Failed to disconnect user.", err)
 	}
 
 	return nil

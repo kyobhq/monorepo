@@ -35,22 +35,12 @@ func NewRoleService(db database.Service, actors actors.Service, permissions perm
 
 func (s *roleService) CreateOrEditRole(ctx *gin.Context, body *types.CreateRoleParams) (*db.Role, *types.APIError) {
 	if allowed := s.permissions.CheckPermission(ctx, body.ServerID, types.ManageRoles); !allowed {
-		return nil, &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Cause:   "",
-			Message: "Forbidden to create a role",
-		}
+		return nil, types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "Forbidden to create a role", nil)
 	}
 
 	role, err := s.db.UpsertRole(ctx, body)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_CREATE_OR_EDIT_ROLE",
-			Cause:   err.Error(),
-			Message: "Failed to create or edit a role",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CREATE_OR_EDIT_ROLE", "Failed to create or edit a role", err)
 	}
 
 	s.actors.CreateOrEditRole(role)
@@ -60,21 +50,11 @@ func (s *roleService) CreateOrEditRole(ctx *gin.Context, body *types.CreateRoleP
 
 func (s *roleService) DeleteRole(ctx *gin.Context, body *types.DeleteRoleParams) *types.APIError {
 	if allowed := s.permissions.CheckPermission(ctx, body.ServerID, types.ManageRoles); !allowed {
-		return &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Cause:   "",
-			Message: "Forbidden to create a role",
-		}
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "Forbidden to create a role", nil)
 	}
 
 	if err := s.db.DeleteRole(ctx, body); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_CREATE_ROLE",
-			Cause:   err.Error(),
-			Message: "Failed to create a role",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_CREATE_ROLE", "Failed to create a role", err)
 	}
 
 	s.actors.RemoveRole(body)
@@ -84,21 +64,11 @@ func (s *roleService) DeleteRole(ctx *gin.Context, body *types.DeleteRoleParams)
 
 func (s *roleService) AddRoleMember(ctx *gin.Context, body *types.ChangeRoleMemberParams) *types.APIError {
 	if allowed := s.permissions.CheckPermission(ctx, body.ServerID, types.ManageRoles); !allowed {
-		return &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Cause:   "",
-			Message: "Forbidden to create a role",
-		}
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "Forbidden to create a role", nil)
 	}
 
 	if err := s.db.AddRoleMember(ctx, body); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_ADD_ROLE_TO_MEMBER",
-			Cause:   err.Error(),
-			Message: "Failed to add role to a member",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_ADD_ROLE_TO_MEMBER", "Failed to add role to a member", err)
 	}
 
 	s.actors.AddRoleMember(body)
@@ -108,21 +78,11 @@ func (s *roleService) AddRoleMember(ctx *gin.Context, body *types.ChangeRoleMemb
 
 func (s *roleService) RemoveRoleMember(ctx *gin.Context, body *types.ChangeRoleMemberParams) *types.APIError {
 	if allowed := s.permissions.CheckPermission(ctx, body.ServerID, types.ManageRoles); !allowed {
-		return &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Cause:   "",
-			Message: "Forbidden to create a role",
-		}
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "Forbidden to create a role", nil)
 	}
 
 	if err := s.db.RemoveRoleMember(ctx, body); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_REMOVE_ROLE_FROM_MEMBER",
-			Cause:   err.Error(),
-			Message: "Failed to remove role from a member",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_REMOVE_ROLE_FROM_MEMBER", "Failed to remove role from a member", err)
 	}
 
 	s.actors.RemoveRoleMember(body)
@@ -132,21 +92,11 @@ func (s *roleService) RemoveRoleMember(ctx *gin.Context, body *types.ChangeRoleM
 
 func (s *roleService) MoveRole(ctx *gin.Context, body *types.MoveRoleMemberParams) *types.APIError {
 	if allowed := s.permissions.CheckPermission(ctx, body.ServerID, types.ManageRoles); !allowed {
-		return &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Cause:   "",
-			Message: "Forbidden to create a role",
-		}
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "Forbidden to create a role", nil)
 	}
 
 	if err := s.db.MoveRole(ctx, body); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_MOVE_ROLE",
-			Cause:   err.Error(),
-			Message: "Failed to move role",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_MOVE_ROLE", "Failed to move role", err)
 	}
 
 	s.actors.MoveRole(body)

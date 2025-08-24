@@ -56,11 +56,7 @@ func NewServerService(db database.Service, actors actors.Service, files files.Se
 func (s *serverService) CreateServer(ctx *gin.Context, serverAvatar []*multipart.FileHeader, body *types.CreateServerParams) (*db.Server, *types.APIError) {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 
 	avatarURL, perr := s.files.ProcessAndUploadAvatar(cuid2.Generate(), "avatar", serverAvatar[0], body.Crop)
@@ -72,12 +68,7 @@ func (s *serverService) CreateServer(ctx *gin.Context, serverAvatar []*multipart
 
 	server, err := s.db.CreateServer(ctx, user.ID, body, avatarURL)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_CREATE_SERVER",
-			Cause:   err.Error(),
-			Message: "Failed to create server.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CREATE_SERVER", "Failed to create server.", err)
 	}
 
 	s.actors.StartServerInRegion(server.ID, os.Getenv("REGION"))
@@ -101,11 +92,7 @@ func (s *serverService) CreateServer(ctx *gin.Context, serverAvatar []*multipart
 func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParams) (*types.JoinServerWithCategories, *types.APIError) {
 	u, exists := ctx.Get("user")
 	if !exists {
-		return nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	user := u.(*db.User)
 
@@ -113,33 +100,19 @@ func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParam
 	if body.InviteID != "" {
 		id, err := s.db.CheckInvite(ctx, body.InviteID)
 		if err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_CHECK_INVITE",
-				Cause:   err.Error(),
-				Message: "Failed to check invite.",
-			}
+			return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CHECK_INVITE", "Failed to check invite.", err)
 		}
 		serverID = id
 	}
 
 	reason, err := s.db.CheckBan(ctx, serverID, user.ID)
 	if err == nil {
-		return nil, &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "USER_BANNED",
-			Message: reason.String,
-		}
+		return nil, types.NewAPIError(http.StatusForbidden, "USER_BANNED", reason.String, nil)
 	}
 
 	server, categories, channels, roles, latestMessagesSent, err := s.db.JoinServer(ctx, serverID, user.ID, body.Position)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_JOIN_SERVER",
-			Cause:   err.Error(),
-			Message: "Failed to join server.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_JOIN_SERVER", "Failed to join server.", err)
 	}
 
 	allMessagesSentMap := make(map[string]string)
@@ -192,11 +165,7 @@ func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParam
 func (s *serverService) LeaveServer(ctx *gin.Context) *types.APIError {
 	user, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 
 	userID := user.(*db.User).ID
@@ -204,12 +173,7 @@ func (s *serverService) LeaveServer(ctx *gin.Context) *types.APIError {
 
 	err := s.db.LeaveServer(ctx, serverID, userID)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_LEAVE_SERVER",
-			Cause:   err.Error(),
-			Message: "Failed to leave server.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_LEAVE_SERVER", "Failed to leave server.", err)
 	}
 
 	s.actors.LeaveServer(serverID, userID)
@@ -220,11 +184,7 @@ func (s *serverService) LeaveServer(ctx *gin.Context) *types.APIError {
 func (s *serverService) CreateInvite(ctx *gin.Context) (*string, *types.APIError) {
 	user, exists := ctx.Get("user")
 	if !exists {
-		return nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 
 	userID := user.(*db.User).ID
@@ -232,12 +192,7 @@ func (s *serverService) CreateInvite(ctx *gin.Context) (*string, *types.APIError
 
 	inviteID, err := s.db.CreateInvite(ctx, userID, serverID)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_CREATE_INVITE",
-			Cause:   err.Error(),
-			Message: "Failed to create invite.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_CREATE_INVITE", "Failed to create invite.", err)
 	}
 
 	inviteURL := fmt.Sprintf("https://%s/invite/%s", os.Getenv("DOMAIN"), inviteID)
@@ -249,22 +204,12 @@ func (s *serverService) UpdateProfile(ctx *gin.Context, body *types.UpdateServer
 	serverID := ctx.Param("server_id")
 
 	if allowed := s.permissions.CheckPermission(ctx, serverID, types.ManageServer); !allowed {
-		return &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Message: "You are not allowed to edit this server.",
-			Cause:   "",
-		}
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "You are not allowed to edit this server.", nil)
 	}
 
 	err := s.db.UpdateServerProfile(ctx, serverID, body)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPDATE_SERVER_PROFILE",
-			Cause:   err.Error(),
-			Message: "Failed to update server profile.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_UPDATE_SERVER_PROFILE", "Failed to update server profile.", err)
 	}
 
 	s.actors.ProfileServerChange(serverID, body)
@@ -275,23 +220,14 @@ func (s *serverService) UpdateProfile(ctx *gin.Context, body *types.UpdateServer
 func (s *serverService) DeleteServer(ctx *gin.Context) *types.APIError {
 	user, exists := ctx.Get("user")
 	if !exists {
-		return &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	userID := user.(*db.User).ID
 	serverID := ctx.Param("server_id")
 
 	err := s.db.DeleteServer(ctx, userID, serverID)
 	if err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_DELETE_SERVER",
-			Cause:   err.Error(),
-			Message: "Failed to delete server.",
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_DELETE_SERVER", "Failed to delete server.", err)
 	}
 
 	s.actors.KillServer(serverID)
@@ -302,11 +238,7 @@ func (s *serverService) DeleteServer(ctx *gin.Context) *types.APIError {
 func (s *serverService) GetInformations(ctx *gin.Context) (*db.GetServerInformationsRow, *types.APIError) {
 	user, exists := ctx.Get("user")
 	if !exists {
-		return nil, &types.APIError{
-			Status:  http.StatusUnauthorized,
-			Code:    "ERR_UNAUTHORIZED",
-			Message: "Unauthorized.",
-		}
+		return nil, types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
 	userID := user.(*db.User).ID
 	serverID := ctx.Param("server_id")
@@ -314,12 +246,7 @@ func (s *serverService) GetInformations(ctx *gin.Context) (*db.GetServerInformat
 	userIDs := s.actors.GetActiveUsers(serverID)
 	serverInformations, err := s.db.GetServerInformations(ctx, userID, serverID, userIDs)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_SERVER_INFORMATIONS",
-			Cause:   err.Error(),
-			Message: "Failed to get server informations.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_SERVER_INFORMATIONS", "Failed to get server informations.", err)
 	}
 
 	return &serverInformations, nil
@@ -337,12 +264,7 @@ func (s *serverService) GetMembers(ctx *gin.Context) ([]db.GetServerMembersRow, 
 	userIDs := s.actors.GetActiveUsers(serverID)
 	members, err := s.db.GetServerMembers(ctx, serverID, int32(offset), userIDs)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_MEMBERS",
-			Cause:   err.Error(),
-			Message: "Failed to get server members.",
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_MEMBERS", "Failed to get server members.", err)
 	}
 
 	return members, nil
@@ -354,12 +276,7 @@ func (s *serverService) SearchMembers(ctx *gin.Context) ([]db.SearchServerMember
 
 	members, err := s.db.SearchServerMembers(ctx, serverID, query)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_SEARCH_MEMBERS",
-			Message: "Failed to search members.",
-			Cause:   err.Error(),
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_SEARCH_MEMBERS", "Failed to search members.", err)
 	}
 
 	return members, nil
@@ -373,22 +290,12 @@ func (s *serverService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileH
 	serverID := ctx.Param("server_id")
 
 	if allowed := s.permissions.CheckPermission(ctx, serverID, types.ManageServer); !allowed {
-		return nil, nil, &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Message: "You are not allowed to edit this server.",
-			Cause:   "",
-		}
+		return nil, nil, types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "You are not allowed to edit this server.", nil)
 	}
 
 	server, err := s.db.GetServer(ctx, serverID)
 	if err != nil {
-		return nil, nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_SERVER",
-			Message: "Failed to get server.",
-			Cause:   err.Error(),
-		}
+		return nil, nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_SERVER", "Failed to get server.", err)
 	}
 
 	var oldAvatar, oldBanner string
@@ -434,12 +341,7 @@ func (s *serverService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileH
 
 	err = s.db.UpdateServerAvatarNBanner(ctx, serverID, avatarURL, bannerURL)
 	if err != nil {
-		return nil, nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UPDATE_SERVER_AVATAR",
-			Message: "Failed to update server avatar/banner.",
-			Cause:   err.Error(),
-		}
+		return nil, nil, types.NewAPIError(http.StatusInternalServerError, "ERR_UPDATE_SERVER_AVATAR", "Failed to update server avatar/banner.", err)
 	}
 
 	s.actors.AvatarServerChange(serverID, bannerURL, avatarURL)
@@ -450,20 +352,11 @@ func (s *serverService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileH
 func (s *serverService) BanUser(ctx *gin.Context, body *types.BanUserParams) *types.APIError {
 	serverID := ctx.Param("server_id")
 	if allowed := s.permissions.CheckPermission(ctx, serverID, types.BanMembers); !allowed {
-		return &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Message: "You are not allowed to ban users.",
-		}
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "You are not allowed to ban users.", nil)
 	}
 
 	if err := s.db.BanUser(ctx, serverID, body); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_BAN_USER",
-			Message: "Failed to ban user.",
-			Cause:   err.Error(),
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_BAN_USER", "Failed to ban user.", err)
 	}
 
 	s.actors.BanUser(serverID, body)
@@ -474,21 +367,12 @@ func (s *serverService) BanUser(ctx *gin.Context, body *types.BanUserParams) *ty
 func (s *serverService) UnbanUser(ctx *gin.Context) *types.APIError {
 	serverID := ctx.Param("server_id")
 	if allowed := s.permissions.CheckPermission(ctx, serverID, types.BanMembers); !allowed {
-		return &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Message: "You are not allowed to unban users.",
-		}
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "You are not allowed to unban users.", nil)
 	}
 
 	userID := ctx.Param("user_id")
 	if err := s.db.UnbanUser(ctx, serverID, userID); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_UNBAN_USER",
-			Message: "Failed to unban user.",
-			Cause:   err.Error(),
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_UNBAN_USER", "Failed to unban user.", err)
 	}
 
 	return nil
@@ -498,20 +382,11 @@ func (s *serverService) KickUser(ctx *gin.Context, body *types.KickUserParams) *
 	serverID := ctx.Param("server_id")
 
 	if allowed := s.permissions.CheckPermission(ctx, serverID, types.KickMembers); !allowed {
-		return &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Message: "You are not allowed to kick users.",
-		}
+		return types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "You are not allowed to kick users.", nil)
 	}
 
 	if err := s.db.KickUser(ctx, serverID, body); err != nil {
-		return &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_KICK_USER",
-			Message: "Failed to kick user.",
-			Cause:   err.Error(),
-		}
+		return types.NewAPIError(http.StatusInternalServerError, "ERR_KICK_USER", "Failed to kick user.", err)
 	}
 
 	s.actors.KickUser(serverID, body)
@@ -523,21 +398,12 @@ func (s *serverService) GetBannedMembers(ctx *gin.Context) ([]db.GetBannedMember
 	serverID := ctx.Param("server_id")
 
 	if allowed := s.permissions.CheckPermission(ctx, serverID, types.BanMembers); !allowed {
-		return nil, &types.APIError{
-			Status:  http.StatusForbidden,
-			Code:    "ERR_FORBIDDEN",
-			Message: "You are not allowed to get banned users.",
-		}
+		return nil, types.NewAPIError(http.StatusForbidden, "ERR_FORBIDDEN", "You are not allowed to get banned users.", nil)
 	}
 
 	bans, err := s.db.GetBannedMembers(ctx, serverID)
 	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_BANNED_MEMBERS",
-			Message: "Failed to get banned members.",
-			Cause:   err.Error(),
-		}
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_BANNED_MEMBERS", "Failed to get banned members.", err)
 	}
 
 	return bans, nil
