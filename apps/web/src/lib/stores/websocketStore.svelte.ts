@@ -1,5 +1,13 @@
 import { WSMessageSchema } from '$lib/gen/types_pb';
-import type { Category, Channel, ChannelTypes, Friend, Member, Message, Role } from '$lib/types/types';
+import type {
+	Category,
+	Channel,
+	ChannelTypes,
+	Friend,
+	Member,
+	Message,
+	Role
+} from '$lib/types/types';
 import { fromBinary } from '@bufbuild/protobuf';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { channelStore } from './channelStore.svelte';
@@ -11,447 +19,398 @@ import { goto } from '$app/navigation';
 import { coreStore } from './coreStore.svelte';
 
 export class WebsocketStore {
-  wsConn = $state<WebSocket>();
+	wsConn = $state<WebSocket>();
 
-  init(userID: string) {
-    const ws = new WebSocket(`ws://localhost:8080/api/protected/ws/${userID}`);
-    if (!ws) return;
+	init(userID: string) {
+		const ws = new WebSocket(`ws://localhost:8080/api/protected/ws/${userID}`);
+		if (!ws) return;
 
-    this.wsConn = ws;
+		this.wsConn = ws;
 
-    ws.onopen = () => {
-      window.setInterval(() => {
-        ws.send('heartbeat');
-      }, 10 * 1000);
-    };
+		ws.onopen = () => {
+			window.setInterval(() => {
+				ws.send('heartbeat');
+			}, 10 * 1000);
+		};
 
-    ws.onmessage = async (event) => {
-      if (event.data === 'heartbeat') return;
+		ws.onmessage = async (event) => {
+			if (event.data === 'heartbeat') return;
 
-      const arrayBuffer = await event.data.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      const wsMess = fromBinary(WSMessageSchema, uint8Array, {
-        readUnknownFields: false
-      });
+			const arrayBuffer = await event.data.arrayBuffer();
+			const uint8Array = new Uint8Array(arrayBuffer);
+			const wsMess = fromBinary(WSMessageSchema, uint8Array, {
+				readUnknownFields: false
+			});
 
-      switch (wsMess.content.case) {
-        case 'userChangeStatus':
-          {
-            if (!wsMess.content.value) return;
-            if (wsMess.content.value.user?.id === userStore.user?.id) return;
-            const value = wsMess.content.value;
+			await this.handleMessage(wsMess);
+		};
+	}
 
-            if (value.status === 'offline') {
-              serverStore.setMemberOffline(value.serverId, value.user!.id);
-              userStore.setFriendStatus(value.user!.id, value.status)
-            } else {
-              if (value.type === 'connect') {
-                serverStore.setMemberOnline(value.serverId, value.user!.id, value.status);
-                userStore.setFriendStatus(value.user!.id, value.status)
-              }
-              if (value.type === 'join') {
-                const member: Member = {
-                  id: value.user!.id,
-                  display_name: value.user!.displayName,
-                  avatar: value.user!.avatar,
-                  status: value.status,
-                  roles: [],
-                  joined_server: Date.now().toString(),
-                  joined_kyob: userStore.user!.created_at
-                };
-                serverStore.addMember(value.serverId, member);
-              }
-            }
-          }
-          break;
-        case 'newChatMessage':
-          {
-            if (!wsMess.content.value.message) return;
-            const message = wsMess.content.value.message;
-            const contentStr = new TextDecoder().decode(message.content);
-            const attachments = new TextDecoder().decode(message.attachments);
-            const serverID = wsMess.content.value.message.serverId;
-            const channelID = wsMess.content.value.message.channelId;
+	private async handleMessage(wsMess: any) {
+		const { content } = wsMess;
+		if (!content.case || !content.value) return;
 
-            const newMessage: Message = {
-              id: message.id,
-              author: {
-                id: message.author!.id,
-                avatar: message.author!.avatar,
-                display_name: message.author!.displayName
-              },
-              server_id: message.serverId,
-              channel_id: message.channelId,
-              content: JSON.parse(contentStr),
-              everyone: message.everyone,
-              mentions_users: message.mentionsUsers,
-              mentions_channels: message.mentionsChannels,
-              attachments: attachments.length > 0 ? JSON.parse(attachments) : [],
-              updated_at: timestampDate(message.createdAt!).toISOString(),
-              created_at: timestampDate(message.createdAt!).toISOString()
-            };
+		const handlers: Record<string, () => void> = {
+			userChangeStatus: () => this.handleUserStatusChange(content.value),
+			newChatMessage: () => this.handleNewMessage(content.value),
+			deleteChatMessage: () => this.handleDeleteMessage(content.value),
+			editChatMessage: () => this.handleEditMessage(content.value),
+			startCategory: () => this.handleCategoryStart(content.value),
+			startChannel: () => this.handleChannelStart(content.value),
+			killCategory: () => this.handleCategoryDelete(content.value),
+			killChannel: () => this.handleChannelDelete(content.value),
+			createOrEditRole: () => this.handleRoleCreateOrEdit(content.value),
+			addRoleMember: () => this.handleAddRoleMember(content.value),
+			removeRoleMember: () => this.handleRemoveRoleMember(content.value),
+			removeRole: () => this.handleRoleDelete(content.value),
+			moveRole: () => this.handleRoleMove(content.value),
+			friendRequest: () => this.handleFriendRequest(content.value),
+			acceptFriendRequest: () => this.handleAcceptFriend(content.value),
+			removeFriend: () => this.handleRemoveFriend(content.value),
+			accountDeletion: () => this.handleAccountDeletion(content.value),
+			avatarServerChange: () => this.handleServerAvatarChange(content.value),
+			profileServerChange: () => this.handleServerProfileChange(content.value),
+			editChannel: () => this.handleChannelEdit(content.value),
+			editCategory: () => this.handleCategoryEdit(content.value),
+			killServer: () => this.handleServerDelete(content.value),
+			leaveServer: () => this.handleServerLeave(content.value),
+			banUser: () => this.handleUserBan(content.value),
+			kickUser: () => this.handleUserKick(content.value)
+		};
 
-            console.log(serverID)
-            if (serverID === "global") {
-              channelStore.addMessageDM(channelID, newMessage)
-            } else {
-              channelStore.addMessage(serverID, channelID, newMessage);
-            }
-          }
-          break;
-        case 'deleteChatMessage':
-          {
-            if (!wsMess.content.value.message) return;
-            if (wsMess.content.value.message.channelId !== page.params.channel_id) return;
-            const message = wsMess.content.value.message;
-            const channelID = wsMess.content.value.message.channelId
+		const handler = handlers[content.case];
+		if (handler) handler();
+	}
 
-            channelStore.deleteMessage(channelID, message.id);
-          }
-          break;
-        case 'editChatMessage':
-          {
-            if (!wsMess.content.value.message) return;
-            if (wsMess.content.value.message.channelId !== page.params.channel_id) return;
+	private handleUserStatusChange(value: any) {
+		if (!value?.user || value.user.id === userStore.user?.id) return;
 
-            const channelID = wsMess.content.value.message.channelId
-            const message = wsMess.content.value.message;
-            const contentStr = new TextDecoder().decode(message.content);
+		if (value.status === 'offline') {
+			serverStore.setMemberOffline(value.serverId, value.user.id);
+			userStore.setFriendStatus(value.user.id, value.status);
+			return;
+		}
 
-            const editMessage: Partial<Message> = {
-              id: message.id,
-              everyone: message.everyone,
-              mentions_users: message.mentionsUsers,
-              mentions_channels: message.mentionsChannels,
-              content: JSON.parse(contentStr),
-              updated_at: timestampDate(message.updatedAt!).toISOString()
-            };
+		if (value.type === 'connect') {
+			serverStore.setMemberOnline(value.serverId, value.user.id, value.status);
+			userStore.setFriendStatus(value.user.id, value.status);
+		}
 
-            channelStore.editMessage(channelID, editMessage);
-          }
-          break;
-        case 'startCategory':
-          {
-            if (!wsMess.content.value.category) return;
-            const category = wsMess.content.value.category;
+		if (value.type === 'join') {
+			const member: Member = {
+				id: value.user.id,
+				display_name: value.user.displayName,
+				avatar: value.user.avatar,
+				status: value.status,
+				roles: [],
+				joined_server: Date.now().toString(),
+				joined_kyob: userStore.user!.created_at
+			};
+			serverStore.addMember(value.serverId, member);
+		}
+	}
 
-            const newCategory: Category = {
-              id: category.id,
-              server_id: category.serverId,
-              name: category.name,
-              position: category.position,
-              users: category.users,
-              roles: category.roles,
-              e2ee: category.e2ee,
-              channels: {}
-            };
+	private handleNewMessage(value: any) {
+		if (!value.message) return;
 
-            categoryStore.addCategory(newCategory);
-          }
-          break;
-        case 'startChannel':
-          {
-            if (!wsMess.content.value.channel) return;
-            const channel = wsMess.content.value.channel;
+		const msg = value.message;
+		const newMessage: Message = {
+			id: msg.id,
+			author: {
+				id: msg.author!.id,
+				avatar: msg.author!.avatar,
+				display_name: msg.author!.displayName,
+				status: 'online',
+				joined_kyob: '',
+				joined_server: '',
+				roles: []
+			},
+			server_id: msg.serverId,
+			channel_id: msg.channelId,
+			content: JSON.parse(new TextDecoder().decode(msg.content)),
+			everyone: msg.everyone,
+			mentions_users: msg.mentionsUsers,
+			mentions_channels: msg.mentionsChannels,
+			attachments: this.parseAttachments(msg.attachments),
+			updated_at: timestampDate(msg.createdAt!).toISOString(),
+			created_at: timestampDate(msg.createdAt!).toISOString()
+		};
 
-            const newChannel: Channel = {
-              id: channel.id,
-              server_id: channel.serverId,
-              category_id: channel.categoryId,
-              name: channel.name,
-              description: channel.description,
-              users: channel.users,
-              roles: channel.roles,
-              type: channel.type as ChannelTypes,
-              position: channel.position,
-              unread: false
-            };
+		if (msg.serverId === 'global') {
+			channelStore.addMessageDM(msg.channelId, newMessage);
+		} else {
+			channelStore.addMessage(msg.serverId, msg.channelId, newMessage);
+		}
+	}
 
-            channelStore.addChannel(newChannel);
-          }
-          break;
-        case 'killCategory':
-          {
-            if (!wsMess.content.value) return;
-            const value = wsMess.content.value;
-            const channels = channelStore.getCategoryChannels(value.serverId, value.categoryId);
+	private handleDeleteMessage(value: any) {
+		if (!value.message) return;
+		channelStore.deleteMessage(value.message.channelId, value.message.id);
+	}
 
-            if (channels.find((chan) => chan.id === page.params.channel_id)) {
-              const firstChan = channelStore.getFirstChannel(value.serverId);
-              if (firstChan) goto(`/servers/${value.serverId}/channels/${firstChan}`);
-            }
+	private handleEditMessage(value: any) {
+		if (!value.message) return;
 
-            categoryStore.deleteCategory(value.serverId, value.categoryId);
-          }
-          break;
-        case 'killChannel':
-          {
-            if (!wsMess.content.value.channel) return;
-            const channel = wsMess.content.value.channel;
+		const msg = value.message;
+		const editMessage: Partial<Message> = {
+			id: msg.id,
+			everyone: msg.everyone,
+			mentions_users: msg.mentionsUsers,
+			mentions_channels: msg.mentionsChannels,
+			content: JSON.parse(new TextDecoder().decode(msg.content)),
+			updated_at: timestampDate(msg.updatedAt!).toISOString()
+		};
 
-            if (channel.id === page.params.channel_id) {
-              const firstChan = channelStore.getFirstChannel(channel.serverId);
-              if (firstChan) goto(`/servers/${channel.serverId}/channels/${firstChan}`);
-            }
+		channelStore.editMessage(msg.channelId, editMessage);
+	}
 
-            channelStore.deleteChannel(channel.serverId, channel.categoryId, channel.id);
-          }
-          break;
-        case 'createOrEditRole':
-          {
-            if (!wsMess.content.value.role) return;
-            const role = wsMess.content.value.role;
-            const newRole: Role = {
-              id: role.id,
-              members: [],
-              name: role.name,
-              color: role.color,
-              abilities: role.abilities,
-              position: role.position
-            };
+	private handleCategoryStart(value: any) {
+		if (!value.category) return;
 
-            const existingRole = serverStore.getRole(role.serverId, role.id);
-            if (existingRole) {
-              serverStore.editRole(role.serverId, newRole);
-            } else {
-              serverStore.addRole(role.serverId, newRole);
-            }
-          }
-          break;
-        case 'addRoleMember':
-          {
-            if (!wsMess.content.value.userId || !wsMess.content.value.role) return;
-            const userId = wsMess.content.value.userId;
-            const role = wsMess.content.value.role;
+		const cat = value.category;
+		const newCategory: Category = {
+			id: cat.id,
+			server_id: cat.serverId,
+			name: cat.name,
+			position: cat.position,
+			users: cat.users,
+			roles: cat.roles,
+			e2ee: cat.e2ee,
+			channels: {}
+		};
 
-            const member = serverStore.getMember(role.serverId, userId);
-            if (member) member.roles.push(role.id);
+		categoryStore.addCategory(newCategory);
+	}
 
-            if (userId === userStore.user!.id) {
-              serverStore.servers[role.serverId].user_roles.push(role.id);
-            }
-          }
-          break;
-        case 'removeRoleMember':
-          {
-            if (!wsMess.content.value.userId || !wsMess.content.value.role) return;
-            const userId = wsMess.content.value.userId;
-            const role = wsMess.content.value.role;
+	private handleChannelStart(value: any) {
+		if (!value.channel) return;
 
-            const member = serverStore.getMember(role.serverId, userId);
-            if (member) {
-              member.roles = member.roles.filter((roleID) => roleID !== role.id);
-            }
+		const chan = value.channel;
+		const newChannel: Channel = {
+			id: chan.id,
+			server_id: chan.serverId,
+			category_id: chan.categoryId,
+			name: chan.name,
+			description: chan.description,
+			users: chan.users,
+			roles: chan.roles,
+			type: chan.type as ChannelTypes,
+			position: chan.position,
+			unread: false
+		};
 
-            if (userId === userStore.user!.id) {
-              serverStore.servers[role.serverId].user_roles = serverStore.servers[
-                role.serverId
-              ].user_roles.filter((roleID) => roleID !== role.id);
-            }
-          }
-          break;
-        case 'removeRole':
-          {
-            if (!wsMess.content.value.role) return;
-            const role = wsMess.content.value.role;
-            serverStore.deleteRole(role.serverId, role.id);
-          }
-          break;
-        case 'moveRole':
-          {
-            if (!wsMess.content.value) return;
-            const movedRoleID = wsMess.content.value.movedRole?.id;
-            const targetRoleID = wsMess.content.value.targetRole?.id;
-            const serverID = wsMess.content.value.movedRole?.serverId;
-            if (!movedRoleID || !targetRoleID || !serverID) return;
+		channelStore.addChannel(newChannel);
+	}
 
-            const fromPos = wsMess.content.value.from;
-            const toPos = wsMess.content.value.to;
+	private handleCategoryDelete(value: any) {
+		const channels = channelStore.getCategoryChannels(value.serverId, value.categoryId);
 
-            const roles = serverStore.getRoles(serverID);
-            const movedRole = serverStore.getRole(serverID, movedRoleID);
-            const targetRole = serverStore.getRole(serverID, targetRoleID);
+		if (channels.find((chan) => chan.id === page.params.channel_id)) {
+			const firstChan = channelStore.getFirstChannel(value.serverId);
+			if (firstChan) goto(`/servers/${value.serverId}/channels/${firstChan}`);
+		}
 
-            if (movedRole && targetRole) {
-              movedRole.position = toPos;
-              targetRole.position = fromPos;
-            }
+		categoryStore.deleteCategory(value.serverId, value.categoryId);
+	}
 
-            roles.sort((a, b) => a.position - b.position);
-          }
-          break;
-        case 'friendRequest':
-          {
-            if (!wsMess.content.value) return;
-            const sender = wsMess.content.value.sender
-            const friendshipID = wsMess.content.value.friendshipId
-            const accepted = wsMess.content.value.accepted
-            if (!sender) return;
+	private handleChannelDelete(value: any) {
+		if (!value.channel) return;
 
-            const aboutMeStr = new TextDecoder().decode(sender.aboutMe);
+		const channel = value.channel;
+		if (channel.id === page.params.channel_id) {
+			const firstChan = channelStore.getFirstChannel(channel.serverId);
+			if (firstChan) goto(`/servers/${channel.serverId}/channels/${firstChan}`);
+		}
 
-            const friend: Friend = {
-              friendship_id: friendshipID,
-              friendship_sender_id: sender.id,
-              id: sender.id,
-              display_name: sender.displayName,
-              about_me: JSON.parse(aboutMeStr),
-              banner: sender.banner,
-              avatar: sender.avatar,
-              accepted: accepted,
-              status: "offline"
-            }
+		channelStore.deleteChannel(channel.serverId, channel.categoryId, channel.id);
+	}
 
-            userStore.friends.push(friend)
-          }
-          break;
-        case 'acceptFriendRequest':
-          {
-            if (!wsMess.content.value) return;
-            const friendshipID = wsMess.content.value.friendshipId
-            const channelID = wsMess.content.value.channelId
+	private handleRoleCreateOrEdit(value: any) {
+		if (!value.role) return;
 
-            userStore.acceptFriend(friendshipID, channelID)
-          }
-          break;
-        case 'removeFriend':
-          {
-            if (!wsMess.content.value) return;
-            const friendshipID = wsMess.content.value.friendshipId
+		const role = value.role;
+		const newRole: Role = {
+			id: role.id,
+			members: [],
+			name: role.name,
+			color: role.color,
+			abilities: role.abilities,
+			position: role.position
+		};
 
-            userStore.removeFriend({ friendshipID: friendshipID })
-          }
-          break;
-        case 'accountDeletion':
-          {
-            if (!wsMess.content.value) return;
+		const existingRole = serverStore.getRole(role.serverId, role.id);
+		if (existingRole) {
+			serverStore.editRole(role.serverId, newRole);
+		} else {
+			serverStore.addRole(role.serverId, newRole);
+		}
+	}
 
-            if (wsMess.content.value.serverId !== "") {
-              serverStore.deleteMember(wsMess.content.value.serverId, wsMess.content.value.userId)
-            } else {
-              userStore.removeFriend({ userID: wsMess.content.value.userId })
-            }
-          }
-          break;
-        case 'avatarServerChange':
-          {
-            if (!wsMess.content.value) return;
-            const serverID = wsMess.content.value.serverId
-            const avatarURL = wsMess.content.value.avatarUrl
-            const bannerURL = wsMess.content.value.bannerUrl
+	private handleAddRoleMember(value: any) {
+		if (!value.userId || !value.role) return;
 
-            serverStore.updateAvatar(serverID, avatarURL, bannerURL)
-          }
-          break;
-        case 'profileServerChange':
-          {
-            if (!wsMess.content.value) return;
-            const serverID = wsMess.content.value.serverId
+		const member = serverStore.getMember(value.role.serverId, value.userId);
+		if (member) member.roles.push(value.role.id);
 
-            const descriptionStr = new TextDecoder().decode(wsMess.content.value.description)
+		if (value.userId === userStore.user!.id) {
+			serverStore.servers[value.role.serverId].user_roles.push(value.role.id);
+		}
+	}
 
-            serverStore.updateProfile(serverID, {
-              name: wsMess.content.value.name,
-              description: JSON.parse(descriptionStr),
-              public: wsMess.content.value.public,
-            })
-          }
-          break;
-        case 'editChannel':
-          {
-            if (!wsMess.content.value.channel) return;
-            const channel = wsMess.content.value.channel
+	private handleRemoveRoleMember(value: any) {
+		if (!value.userId || !value.role) return;
 
-            channelStore.editChannel(channel.id, {
-              server_id: channel.serverId,
-              name: channel.name,
-              description: channel.description,
-              users: channel.users,
-              roles: channel.roles
-            })
-          }
-          break;
-        case 'editCategory':
-          {
-            if (!wsMess.content.value.category) return;
-            const category = wsMess.content.value.category
+		const member = serverStore.getMember(value.role.serverId, value.userId);
+		if (member) {
+			member.roles = member.roles.filter((roleID) => roleID !== value.role.id);
+		}
 
-            categoryStore.editCategory(category.id, {
-              server_id: category.serverId,
-              name: category.name,
-              users: category.users,
-              roles: category.roles
-            })
-          }
-          break;
-        case 'killServer':
-          {
-            if (!wsMess.content.value.serverId) return;
-            const serverID = wsMess.content.value.serverId;
+		if (value.userId === userStore.user!.id) {
+			const server = serverStore.servers[value.role.serverId];
+			server.user_roles = server.user_roles.filter((roleID) => roleID !== value.role.id);
+		}
+	}
 
-            if (page.url.pathname.includes(serverID)) goto("/servers")
+	private handleRoleDelete(value: any) {
+		if (!value.role) return;
+		serverStore.deleteRole(value.role.serverId, value.role.id);
+	}
 
-            serverStore.deleteServer(wsMess.content.value.serverId)
-          }
-          break;
-        case 'leaveServer':
-          {
-            if (!wsMess.content.value) return;
-            const serverID = wsMess.content.value.serverId;
-            const userID = wsMess.content.value.userId;
+	private handleRoleMove(value: any) {
+		const { movedRole, targetRole } = value;
+		if (!movedRole?.id || !targetRole?.id || !movedRole?.serverId) return;
 
-            serverStore.deleteMember(serverID, userID)
-          }
-          break;
-        case 'banUser':
-          {
-            if (!wsMess.content.value) return;
-            const serverID = wsMess.content.value.serverId;
-            const userID = wsMess.content.value.userId;
-            const reason = wsMess.content.value.reason;
+		const roles = serverStore.getRoles(movedRole.serverId);
+		const moved = serverStore.getRole(movedRole.serverId, movedRole.id);
+		const target = serverStore.getRole(movedRole.serverId, targetRole.id);
 
-            serverStore.deleteMember(serverID, userID)
+		if (moved && target) {
+			moved.position = value.to;
+			target.position = value.from;
+			roles.sort((a, b) => a.position - b.position);
+		}
+	}
 
-            if (userID === userStore.user?.id) {
-              if (page.url.pathname.includes(serverID)) {
-                goto('/servers')
-                coreStore.restrictionDialog = {
-                  open: true,
-                  title: "You've been banned",
-                  reason: reason,
-                  restriction: 'ban'
-                }
-              }
-              serverStore.deleteServer(serverID)
-            }
-          }
-          break;
-        case 'kickUser':
-          {
-            if (!wsMess.content.value) return;
-            const serverID = wsMess.content.value.serverId;
-            const userID = wsMess.content.value.userId;
-            const reason = wsMess.content.value.reason;
+	private handleFriendRequest(value: any) {
+		if (!value.sender) return;
 
-            serverStore.deleteMember(serverID, userID)
+		const friend: Friend = {
+			friendship_id: value.friendshipId,
+			friendship_sender_id: value.sender.id,
+			id: value.sender.id,
+			display_name: value.sender.displayName,
+			about_me: JSON.parse(new TextDecoder().decode(value.sender.aboutMe)),
+			banner: value.sender.banner,
+			avatar: value.sender.avatar,
+			accepted: value.accepted,
+			status: 'offline'
+		};
 
-            if (userID === userStore.user?.id) {
-              if (page.url.pathname.includes(serverID)) {
-                goto('/servers')
-                coreStore.restrictionDialog = {
-                  open: true,
-                  title: "You've been kicked",
-                  reason: reason,
-                  restriction: 'kick'
-                }
-              }
-              serverStore.deleteServer(serverID)
-            }
-          }
-          break;
-      }
-    };
-  }
+		userStore.friends.push(friend);
+	}
+
+	private handleAcceptFriend(value: any) {
+		userStore.acceptFriend(value.friendshipId, value.channelId);
+	}
+
+	private handleRemoveFriend(value: any) {
+		userStore.removeFriend({ friendshipID: value.friendshipId });
+	}
+
+	private handleAccountDeletion(value: any) {
+		if (value.serverId !== '') {
+			serverStore.deleteMember(value.serverId, value.userId);
+		} else {
+			userStore.removeFriend({ userID: value.userId });
+		}
+	}
+
+	private handleServerAvatarChange(value: any) {
+		serverStore.updateAvatar(value.serverId, value.avatarUrl, value.bannerUrl);
+	}
+
+	private handleServerProfileChange(value: any) {
+		serverStore.updateProfile(value.serverId, {
+			name: value.name,
+			description: JSON.parse(new TextDecoder().decode(value.description)),
+			public: value.public
+		});
+	}
+
+	private handleChannelEdit(value: any) {
+		if (!value.channel) return;
+
+		const channel = value.channel;
+		channelStore.editChannel(channel.id, {
+			server_id: channel.serverId,
+			name: channel.name,
+			description: channel.description,
+			users: channel.users,
+			roles: channel.roles
+		});
+	}
+
+	private handleCategoryEdit(value: any) {
+		if (!value.category) return;
+
+		const category = value.category;
+		categoryStore.editCategory(category.id, {
+			server_id: category.serverId,
+			name: category.name,
+			users: category.users,
+			roles: category.roles
+		});
+	}
+
+	private handleServerDelete(value: any) {
+		if (!value.serverId) return;
+
+		if (page.url.pathname.includes(value.serverId)) goto('/servers');
+		serverStore.deleteServer(value.serverId);
+	}
+
+	private handleServerLeave(value: any) {
+		serverStore.deleteMember(value.serverId, value.userId);
+	}
+
+	private handleUserBan(value: any) {
+		serverStore.deleteMember(value.serverId, value.userId);
+
+		if (value.userId === userStore.user?.id) {
+			this.handleCurrentUserRestriction(value.serverId, value.reason, 'ban', "You've been banned");
+		}
+	}
+
+	private handleUserKick(value: any) {
+		serverStore.deleteMember(value.serverId, value.userId);
+
+		if (value.userId === userStore.user?.id) {
+			this.handleCurrentUserRestriction(value.serverId, value.reason, 'kick', "You've been kicked");
+		}
+	}
+
+	private handleCurrentUserRestriction(
+		serverID: string,
+		reason: string,
+		restriction: string,
+		title: string
+	) {
+		if (page.url.pathname.includes(serverID)) {
+			goto('/servers');
+			coreStore.restrictionDialog = {
+				open: true,
+				title,
+				reason,
+				restriction
+			};
+		}
+		serverStore.deleteServer(serverID);
+	}
+
+	private parseAttachments(attachments: Uint8Array): any[] {
+		const attachmentsStr = new TextDecoder().decode(attachments);
+		return attachmentsStr.length > 0 ? JSON.parse(attachmentsStr) : [];
+	}
 }
 
 export const ws = new WebsocketStore();

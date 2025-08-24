@@ -1,5 +1,5 @@
 import type { EditServerType } from '$lib/types/schemas';
-import type { Invite, Member, Role, Server } from '$lib/types/types';
+import type { Channel, Invite, Member, Role, Server } from '$lib/types/types';
 import { createId } from '@paralleldrive/cuid2';
 import { backend } from './backendStore.svelte';
 import { logErr } from 'utils/print';
@@ -55,121 +55,113 @@ export class ServerStore {
 		return this.servers[id];
 	}
 
-	addMember(serverID: string, member: Member) {
+	addMember(serverID: string, member: Member): void {
 		if (this.getMember(serverID, member.id!)) return;
 		if (page.params.server_id === serverID) serverStore.memberCount += 1;
 
 		this.servers[serverID].members.push(member);
 	}
 
-	addMembers(serverID: string, members: Member[]) {
+	addMembers(serverID: string, members: Member[]): void {
 		this.servers[serverID].members.push(...members);
 	}
 
-	resetMembersList(serverID: string) {
+	resetMembersList(serverID: string): void {
 		this.servers[serverID].members = this.servers[serverID].members.slice(0, 50);
 	}
 
-	setMemberOnline(serverID: string, memberID: string, status: string) {
-		if (page.params.server_id !== serverID || serverID === '') return;
+	setMemberOnline(serverID: string, memberID: string, status: string): void {
+		if (page.params.server_id !== serverID || !serverID) return;
 
-		const member = this.servers[serverID].members?.find((m) => m.id === memberID);
+		const member = this.getMember(serverID, memberID);
 		if (member) member.status = status;
 	}
 
-	setMemberOffline(serverID: string, memberID: string) {
-		if (page.params.server_id !== serverID || serverID === '') return;
+	setMemberOffline(serverID: string, memberID: string): void {
+		if (page.params.server_id !== serverID || !serverID) return;
 
-		const member = this.servers[serverID].members?.find((m) => m.id === memberID);
+		const member = this.getMember(serverID, memberID);
 		if (member) member.status = 'offline';
 	}
 
-	deleteMember(serverID: string, userID: string) {
+	deleteMember(serverID: string, userID: string): void {
 		this.servers[serverID].members = this.servers[serverID].members.filter((m) => m.id !== userID);
 	}
 
-	getMember(serverID: string, userID: string) {
-		return this.servers[serverID].members.find((m) => m.id === userID);
+	getMember(serverID: string, userID: string): Member | undefined {
+		return this.servers[serverID]?.members.find((m) => m.id === userID);
 	}
 
-	getMemberRoles(serverID: string, userID: string) {
-		const cachedAuthor = messageStore.getAuthor(userID);
-		if (cachedAuthor) {
-			return cachedAuthor.roles;
-		}
-
-		const member = this.servers[serverID].members.find((m) => m.id === userID);
-		if (member) {
-			return member.roles;
-		}
-
-		return [];
+	getMemberRoles(serverID: string, userID: string): string[] {
+		return messageStore.getAuthor(userID)?.roles || this.getMember(serverID, userID)?.roles || [];
 	}
 
-	setMembers(serverID: string, members: Member[]) {
+	setMembers(serverID: string, members: Member[]): void {
 		this.servers[serverID].members = members;
 	}
 
-	getMembers(serverID: string) {
-		return this.servers[serverID].members;
+	getMembers(serverID: string): Member[] {
+		return this.servers[serverID]?.members || [];
 	}
 
-	setRoles(serverID: string, roles: Role[]) {
-		this.servers[serverID].roles = roles?.sort((a, b) => a.position - b.position) || [];
+	setRoles(serverID: string, roles: Role[]): void {
+		this.servers[serverID].roles = (roles || []).sort((a, b) => a.position - b.position);
 	}
 
-	setUserRoles(serverID: string, roles: string[]) {
+	setUserRoles(serverID: string, roles: string[]): void {
 		this.servers[serverID].user_roles = roles;
 	}
 
-	getUserRoles(serverID: string) {
-		return this.servers[serverID].user_roles || [];
+	getUserRoles(serverID: string): string[] {
+		return this.servers[serverID]?.user_roles || [];
 	}
 
-	getRoles(serverID: string) {
-		return this.servers[serverID].roles;
+	getRoles(serverID: string): Role[] {
+		return this.servers[serverID]?.roles || [];
 	}
 
 	getRole(serverID: string, roleID: string): Role | undefined {
-		const roles = this.servers[serverID].roles;
+		const roles = this.getRoles(serverID);
 
-		if (roleID === 'default') {
-			return {
-				id: roleID,
+		const defaultRoles: Record<string, Omit<Role, 'id'>> = {
+			default: {
 				color: '',
 				name: 'Members',
 				position: roles.length,
 				abilities: [],
 				members: []
-			};
-		} else if (roleID === 'offline') {
-			return {
-				id: roleID,
+			},
+			offline: {
 				color: '',
 				name: 'Offline',
 				position: roles.length,
 				abilities: [],
 				members: []
-			};
+			}
+		};
+
+		if (defaultRoles[roleID]) {
+			return { id: roleID, ...defaultRoles[roleID] };
 		}
 
 		return roles.find((role) => role.id === roleID);
 	}
 
-	addRole(serverID: string, role: Role) {
+	addRole(serverID: string, role: Role): void {
 		this.servers[serverID].roles.push(role);
 	}
 
-	editRole(serverID: string, role: Role) {
+	editRole(serverID: string, role: Role): void {
 		const roles = this.servers[serverID].roles;
 		const roleIdx = roles.findIndex((r) => r.id === role.id);
+
 		if (roleIdx !== -1) {
 			roles[roleIdx] = { ...roles[roleIdx], ...role };
 			this.servers[serverID].roles = [...roles];
 		}
 	}
 
-	deleteRole(serverID: string, roleID: string) {
+	deleteRole(serverID: string, roleID: string): void {
 		this.servers[serverID].roles = this.servers[serverID].roles.filter(
 			(role) => role.id !== roleID
 		);
@@ -195,24 +187,24 @@ export class ServerStore {
 		);
 	}
 
-	setInvites(serverID: string, invites: Invite[]) {
+	setInvites(serverID: string, invites: Invite[]): void {
 		this.servers[serverID].invites = invites || [];
 	}
 
-	getInvites(serverID: string) {
-		return this.servers[serverID].invites;
+	getInvites(serverID: string): Invite[] {
+		return this.servers[serverID]?.invites || [];
 	}
 
-	addServer(server: Server) {
+	addServer(server: Server): void {
 		this.servers[server.id] = server;
 	}
 
-	getLastPosition() {
+	getLastPosition(): number {
 		return Object.values(this.servers).length;
 	}
 
-	deleteServer(serverID: string) {
-		delete serverStore.servers[serverID];
+	deleteServer(serverID: string): void {
+		delete this.servers[serverID];
 		delete this.cached[serverID];
 	}
 
@@ -230,8 +222,8 @@ export class ServerStore {
 		this.cached[serverID].timeoutId = timeoutId;
 	}
 
-	markServerInfoCached(serverID: string) {
-		if (this.cached[serverID]) {
+	markServerInfoCached(serverID: string): void {
+		if (this.cached[serverID]?.timeoutId) {
 			clearTimeout(this.cached[serverID].timeoutId);
 		}
 
@@ -241,7 +233,13 @@ export class ServerStore {
 		};
 	}
 
-	hasNotifications(serverID: string) {
+	getServerChannels(serverID: string): Channel[] {
+		const server = this.getServer(serverID);
+		if (!server?.categories) return [];
+		return Object.values(server.categories).flatMap((category) => Object.values(category.channels));
+	}
+
+	hasNotifications(serverID: string): { unread: boolean; mentions: number } {
 		const channels = this.getServerChannels(serverID);
 		const notifications = {
 			unread: false,
@@ -261,42 +259,40 @@ export class ServerStore {
 		return notifications;
 	}
 
-	getServerChannels(serverID: string) {
-		const server = serverStore.getServer(serverID);
-		const channels = [];
+	clearServerCache(serverID: string): void {
+		if (!this.cached[serverID]) return;
 
-		for (const category of Object.values(server.categories)) {
-			channels.push(...Object.values(category.channels));
-		}
+		delete this.cached[serverID];
 
-		return channels;
-	}
+		const server = this.servers[serverID];
+		if (server) {
+			// Clear server data
+			Object.assign(server, {
+				roles: [],
+				members: [],
+				invites: [],
+				user_roles: []
+			});
 
-	clearServerCache(serverID: string) {
-		if (this.cached[serverID]) {
-			delete this.cached[serverID];
-			this.servers[serverID].roles = [];
-			this.servers[serverID].members = [];
-			this.servers[serverID].invites = [];
-			this.servers[serverID].user_roles = [];
-
-			for (const category of Object.values(this.servers[serverID].categories)) {
-				for (const channel of Object.values(category.channels)) {
-					channelStore.clearChannelCache(channel.id);
-				}
-			}
+			// Clear channel caches
+			Object.values(server.categories).forEach((category) =>
+				Object.values(category.channels).forEach((channel) =>
+					channelStore.clearChannelCache(channel.id)
+				)
+			);
 		}
 	}
 
-	updateProfile(serverID: string, profile: EditServerType) {
+	updateProfile(serverID: string, profile: EditServerType): void {
 		const server = this.servers[serverID];
 		if (profile.name) server.name = profile.name;
 		if (profile.description) server.description = profile.description;
 		if (profile.public) server.public = profile.public;
 	}
 
-	updateAvatar(serverID: string, avatar?: string, banner?: string) {
+	updateAvatar(serverID: string, avatar?: string, banner?: string): void {
 		const server = this.servers[serverID];
+		if (!server) return;
 
 		if (avatar) server.avatar = avatar;
 		if (banner) server.banner = banner;

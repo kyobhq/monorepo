@@ -6,197 +6,184 @@ import { userStore } from './userStore.svelte';
 const MAX_SEEN_PROFILES = 5;
 
 export class Core {
-  firstLoad = $state({ sidebar: false });
-  serversLoaded = $state(false);
-  richInputLength = $state(0);
-  serverDialog = $state(false);
-  categoryDialog = $state(false);
-  friendsDialog = $state(false);
-  channelDialog = $state({ open: false, category_id: '' });
-  modDialog = $state({ open: false, action: 'kick', server_id: '', user_id: '' });
-  restrictionDialog = $state({ open: false, restriction: '', title: '', reason: '' });
-  settingsDialog = $state({ open: false, section: '' });
-  serverSettingsDialog = $state({ open: false, server_id: '', section: '' });
-  categorySettingsDialog = $state({ open: false, category_id: '', section: '' });
-  channelSettingsDialog = $state({ open: false, channel_id: '', section: '' });
-  userSettingsDialog = $state({ open: false, section: '' });
-  destructiveDialog = $state({
-    open: false,
-    title: '',
-    subtitle: '',
-    buttonText: '',
-    onclick: () => { }
-  });
-  pressingShift = $state(false);
-  isUsingKeyboard = $state(false);
-  profile = $state<{ open: boolean; user: User | null; el: HTMLElement | null; side: string }>({
-    open: false,
-    user: null,
-    el: null,
-    side: 'top'
-  });
-  seenProfiles = $state<User[]>([]);
-  callTimeout = $state<ReturnType<typeof setControllableTimeout>>();
+	firstLoad = $state({ sidebar: false });
+	serversLoaded = $state(false);
+	richInputLength = $state(0);
+	serverDialog = $state(false);
+	categoryDialog = $state(false);
+	friendsDialog = $state(false);
+	channelDialog = $state({ open: false, category_id: '' });
+	modDialog = $state({ open: false, action: 'kick', server_id: '', user_id: '' });
+	restrictionDialog = $state({ open: false, restriction: '', title: '', reason: '' });
+	settingsDialog = $state({ open: false, section: '' });
+	serverSettingsDialog = $state({ open: false, server_id: '', section: '' });
+	categorySettingsDialog = $state({ open: false, category_id: '', section: '' });
+	channelSettingsDialog = $state({ open: false, channel_id: '', section: '' });
+	userSettingsDialog = $state({ open: false, section: '' });
+	destructiveDialog = $state({
+		open: false,
+		title: '',
+		subtitle: '',
+		buttonText: '',
+		onclick: () => {}
+	});
+	pressingShift = $state(false);
+	isUsingKeyboard = $state(false);
+	profile = $state<{ open: boolean; user: User | null; el: HTMLElement | null; side: string }>({
+		open: false,
+		user: null,
+		el: null,
+		side: 'top'
+	});
+	seenProfiles = $state<User[]>([]);
+	callTimeout = $state<ReturnType<typeof setControllableTimeout>>();
 
-  handleShiftUp = (e: KeyboardEvent) => {
-    if (e.key === 'Shift') {
-      this.pressingShift = false;
-    }
-  };
+	private handleShiftUp = (e: Event) => {
+		const keyboardEvent = e as KeyboardEvent;
+		if (keyboardEvent.key === 'Shift') {
+			this.pressingShift = false;
+		}
+	};
 
-  handleKeyboardInput = (e: KeyboardEvent) => {
-    if (e.key === 'Tab') {
-      this.isUsingKeyboard = true;
-      this.updateDataAttributes();
-    }
+	private handleKeyboardInput = (e: Event) => {
+		const keyboardEvent = e as KeyboardEvent;
+		if (keyboardEvent.key === 'Tab') {
+			this.setInputMethod('keyboard');
+		}
+		if (keyboardEvent.key === 'Shift') {
+			this.pressingShift = true;
+		}
+	};
 
-    if (e.key === 'Shift') {
-      this.pressingShift = true;
-    }
-  };
+	private handleNonKeyboardInput = () => {
+		this.setInputMethod('mouse');
+	};
 
-  handleMouseInput = () => {
-    this.isUsingKeyboard = false;
-    this.updateDataAttributes();
-  };
+	private setInputMethod(method: 'keyboard' | 'mouse') {
+		this.isUsingKeyboard = method === 'keyboard';
+		this.updateDataAttributes();
+	}
 
-  handlePointerInput = () => {
-    this.isUsingKeyboard = false;
-    this.updateDataAttributes();
-  };
+	private updateDataAttributes() {
+		if (typeof document !== 'undefined') {
+			document.documentElement.setAttribute('data-keyboard-user', String(this.isUsingKeyboard));
+		}
+	}
 
-  handleTouchInput = () => {
-    this.isUsingKeyboard = false;
-    this.updateDataAttributes();
-  };
+	initializeKeyboardDetection(): void {
+		if (typeof document === 'undefined') return;
 
-  private updateDataAttributes() {
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-keyboard-user', String(this.isUsingKeyboard));
-    }
-  }
+		this.updateDataAttributes();
 
-  initializeKeyboardDetection() {
-    if (typeof document !== 'undefined') {
-      this.updateDataAttributes();
+		const keyboardEvents = ['keydown', 'keyup'];
+		const nonKeyboardEvents = [
+			'mousedown',
+			'mouseup',
+			'pointerdown',
+			'pointerup',
+			'touchstart',
+			'touchend'
+		];
 
-      document.addEventListener('keydown', this.handleKeyboardInput, true);
-      document.addEventListener('keyup', this.handleShiftUp, true);
+		keyboardEvents.forEach((event) => {
+			const handler = event === 'keyup' ? this.handleShiftUp : this.handleKeyboardInput;
+			document.addEventListener(event, handler, true);
+		});
 
-      document.addEventListener('mousedown', this.handleMouseInput, true);
-      document.addEventListener('mouseup', this.handleMouseInput, true);
+		nonKeyboardEvents.forEach((event) => {
+			document.addEventListener(event, this.handleNonKeyboardInput, true);
+		});
+	}
 
-      document.addEventListener('pointerdown', this.handlePointerInput, true);
-      document.addEventListener('pointerup', this.handlePointerInput, true);
+	cleanupKeyboardDetection(): void {
+		if (typeof document === 'undefined') return;
 
-      document.addEventListener('touchstart', this.handleTouchInput, true);
-      document.addEventListener('touchend', this.handleTouchInput, true);
-    }
-  }
+		const keyboardEvents = ['keydown', 'keyup'];
+		const nonKeyboardEvents = [
+			'mousedown',
+			'mouseup',
+			'pointerdown',
+			'pointerup',
+			'touchstart',
+			'touchend'
+		];
 
-  cleanupKeyboardDetection() {
-    if (typeof document !== 'undefined') {
-      document.removeEventListener('keydown', this.handleKeyboardInput, true);
-      document.removeEventListener('mousedown', this.handleMouseInput, true);
-      document.removeEventListener('mouseup', this.handleMouseInput, true);
-      document.removeEventListener('pointerdown', this.handlePointerInput, true);
-      document.removeEventListener('pointerup', this.handlePointerInput, true);
-      document.removeEventListener('touchstart', this.handleTouchInput, true);
-      document.removeEventListener('touchend', this.handleTouchInput, true);
-    }
-  }
+		keyboardEvents.forEach((event) => {
+			const handler = event === 'keyup' ? this.handleShiftUp : this.handleKeyboardInput;
+			document.removeEventListener(event, handler, true);
+		});
 
-  openMyProfile(el: HTMLElement, side: 'top' | 'bottom' | 'left' | 'right' = 'top') {
-    if (this.profile.user) {
-      this.profile = {
-        open: false,
-        user: null,
-        el: null,
-        side: side
-      };
-    } else {
-      // First set the user and element without opening
-      this.profile = {
-        open: false,
-        user: userStore.user!,
-        el: el,
-        side: side
-      };
-      // Then open it on the next tick to trigger the animation
-      setTimeout(() => {
-        if (this.profile.user) {
-          this.profile.open = true;
-        }
-      }, 10);
-    }
-  }
+		nonKeyboardEvents.forEach((event) => {
+			document.removeEventListener(event, this.handleNonKeyboardInput, true);
+		});
+	}
 
-  async openProfile(
-    userID: string,
-    el: HTMLElement,
-    side: 'top' | 'bottom' | 'left' | 'right' = 'top'
-  ) {
-    if (this.profile.user) {
-      this.profile = {
-        open: false,
-        user: null,
-        el: null,
-        side: side
-      };
-    } else {
-      const cachedUser = this.seenProfiles.find((profile) => profile.id === userID);
-      if (cachedUser) {
-        // First set the user and element without opening
-        this.profile = {
-          open: false,
-          user: cachedUser,
-          el: el,
-          side: side
-        };
-        // Then open it on the next tick to trigger the animation
-        setTimeout(() => {
-          if (this.profile.user) {
-            this.profile.open = true;
-          }
-        }, 10);
-        return;
-      }
+	openMyProfile(el: HTMLElement, side: 'top' | 'bottom' | 'left' | 'right' = 'top'): void {
+		if (this.profile.user) {
+			this.closeProfile();
+		} else {
+			this.setProfileAndOpen(userStore.user!, el, side);
+		}
+	}
 
-      const res = await backend.getUserProfile(userID);
-      res.match(
-        (user) => {
-          // First set the user and element without opening
-          this.profile = {
-            open: false,
-            user: user,
-            el: el,
-            side: side
-          };
-          // Then open it on the next tick to trigger the animation
-          setTimeout(() => {
-            if (this.profile.user) {
-              this.profile.open = true;
-            }
-          }, 10);
+	async openProfile(
+		userID: string,
+		el: HTMLElement,
+		side: 'top' | 'bottom' | 'left' | 'right' = 'top'
+	): Promise<void> {
+		if (this.profile.user) {
+			this.closeProfile();
+			return;
+		}
 
-          if (this.seenProfiles.length === MAX_SEEN_PROFILES) this.seenProfiles.shift();
-          this.seenProfiles.push(user);
-        },
-        (error) => {
-          console.error(`${error.code}: ${error.message}`);
-        }
-      );
-    }
-  }
+		const cachedUser = this.seenProfiles.find((profile) => profile.id === userID);
+		if (cachedUser) {
+			this.setProfileAndOpen(cachedUser, el, side);
+			return;
+		}
 
-  closeProfile() {
-    this.profile = {
-      open: false,
-      user: null,
-      el: null,
-      side: 'top'
-    };
-  }
+		const res = await backend.getUserProfile(userID);
+		res.match(
+			(user) => {
+				this.setProfileAndOpen(user, el, side);
+				this.cacheUserProfile(user);
+			},
+			(error) => {
+				console.error(`${error.code}: ${error.message}`);
+			}
+		);
+	}
+
+	closeProfile(): void {
+		this.profile = {
+			open: false,
+			user: null,
+			el: null,
+			side: 'top'
+		};
+	}
+
+	private setProfileAndOpen(user: User, el: HTMLElement, side: string): void {
+		this.profile = {
+			open: false,
+			user,
+			el,
+			side
+		};
+
+		setTimeout(() => {
+			if (this.profile.user) {
+				this.profile.open = true;
+			}
+		}, 10);
+	}
+
+	private cacheUserProfile(user: User): void {
+		if (this.seenProfiles.length === MAX_SEEN_PROFILES) {
+			this.seenProfiles.shift();
+		}
+		this.seenProfiles.push(user);
+	}
 }
 
 export const coreStore = new Core();

@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { Channel, Friend, Server } from '$lib/types/types';
 	import { editorStore } from 'stores/editorStore.svelte';
-	import MentionsList from './extensions/mentions/MentionsList.svelte';
-	import EmojisList from './extensions/emojis/EmojisList.svelte';
 	import { Editor } from '@tiptap/core';
 	import { onDestroy, onMount } from 'svelte';
 	import { createEditorConfig } from './richInputConfig';
@@ -16,6 +14,9 @@
 	import { page } from '$app/state';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import RichInputList from './RichInputList.svelte';
+	import { channelStore } from 'stores/channelStore.svelte';
+	import { userStore } from 'stores/userStore.svelte';
+	import { messageStore } from 'stores/messageStore.svelte';
 
 	interface Props {
 		server?: Server;
@@ -83,6 +84,17 @@
 					}
 				},
 				onEnterPress: () => prepareMessage(editor.getJSON()),
+				onKeyupPress: () => {
+					if (!channel) return;
+					if (channelStore.messageCache[channel.id].scrollY > 3000) return;
+
+					for (const message of channelStore.messageCache[channel.id].messages) {
+						if (message.author.id === userStore.user?.id) {
+							messageStore.editMessage = message;
+							break;
+						}
+					}
+				},
 				onFocus: () => {
 					editorStore.currentChannel = channel?.id || friend?.channel_id || '';
 				}

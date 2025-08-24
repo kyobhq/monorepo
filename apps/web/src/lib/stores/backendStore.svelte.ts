@@ -51,79 +51,126 @@ export class BackendStore {
 	private pendingRequests = new SvelteMap<string, AbortController>();
 
 	private makeRequest<T>(endpoint: Input, options?: Options): ResultAsync<T, APIError> {
+		const requestKey = this.createRequestKey(endpoint, options);
+		this.cancelPendingRequest(requestKey);
+
+		const controller = new AbortController();
+		this.pendingRequests.set(requestKey, controller);
+
+		const shouldTrace = this.shouldTraceRequest();
+		const startAt = shouldTrace ? performance.now() : 0;
+
+		return ResultAsync.fromPromise(
+			client(endpoint, { ...options, signal: controller.signal }),
+			(error: unknown) => this.handleRequestError(requestKey, error)
+		).andThen((res) => this.processResponse<T>(res, requestKey, shouldTrace, startAt));
+	}
+
+	private createRequestKey(endpoint: Input, options?: Options): string {
 		const method = options?.method || 'get';
 		const bodyKey = options?.json
 			? JSON.stringify(options.json)
 			: options?.body
 				? String(options.body)
 				: '';
-		const requestKey = `${method.toUpperCase()}:${String(endpoint)}:${bodyKey}`;
+		return `${method.toUpperCase()}:${String(endpoint)}:${bodyKey}`;
+	}
 
+	private cancelPendingRequest(requestKey: string): void {
 		if (this.pendingRequests.has(requestKey)) {
 			this.pendingRequests.get(requestKey)?.abort();
 		}
+	}
 
-		const controller = new AbortController();
-		this.pendingRequests.set(requestKey, controller);
-
-		const shouldTrace =
+	private shouldTraceRequest(): boolean {
+		return (
 			import.meta.env.DEV &&
 			typeof localStorage !== 'undefined' &&
-			localStorage.getItem('traceApi') === '1';
-		const startAt = shouldTrace ? performance.now() : 0;
+			localStorage.getItem('traceApi') === '1'
+		);
+	}
 
-		return ResultAsync.fromPromise(
-			client(endpoint, { ...options, signal: controller.signal }),
-			(error: unknown) => {
-				this.pendingRequests.delete(requestKey);
+	private handleRequestError(requestKey: string, error: unknown): APIError {
+		this.pendingRequests.delete(requestKey);
 
-				if (error instanceof Error && error.name === 'AbortError') {
-					return {
-						status: 0,
-						code: 'REQUEST_ABORTED',
-						cause: 'Request was aborted',
-						message: 'Request cancelled by newer request'
-					};
-				}
+		if (error instanceof Error && error.name === 'AbortError') {
+			return {
+				status: 0,
+				code: 'REQUEST_ABORTED',
+				cause: 'Request was aborted',
+				message: 'Request cancelled by newer request'
+			};
+		}
 
-				return {
-					status: 0,
-					code: 'NETWORK_ERROR',
-					cause: 'Network request failed',
-					message: error instanceof Error ? error.message : 'Unknown error'
-				};
+		return {
+			status: 0,
+			code: 'NETWORK_ERROR',
+			cause: 'Network request failed',
+			message: error instanceof Error ? error.message : 'Unknown error'
+		};
+	}
+
+	private processResponse<T>(
+		res: Response,
+		requestKey: string,
+		shouldTrace: boolean,
+		startAt: number
+	): ResultAsync<T, APIError> {
+		this.pendingRequests.delete(requestKey);
+		const afterFetchAt = shouldTrace ? performance.now() : 0;
+
+		return ResultAsync.fromPromise(res.json(), () => ({
+			status: res.status,
+			code: 'PARSE_ERROR',
+			cause: 'Failed to parse response',
+			message: 'Invalid JSON response'
+		})).andThen((data: unknown) => {
+			if (shouldTrace) {
+				this.logApiTrace(res.url, startAt, afterFetchAt);
 			}
-		).andThen((res) => {
-			this.pendingRequests.delete(requestKey);
-			const afterFetchAt = shouldTrace ? performance.now() : 0;
-			return ResultAsync.fromPromise(res.json(), () => ({
-				status: res.status,
-				code: 'PARSE_ERROR',
-				cause: 'Failed to parse response',
-				message: 'Invalid JSON response'
-			})).andThen((data: unknown) => {
-				if (shouldTrace) {
-					const afterJsonAt = performance.now();
 
-					console.log('[API]', String(endpoint), {
-						networkMs: +(afterFetchAt - startAt).toFixed(2),
-						parseMs: +(afterJsonAt - afterFetchAt).toFixed(2),
-						totalMs: +(afterJsonAt - startAt).toFixed(2)
-					});
-				}
-				if (!res.ok) {
-					const errorData = data as APIError;
-					return errAsync({
-						status: res.status,
-						code: errorData.code || 'API_ERROR',
-						cause: errorData.cause || '',
-						message: errorData.message || `HTTP ${res.status}`
-					});
-				}
+			if (!res.ok) {
+				return errAsync(this.createErrorFromResponse(res, data as APIError));
+			}
 
-				return okAsync(data as T);
-			});
+			return okAsync(data as T);
+		}) as ResultAsync<T, APIError>;
+	}
+
+	private logApiTrace(url: string, startAt: number, afterFetchAt: number): void {
+		const afterJsonAt = performance.now();
+		console.log('[API]', url, {
+			networkMs: +(afterFetchAt - startAt).toFixed(2),
+			parseMs: +(afterJsonAt - afterFetchAt).toFixed(2),
+			totalMs: +(afterJsonAt - startAt).toFixed(2)
 		});
+	}
+
+	private createErrorFromResponse(res: Response, errorData: APIError): APIError {
+		return {
+			status: res.status,
+			code: errorData.code || 'API_ERROR',
+			cause: errorData.cause || '',
+			message: errorData.message || `HTTP ${res.status}`
+		};
+	}
+
+	private createFormData(fields: Record<string, any>): FormData {
+		const formData = new FormData();
+
+		for (const [key, value] of Object.entries(fields)) {
+			if (value !== undefined && value !== null) {
+				if (Array.isArray(value)) {
+					value.forEach((item) => formData.append(`${key}[]`, item));
+				} else if (typeof value === 'object' && !(value instanceof File)) {
+					formData.append(key, JSON.stringify(value));
+				} else {
+					formData.append(key, String(value));
+				}
+			}
+		}
+
+		return formData;
 	}
 
 	getSetup(): ResultAsync<Setup, APIError> {
@@ -131,13 +178,13 @@ export class BackendStore {
 	}
 
 	createServer(body: CreateServerType): ResultAsync<Server, APIError> {
-		const formData = new FormData();
-		formData.append('name', body.name);
-		formData.append('avatar', body.avatar);
-		formData.append('crop', JSON.stringify(body.crop));
-		formData.append('public', String(body.public));
-
-		if (body.description) formData.append('description', JSON.stringify(body.description));
+		const formData = this.createFormData({
+			name: body.name,
+			avatar: body.avatar,
+			crop: body.crop,
+			public: body.public,
+			description: body.description
+		});
 
 		return this.makeRequest<Server>('servers', { method: 'post', body: formData });
 	}
@@ -189,17 +236,18 @@ export class BackendStore {
 	}
 
 	createMessage(body: CreateMessageType): ResultAsync<void, APIError> {
-		const formData = new FormData();
-		formData.append('server_id', body.server_id);
-		formData.append('channel_id', body.channel_id);
-		formData.append('content', JSON.stringify(body.content));
-		formData.append('everyone', body.everyone ? 'true' : 'false');
-		body.mentions_users?.forEach((user) => formData.append('mentions_users[]', user));
-		body.mentions_channels?.forEach((channel) => formData.append('mentions_channels[]', channel));
-		body.mentions_roles?.forEach((role) => formData.append('mentions_roles[]', role));
-		body.attachments?.forEach((attachment) => formData.append('attachments[]', attachment));
+		const formData = this.createFormData({
+			server_id: body.server_id,
+			channel_id: body.channel_id,
+			content: body.content,
+			everyone: body.everyone,
+			mentions_users: body.mentions_users,
+			mentions_channels: body.mentions_channels,
+			mentions_roles: body.mentions_roles,
+			attachments: body.attachments
+		});
 
-		return this.makeRequest(`messages`, { method: 'post', body: formData });
+		return this.makeRequest('messages', { method: 'post', body: formData });
 	}
 
 	getServerInformations(serverID: string): ResultAsync<ServerInformations, APIError> {
@@ -224,12 +272,13 @@ export class BackendStore {
 		beforeMessageID?: string;
 		afterMessageID?: string;
 	}): ResultAsync<Message[], APIError> {
-		const base = `messages/${serverID}/${channelID}`;
-		const endpoint = beforeMessageID
-			? `${base}?before=${beforeMessageID}`
-			: afterMessageID
-				? `${base}?after=${afterMessageID}`
-				: base;
+		const params = new SvelteURLSearchParams();
+		if (beforeMessageID) params.set('before', beforeMessageID);
+		if (afterMessageID) params.set('after', afterMessageID);
+
+		const query = params.toString();
+		const endpoint = `messages/${serverID}/${channelID}${query ? `?${query}` : ''}`;
+
 		return this.makeRequest<Message[]>(endpoint);
 	}
 
@@ -254,11 +303,12 @@ export class BackendStore {
 		cropBannerPixels: any,
 		body: EditAvatarType
 	): ResultAsync<{ avatar: string; banner: string }, APIError> {
-		const formData = new FormData();
-		if (body.avatar) formData.append('avatar', body.avatar);
-		if (body.banner) formData.append('banner', body.banner);
-		if (cropAvatarPixels) formData.append('crop_avatar', JSON.stringify(cropAvatarPixels));
-		if (cropBannerPixels) formData.append('crop_banner', JSON.stringify(cropBannerPixels));
+		const formData = this.createFormData({
+			avatar: body.avatar,
+			banner: body.banner,
+			crop_avatar: cropAvatarPixels,
+			crop_banner: cropBannerPixels
+		});
 
 		return this.makeRequest<{ avatar: string; banner: string }>('users/avatar', {
 			method: 'patch',
@@ -272,11 +322,12 @@ export class BackendStore {
 		cropBannerPixels: any,
 		body: EditAvatarType
 	): ResultAsync<{ avatar: string; banner: string }, APIError> {
-		const formData = new FormData();
-		if (body.avatar) formData.append('avatar', body.avatar);
-		if (body.banner) formData.append('banner', body.banner);
-		if (cropAvatarPixels) formData.append('crop_avatar', JSON.stringify(cropAvatarPixels));
-		if (cropBannerPixels) formData.append('crop_banner', JSON.stringify(cropBannerPixels));
+		const formData = this.createFormData({
+			avatar: body.avatar,
+			banner: body.banner,
+			crop_avatar: cropAvatarPixels,
+			crop_banner: cropBannerPixels
+		});
 
 		return this.makeRequest<{ avatar: string; banner: string }>(`servers/${serverID}/avatar`, {
 			method: 'patch',
@@ -315,13 +366,12 @@ export class BackendStore {
 	}
 
 	uploadEmojis(body: AddEmojisType): ResultAsync<Emoji[], APIError> {
-		const formData = new FormData();
-		for (let i = 0; i < body.emojis.length; ++i) {
-			formData.append('emojis[]', body.emojis[i]);
-			formData.append('shortcodes[]', body.shortcodes[i]);
-		}
+		const formData = this.createFormData({
+			emojis: body.emojis,
+			shortcodes: body.shortcodes
+		});
 
-		return this.makeRequest<Emoji[]>(`users/emojis`, { method: 'post', body: formData });
+		return this.makeRequest<Emoji[]>('users/emojis', { method: 'post', body: formData });
 	}
 
 	updateEmoji(id: string, shortcode: string): ResultAsync<void, APIError> {
