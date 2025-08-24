@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import type { Server } from '$lib/types/types';
+	import { serverStore } from 'stores/serverStore.svelte';
 	import Avatar from 'ui/Avatar/Avatar.svelte';
 	import ContextMenuServer from 'ui/ContextMenu/ContextMenuServer.svelte';
 
@@ -11,6 +13,10 @@
 
 	let { server, active, onclick }: Props = $props();
 	let hoverAvatar = $state(false);
+
+	const hasNotifications = $derived(
+		page.params.server_id !== server.id && serverStore.hasNotifications(server.id)
+	);
 </script>
 
 <button
@@ -29,4 +35,19 @@
 		hover={hoverAvatar}
 	/>
 	<ContextMenuServer {server} />
+
+	{#if hasNotifications}
+		{#if hasNotifications.mentions}
+			<div
+				class="absolute -top-1 -right-1 w-5 h-5 bg-red-400 rounded-lg flex items-center justify-center text-xs font-semibold z-[1]"
+			>
+				{hasNotifications.mentions}
+			</div>
+		{/if}
+		{#if hasNotifications.unread}
+			<div
+				class="absolute -bottom-0.5 bg-main-50 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full"
+			></div>
+		{/if}
+	{/if}
 </button>

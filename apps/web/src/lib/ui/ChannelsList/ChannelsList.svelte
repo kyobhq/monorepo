@@ -7,6 +7,7 @@
 	import CollapsibleBox from 'ui/CollapsibleBox/CollapsibleBox.svelte';
 	import ContextMenuSideBar from 'ui/ContextMenu/ContextMenuSideBar.svelte';
 	import gsap from 'gsap';
+	import { channelStore } from 'stores/channelStore.svelte';
 
 	interface Props {
 		server: Server;
@@ -49,6 +50,8 @@
 							name={channel.name}
 							onclick={() => goto(`/servers/${channel.server_id}/channels/${channel.id}`)}
 							active={page.url.pathname.includes(channel.id)}
+							unread={channel.last_message_read !== channel.last_message_sent}
+							mentions={channel.last_mentions?.length || 0}
 						/>
 					{/each}
 				{/if}

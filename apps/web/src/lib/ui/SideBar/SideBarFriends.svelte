@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { userStore } from 'stores/userStore.svelte';
+	import { onMount } from 'svelte';
 	import BarSeparatorWithButton from 'ui/BarSeparator/BarSeparatorWithButton.svelte';
 	import FriendButton from 'ui/FriendButton/FriendButton.svelte';
+
+	onMount(() => {
+		coreStore.firstLoad.sidebar = true;
+	});
 </script>
 
 <BarSeparatorWithButton

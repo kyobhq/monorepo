@@ -18,12 +18,37 @@ export class UserStore {
     return this.friends.filter(friend => friend.status !== "offline" && friend.accepted).length
   }
 
+  getFriendByChannelID(channelID: string) {
+    return this.friends.find(friend => friend.channel_id === channelID)
+  }
+
   acceptFriend(friendshipID: string, channelID: string) {
     const friendship = this.friends.find((friend) => friend.friendship_id === friendshipID)
     if (friendship) {
       friendship.accepted = true
       friendship.channel_id = channelID
     }
+  }
+
+  hasNotifications() {
+    for (const friend of this.friends) {
+      if (friend.last_message_sent !== friend.last_message_read) {
+        return true
+      }
+    }
+
+    return false;
+  }
+
+  hasNotificationsWith(friendID: string) {
+    const friend = this.friends.find(f => f.id === friendID)
+    if (!friend) return false;
+
+    if (friend.last_message_sent !== friend.last_message_read) {
+      return true
+    }
+
+    return false;
   }
 
   removeFriend({ friendshipID, userID }: { friendshipID?: string, userID?: string }) {

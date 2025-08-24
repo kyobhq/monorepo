@@ -103,11 +103,13 @@
 </script>
 
 <div
-	class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5"
+	class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5 relative"
 	style="width: {coreStore.richInputLength}px;"
 >
 	{#if editorStore.currentInput === 'main' && editorStore.listOpen}
-		<RichInputList />
+		<div class="absolute bottom-full left-2.5 right-2.5 mb-1 z-20">
+			<RichInputList />
+		</div>
 	{/if}
 	{#if attachments.length > 0}
 		<Attachments bind:attachments />

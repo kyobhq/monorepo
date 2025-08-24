@@ -24,13 +24,13 @@ const debouncedSearchMembers = (serverId, query) => {
     if (debounceTimer) {
       clearTimeout(debounceTimer);
     }
-    
+
     const cacheKey = `${serverId}:${query}`;
     if (searchResultsCache.has(cacheKey)) {
       resolve(searchResultsCache.get(cacheKey) || []);
       return;
     }
-    
+
     debounceTimer = setTimeout(async () => {
       try {
         const result = await backend.searchServerMembers(serverId, query);
@@ -113,8 +113,7 @@ export const CustomMention = MentionExtended.configure({
         if (!page.params.server_id) return [];
         const res = [];
 
-        let allMembers = new Set([...Object.values(messageStore.messageAuthors), ...serverStore.getMembers(page.params.server_id)])
-        for (const user of allMembers) {
+        for (const user of serverStore.getMembers(page.params.server_id)) {
           if (
             user?.username?.toLowerCase().includes(query.toLowerCase()) ||
             user?.display_name?.toLowerCase().includes(query.toLowerCase())
@@ -122,7 +121,17 @@ export const CustomMention = MentionExtended.configure({
             res.push(user);
           }
         }
-        
+
+        for (const user of Object.values(messageStore.messageAuthors)) {
+          if (
+            !res.find(u => u.id === user.id) &&
+            (user?.username?.toLowerCase().includes(query.toLowerCase()) ||
+              user?.display_name?.toLowerCase().includes(query.toLowerCase()))
+          ) {
+            res.push(user);
+          }
+        }
+
         if (res.length === 0 && query.length >= 2 && query.length <= 20) {
           const apiMembers = await debouncedSearchMembers(page.params.server_id, query);
           if (apiMembers) {

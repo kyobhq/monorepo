@@ -7,6 +7,7 @@ import { userStore } from './userStore.svelte';
 import type { Abilities } from '$lib/constants/permissions';
 import { page } from '$app/state';
 import { messageStore } from './messageStore.svelte';
+import { channelStore } from './channelStore.svelte';
 
 interface CacheEntry {
 	cached: boolean;
@@ -72,13 +73,15 @@ export class ServerStore {
 	setMemberOnline(serverID: string, memberID: string, status: string) {
 		if (page.params.server_id !== serverID || serverID === '') return;
 
-		this.servers[serverID].members.find((m) => m.id === memberID)!.status = status;
+		const member = this.servers[serverID].members?.find((m) => m.id === memberID);
+		if (member) member.status = status;
 	}
 
 	setMemberOffline(serverID: string, memberID: string) {
 		if (page.params.server_id !== serverID || serverID === '') return;
 
-		this.servers[serverID].members.find((m) => m.id === memberID)!.status = 'offline';
+		const member = this.servers[serverID].members?.find((m) => m.id === memberID);
+		if (member) member.status = 'offline';
 	}
 
 	deleteMember(serverID: string, userID: string) {
@@ -222,6 +225,7 @@ export class ServerStore {
 	}
 
 	setCacheTimeout(serverID: string) {
+		if (!this.cached[serverID]) return;
 		const timeoutId = setTimeout(() => this.clearServerCache(serverID), 5 * 60 * 1000); // 5 minutes
 		this.cached[serverID].timeoutId = timeoutId;
 	}
@@ -237,6 +241,37 @@ export class ServerStore {
 		};
 	}
 
+	hasNotifications(serverID: string) {
+		const channels = this.getServerChannels(serverID);
+		const notifications = {
+			unread: false,
+			mentions: 0
+		};
+
+		for (const channel of channels) {
+			if (channel.last_message_read !== channel.last_message_sent) {
+				notifications.unread = true;
+			}
+
+			if (channel.last_mentions && channel.last_mentions?.length > 0) {
+				notifications.mentions += channel.last_mentions.length;
+			}
+		}
+
+		return notifications;
+	}
+
+	getServerChannels(serverID: string) {
+		const server = serverStore.getServer(serverID);
+		const channels = [];
+
+		for (const category of Object.values(server.categories)) {
+			channels.push(...Object.values(category.channels));
+		}
+
+		return channels;
+	}
+
 	clearServerCache(serverID: string) {
 		if (this.cached[serverID]) {
 			delete this.cached[serverID];
@@ -244,6 +279,12 @@ export class ServerStore {
 			this.servers[serverID].members = [];
 			this.servers[serverID].invites = [];
 			this.servers[serverID].user_roles = [];
+
+			for (const category of Object.values(this.servers[serverID].categories)) {
+				for (const channel of Object.values(category.channels)) {
+					channelStore.clearChannelCache(channel.id);
+				}
+			}
 		}
 	}
 

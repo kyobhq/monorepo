@@ -7,6 +7,7 @@
 	import PlusIcon from 'ui/icons/PlusIcon.svelte';
 	import ServerButton from 'ui/ServerButton/ServerButton.svelte';
 	import gsap from 'gsap';
+	import { userStore } from 'stores/userStore.svelte';
 
 	let { currentTab } = $props();
 	let serversSliderEl = $state<HTMLElement | undefined>(undefined);
@@ -27,6 +28,8 @@
 			ease: 'power2.out'
 		});
 	});
+
+	const hasFriendNotifications = $derived(userStore.hasNotifications());
 </script>
 
 {#if coreStore.serversLoaded}
@@ -39,6 +42,9 @@
 			onclick={() => goto(`/friends`)}
 		>
 			<People height={20} width={20} />
+			{#if hasFriendNotifications}
+				<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full z-[1]"></div>
+			{/if}
 		</button>
 		{#each Object.values(serverStore.servers).sort((a, b) => a.position - b.position) as server (server.id)}
 			<div class="server-button h-13 w-13">

@@ -34,7 +34,7 @@
 </script>
 
 {#if medias.length > 0}
-	<div class={medias.length > 1 ? 'grid w-fit max-w-[50%] grid-cols-3 gap-2' : 'max-w-[15%]'}>
+	<div class={medias.length > 1 ? 'grid w-fit max-w-[50%] grid-cols-3 gap-2' : 'max-w-[30%]'}>
 		{#each images as image, idx (idx)}
 			<AttachmentImage {image} {medias} {hover} />
 		{/each}

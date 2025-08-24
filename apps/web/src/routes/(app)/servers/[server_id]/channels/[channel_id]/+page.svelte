@@ -15,7 +15,9 @@
 {#if currentChannel && currentServer}
 	<ChannelHeader name={currentChannel.name} description={currentChannel.description} />
 
-	<ChatBox serverID={currentServer.id} channelID={currentChannel.id} />
+	<div class="flex flex-col flex-1 min-h-0">
+		<ChatBox serverID={currentServer.id} channelID={currentChannel.id} />
 
-	<RichInput server={currentServer} channel={currentChannel} />
+		<RichInput server={currentServer} channel={currentChannel} />
+	</div>
 {/if}

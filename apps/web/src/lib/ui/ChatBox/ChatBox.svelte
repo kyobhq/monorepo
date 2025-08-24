@@ -10,6 +10,8 @@
 	import ChatSpacer from './ChatSpacer.svelte';
 	import ChatNoMessages from './ChatNoMessages.svelte';
 	import { fade } from 'svelte/transition';
+	import { messageStore } from 'stores/messageStore.svelte';
+	import { scaleBlur } from 'utils/transition';
 
 	interface Props {
 		serverID: string;
@@ -63,9 +65,14 @@
 	}
 
 	onMount(async () => {
-		if (page.params.server_id && page.params.channel_id) {
-			await channelStore.ensureMessagesLoaded(page.params.server_id, page.params.channel_id);
-			await delay(100);
+		if (page.params.channel_id) {
+			await channelStore.ensureMessagesLoaded(
+				page.params.server_id || 'global',
+				page.params.channel_id
+			);
+			channelStore.setLastMessageSent(page.params.server_id || 'global', page.params.channel_id);
+			channelStore.setLastMessageRead(page.params.server_id || 'global', page.params.channel_id);
+			await delay(50);
 			messagesLoaded = true;
 		}
 	});
@@ -73,6 +80,7 @@
 	beforeNavigate(async ({ from, to }) => {
 		scrollSet = false;
 		messagesLoaded = false;
+		messageStore.clearAuthorCache();
 		const fromChannelID = from?.params?.channel_id;
 		const toChannelID = to?.params?.channel_id;
 		if (!fromChannelID || !toChannelID) return;
@@ -89,7 +97,15 @@
 			canLoadMore = !(channelStore.messageCache[toChannelID]?.hasReachedEnd ?? false);
 		}
 
-		await delay(0);
+		if (serverID) {
+			channelStore.setLastMessageSent(serverID, fromChannelID);
+			channelStore.setLastMessageSent(serverID, toChannelID);
+
+			channelStore.setLastMessageRead(serverID, fromChannelID);
+			channelStore.setLastMessageRead(serverID, toChannelID);
+		}
+
+		await delay(50);
 		messagesLoaded = true;
 	});
 
@@ -107,10 +123,10 @@
 	});
 </script>
 
-<div class="w-full h-[calc(100%-4.5rem)]">
+<div class="w-full flex-1 min-h-0">
 	{#if showMessages}
 		<div
-			transition:fade={{ duration: 100 }}
+			transition:scaleBlur={{ duration: 150, startScale: 0.99 }}
 			bind:this={scrollContainer}
 			class="flex flex-col-reverse w-full h-full overflow-auto pb-4 pt-18"
 			onscroll={handleScroll}

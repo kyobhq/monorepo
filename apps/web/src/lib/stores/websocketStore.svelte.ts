@@ -67,11 +67,11 @@ export class WebsocketStore {
         case 'newChatMessage':
           {
             if (!wsMess.content.value.message) return;
-            if (wsMess.content.value.message.channelId !== page.params.channel_id) return;
             const message = wsMess.content.value.message;
             const contentStr = new TextDecoder().decode(message.content);
             const attachments = new TextDecoder().decode(message.attachments);
-            const channelID = wsMess.content.value.message.channelId
+            const serverID = wsMess.content.value.message.serverId;
+            const channelID = wsMess.content.value.message.channelId;
 
             const newMessage: Message = {
               id: message.id,
@@ -91,7 +91,12 @@ export class WebsocketStore {
               created_at: timestampDate(message.createdAt!).toISOString()
             };
 
-            channelStore.addMessage(channelID, newMessage);
+            console.log(serverID)
+            if (serverID === "global") {
+              channelStore.addMessageDM(channelID, newMessage)
+            } else {
+              channelStore.addMessage(serverID, channelID, newMessage);
+            }
           }
           break;
         case 'deleteChatMessage':
