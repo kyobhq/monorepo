@@ -33,7 +33,6 @@
 	let messageEl = $state<HTMLElement>();
 	const html = $derived.by(() => generateHTML(message.content, MESSAGE_EXTENSIONS));
 	const messageLength = $derived.by(() => generateTextWithExt(message.content).length);
-	let mentioned = $derived(userStore.user && message.mentions_users?.includes(userStore.user.id));
 
 	function handleMention(e: MouseEvent) {
 		const target = e.target as HTMLButtonElement;
@@ -64,11 +63,7 @@
 		<div
 			bind:this={messageEl}
 			class={[
-				'border-[1px] py-1.5 px-3 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-2xl transition-all',
-				message.author.id === userStore.user?.id
-					? 'bg-main-800 border-main-600'
-					: 'bg-main-950 border-main-800',
-				mentioned && 'border-mention! text-mention! bg-mention/20!',
+				'py-0.5 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-2xl transition-all',
 				!messageIsRecent && ' rounded-bl-sm'
 			]}
 		>

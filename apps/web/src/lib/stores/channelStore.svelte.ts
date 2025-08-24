@@ -43,13 +43,13 @@ class ChannelStore {
 		const messageIdx = cache.messages.findIndex((m) => m.id === messageID);
 		if (messageIdx < 0) return false;
 
-		const [message, nextMessage] = [cache.messages[messageIdx], cache.messages[messageIdx - 1]];
-		if (!message || !nextMessage || nextMessage.author.id !== message.author.id) {
+		const [message, prevMessage] = [cache.messages[messageIdx], cache.messages[messageIdx + 1]];
+		if (!message || !prevMessage || prevMessage.author.id !== message.author.id) {
 			return false;
 		}
 
 		const timeDiff =
-			(new Date(nextMessage.created_at).getTime() - new Date(message.created_at).getTime()) / 1000;
+			(new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime()) / 1000;
 		return timeDiff < 30;
 	}
 

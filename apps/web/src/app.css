@@ -147,7 +147,9 @@ body {
   @apply text-red-400 bg-red-400/20 hover:bg-red-400/30 hover:border-red-400 active:bg-red-400/40;
 }
 
-
+@utility mention-bar {
+  @apply before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-mention
+}
 
 /* Only show focus outline when keyboard navigation is being used */
 [data-keyboard-user="true"] *:focus-visible {

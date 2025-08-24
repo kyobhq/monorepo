@@ -3,10 +3,11 @@
 	import { messageStore } from 'stores/messageStore.svelte';
 	import ContextMenuMessage from 'ui/ContextMenu/ContextMenuMessage.svelte';
 	import MessageEditSentence from './MessageEditSentence.svelte';
-	import MessageBubble from './MessageBubble.svelte';
 	import MessageAuthor from './MessageAuthor.svelte';
 	import { channelStore } from 'stores/channelStore.svelte';
 	import MessageAvatar from './MessageAvatar.svelte';
+	import MessageContent from './MessageContent.svelte';
+	import { userStore } from 'stores/userStore.svelte';
 
 	interface Props {
 		server?: Server;
@@ -21,14 +22,18 @@
 
 	let onClickSave = $state<() => Promise<void>>();
 	let author = $derived(messageStore.getAuthor(message.author.id!) || message.author);
+	let mentioned = $derived(userStore.user && message.mentions_users?.includes(userStore.user.id));
 	let hover = $state(false);
 </script>
 
 <div
 	role="group"
 	class={[
-		'flex gap-x-2.5 items-end hover:bg-main-950/50 px-6 transition-colors duration-75 relative first:mb-0',
-		messageIsRecent ? 'mb-0.5' : 'mb-4'
+		'flex gap-x-2.5 items-start px-6 transition-colors duration-75 relative first:mb-0',
+		!messageIsRecent && 'mt-4 py-1',
+		mentioned
+			? 'bg-mention/20 mention-bar hover:bg-mention/35 mix-blend-plus-lighter'
+			: 'hover:bg-main-950/50'
 	]}
 	onmouseenter={() => (hover = true)}
 	onmouseleave={() => (hover = false)}
@@ -36,11 +41,14 @@
 	{#if !messageIsRecent}
 		<MessageAvatar {author} hoverAvatar={hover} />
 	{/if}
-	<div class="flex flex-col gap-y-1 relative w-[calc(100%-4rem)]">
+	<div class="flex flex-col relative w-[calc(100%-4rem)]">
+		{#if !messageIsRecent}
+			<MessageAuthor {author} {message} />
+		{/if}
 		{#if messageStore.editMessage?.id === message.id}
 			<MessageEditSentence bind:onClickSave />
 		{/if}
-		<MessageBubble
+		<MessageContent
 			{server}
 			{channel}
 			{friend}
@@ -49,9 +57,6 @@
 			hoverMessage={hover}
 			bind:onClickSave
 		/>
-		{#if !messageIsRecent}
-			<MessageAuthor {author} {message} />
-		{/if}
 	</div>
 
 	<ContextMenuMessage {message} />
