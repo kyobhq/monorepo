@@ -7,7 +7,6 @@
 	import CollapsibleBox from 'ui/CollapsibleBox/CollapsibleBox.svelte';
 	import ContextMenuSideBar from 'ui/ContextMenu/ContextMenuSideBar.svelte';
 	import gsap from 'gsap';
-	import { channelStore } from 'stores/channelStore.svelte';
 
 	interface Props {
 		server: Server;
@@ -43,6 +42,7 @@
 			<CollapsibleBox header={category.name} categoryId={category.id}>
 				{#if category.channels}
 					{#each Object.values(category.channels).sort((a, b) => a.position - b.position) as channel (channel.id)}
+						{@const unread = channel.last_message_sent !== channel.last_message_read}
 						<Channel
 							id={channel.id}
 							categoryId={category.id}
@@ -50,7 +50,7 @@
 							name={channel.name}
 							onclick={() => goto(`/servers/${channel.server_id}/channels/${channel.id}`)}
 							active={page.url.pathname.includes(channel.id)}
-							unread={channel.last_message_read !== channel.last_message_sent}
+							{unread}
 							mentions={channel.last_mentions?.length || 0}
 						/>
 					{/each}

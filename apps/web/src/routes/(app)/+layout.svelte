@@ -17,6 +17,7 @@
 	import BanDialog from 'ui/Dialog/ModDialog/BanDialog.svelte';
 	import KickDialog from 'ui/Dialog/ModDialog/KickDialog.svelte';
 	import UserRestrictionDialog from 'ui/Dialog/ModDialog/UserRestrictionDialog.svelte';
+	import { userStore } from 'stores/userStore.svelte';
 
 	let { children } = $props();
 
@@ -30,6 +31,7 @@
 		coreStore.initializeKeyboardDetection();
 		handleRichInputLength();
 		window.addEventListener('resize', handleRichInputLength);
+		window.addEventListener('beforeunload', userStore.sync);
 	});
 
 	onDestroy(() => {

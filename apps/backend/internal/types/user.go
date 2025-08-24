@@ -63,3 +63,9 @@ type EmojiResponse struct {
 	Shortcode string `json:"shortcode"`
 	URL       string `json:"url"`
 }
+
+type SyncParams struct {
+	ChannelIDs     []string          `json:"channel_ids"`
+	LastMessageIDs []string          `json:"last_message_ids"`
+	MentionIDs     []json.RawMessage `json:"mention_ids"`
+}

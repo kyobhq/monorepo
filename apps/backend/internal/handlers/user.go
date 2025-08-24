@@ -5,6 +5,7 @@ import (
 	"backend/internal/types"
 	"backend/internal/validation"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -225,5 +226,23 @@ func (h *userHandler) DeleteAccount(c *gin.Context) {
 	}
 
 	c.SetCookie("token", "", int(time.Now().Add(-30*(24*time.Hour)).Unix()), "/", os.Getenv("DOMAIN"), false, true)
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+func (h *userHandler) Sync(c *gin.Context) {
+	var body types.SyncParams
+
+	if verr := validation.ParseAndValidate(c.Request, &body); verr != nil {
+		slog.Error("Failed to parse sync body", "error", verr)
+		verr.Respond(c)
+		return
+	}
+
+	if derr := h.domain.Sync(c, &body); derr != nil {
+		slog.Error("Failed to sync", "error", derr)
+		derr.Respond(c)
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }

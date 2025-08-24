@@ -63,9 +63,16 @@ type JoinServerWithCategories struct {
 	Roles      []db.GetRolesFromServerRow      `json:"roles"`
 }
 
+type ServerChannel struct {
+	db.Channel
+	LastMessageRead string          `json:"last_message_read"`
+	LastMessageSent string          `json:"last_message_sent"`
+	LastMentions    json.RawMessage `json:"last_mentions"`
+}
+
 type CategoryWithChannels struct {
 	db.ChannelCategory
-	Channels map[string]db.Channel `json:"channels"`
+	Channels map[string]ServerChannel `json:"channels"`
 }
 
 type Member struct {

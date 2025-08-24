@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { backend } from 'stores/backendStore.svelte';
+	import { userStore } from 'stores/userStore.svelte';
 	import Check from 'ui/icons/Check.svelte';
 	import PlusIcon from 'ui/icons/PlusIcon.svelte';
 	import { logErr } from 'utils/print';
@@ -24,7 +25,7 @@
 			receiver_id: receiverID
 		});
 		res.match(
-			() => {},
+			() => userStore.removeFriend({ friendshipID: friendshipID }),
 			(error) => logErr(error)
 		);
 	}

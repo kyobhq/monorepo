@@ -233,6 +233,12 @@ export class ServerStore {
 		};
 	}
 
+	getAllChannels(): Channel[] {
+		return Object.values(this.servers).flatMap((server) =>
+			Object.values(server.categories).flatMap((category) => Object.values(category.channels))
+		);
+	}
+
 	getServerChannels(serverID: string): Channel[] {
 		const server = this.getServer(serverID);
 		if (!server?.categories) return [];

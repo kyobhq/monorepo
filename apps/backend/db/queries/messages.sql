@@ -45,7 +45,10 @@ ORDER BY created_at DESC;
 SELECT c.id FROM channels c, server_members sm WHERE c.id = $1 and c.server_id = sm.server_id and sm.user_id = $2;
 
 -- name: GetLatestMessagesSent :many
-SELECT m.id, m.channel_id FROM messages m WHERE channel_id = ANY($1::text[]) ORDER BY created_at DESC LIMIT 1;
+SELECT DISTINCT ON (channel_id) m.id, m.channel_id 
+FROM messages m 
+WHERE channel_id = ANY($1::text[]) 
+ORDER BY channel_id, created_at DESC;
 
 -- name: GetLatestMessagesRead :many
 SELECT channel_id, last_read_message_id, unread_mention_ids FROM user_channel_read_state WHERE user_id = $1;

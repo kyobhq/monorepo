@@ -293,7 +293,7 @@ export const RemoveFriendSchema = v.object({
   friendship_id: v.string(),
   sender_id: v.string(),
   receiver_id: v.string(),
-  channel_id: v.string()
+  channel_id: v.optional(v.string())
 });
 
 export interface RemoveFriendType extends v.InferInput<typeof RemoveFriendSchema> { }

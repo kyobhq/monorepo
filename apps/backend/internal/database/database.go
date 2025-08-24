@@ -44,7 +44,7 @@ type Service interface {
 	CreateServer(ctx context.Context, ownerID string, body *types.CreateServerParams, avatarURL *string) (*db.Server, error)
 	CheckInvite(ctx context.Context, inviteCode string) (string, error)
 	CreateInvite(ctx context.Context, userID, serverID string) (string, error)
-	JoinServer(ctx context.Context, serverID string, userID string, position int) (*db.JoinServerRow, error)
+	JoinServer(ctx context.Context, serverID string, userID string, position int) (*db.JoinServerRow, []db.ChannelCategory, []db.Channel, []db.GetRolesFromServerRow, []db.GetLatestMessagesSentRow, error)
 	GetServer(ctx context.Context, serverID string) (db.Server, error)
 	UpdateServerAvatarNBanner(ctx context.Context, serverID string, avatar, bannerURL *string) error
 	UpdateServerProfile(ctx context.Context, serverID string, body *types.UpdateServerProfileParams) error
@@ -99,6 +99,9 @@ type Service interface {
 	CheckBan(ctx context.Context, serverID, userID string) (pgtype.Text, error)
 	GetBannedMembers(ctx context.Context, serverID string) ([]db.GetBannedMembersRow, error)
 	SearchServerMembers(ctx context.Context, serverID, query string) ([]db.SearchServerMembersRow, error)
+	Sync(ctx context.Context, userID string, body *types.SyncParams) error
+	GetLatestMessagesRead(ctx context.Context, userID string) ([]db.GetLatestMessagesReadRow, error)
+	GetLatestMessagesSent(ctx context.Context, channelIDs []string) ([]db.GetLatestMessagesSentRow, error)
 }
 
 type service struct {
@@ -310,19 +313,21 @@ func (s *service) CreateInvite(ctx context.Context, userID, serverID string) (st
 	return invite.(string), nil
 }
 
-func (s *service) JoinServer(ctx context.Context, serverID string, userID string, position int) (*db.JoinServerRow, error) {
+func (s *service) JoinServer(ctx context.Context, serverID string, userID string, position int) (*db.JoinServerRow, []db.ChannelCategory, []db.Channel, []db.GetRolesFromServerRow, []db.GetLatestMessagesSentRow, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	defer tx.Rollback(ctx)
 
-	roleID, err := s.queries.GetDefaultRoleID(ctx, serverID)
+	qtx := s.queries.WithTx(tx)
+
+	roleID, err := qtx.GetDefaultRoleID(ctx, serverID)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	join, err := s.queries.JoinServer(ctx, db.JoinServerParams{
+	join, err := qtx.JoinServer(ctx, db.JoinServerParams{
 		ID:       cuid2.Generate(),
 		UserID:   userID,
 		ServerID: serverID,
@@ -330,10 +335,35 @@ func (s *service) JoinServer(ctx context.Context, serverID string, userID string
 		Roles:    []string{roleID},
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	return &join, tx.Commit(ctx)
+	categories, err := qtx.GetCategoriesFromServer(ctx, serverID)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	channels, err := qtx.GetChannelsFromServer(ctx, serverID)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	roles, err := qtx.GetRolesFromServer(ctx, serverID)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	channelIDs := make([]string, len(channels))
+	for i, channel := range channels {
+		channelIDs[i] = channel.ID
+	}
+
+	latestMessagesSent, err := qtx.GetLatestMessagesSent(ctx, channelIDs)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	return &join, categories, channels, roles, latestMessagesSent, tx.Commit(ctx)
 }
 
 func (s *service) UpdateServerAvatarNBanner(ctx context.Context, serverID string, avatarURL, bannerURL *string) error {
@@ -813,6 +843,23 @@ func (s *service) SearchServerMembers(ctx context.Context, serverID, query strin
 		ServerID:    serverID,
 		DisplayName: "%" + query + "%",
 	})
+}
+
+func (s *service) Sync(ctx context.Context, userID string, body *types.SyncParams) error {
+	return s.queries.SaveUnreadMessagesState(ctx, db.SaveUnreadMessagesStateParams{
+		UserID:             userID,
+		ChannelIds:         body.ChannelIDs,
+		LastReadMessageIds: body.LastMessageIDs,
+		UnreadMentionIds:   body.MentionIDs,
+	})
+}
+
+func (s *service) GetLatestMessagesRead(ctx context.Context, userID string) ([]db.GetLatestMessagesReadRow, error) {
+	return s.queries.GetLatestMessagesRead(ctx, userID)
+}
+
+func (s *service) GetLatestMessagesSent(ctx context.Context, channelIDs []string) ([]db.GetLatestMessagesSentRow, error) {
+	return s.queries.GetLatestMessagesSent(ctx, channelIDs)
 }
 
 // Health checks the health of the database connection by pinging the database.

@@ -6,6 +6,7 @@ import type {
 	Channel,
 	Emoji,
 	Friend,
+	LastState,
 	Member,
 	Message,
 	Role,

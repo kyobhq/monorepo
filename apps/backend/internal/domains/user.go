@@ -30,6 +30,7 @@ type UserService interface {
 	UpdateEmoji(ctx *gin.Context, body *types.UpdateEmojiParams) *types.APIError
 	DeleteEmoji(ctx *gin.Context) *types.APIError
 	DeleteAccount(ctx *gin.Context) *types.APIError
+	Sync(ctx *gin.Context, body *types.SyncParams) *types.APIError
 }
 
 type userService struct {
@@ -323,7 +324,7 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 	res.Friends = friends
 	res.Servers = make(map[string]types.ServerWithCategories)
 	if len(servers) > 0 {
-		serversMap, err := s.processServers(ctx, servers)
+		serversMap, err := s.processServers(ctx, user.ID, servers)
 		if err != nil {
 			return nil, &types.APIError{
 				Status:  http.StatusInternalServerError,
@@ -339,7 +340,7 @@ func (s *userService) Setup(ctx *gin.Context) (*types.Setup, *types.APIError) {
 	return &res, nil
 }
 
-func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFromUserRow) (map[string]types.ServerWithCategories, error) {
+func (s *userService) processServers(ctx *gin.Context, userID string, servers []db.GetServersFromUserRow) (map[string]types.ServerWithCategories, error) {
 	serverIDs := make([]string, 0, len(servers))
 	for _, server := range servers {
 		serverIDs = append(serverIDs, server.ID)
@@ -358,6 +359,33 @@ func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFr
 	allRoles, err := s.db.GetRolesFromServers(ctx, serverIDs)
 	if err != nil {
 		return nil, err
+	}
+
+	allMessagesReadMap := make(map[string]string)
+	allMessagesMentionsMap := make(map[string]json.RawMessage)
+	allMessagesRead, err := s.db.GetLatestMessagesRead(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	channelIDs := make([]string, len(allChannels))
+	for i, channel := range allChannels {
+		channelIDs[i] = channel.ID
+	}
+
+	allMessagesSentMap := make(map[string]string)
+	allMessagesSent, err := s.db.GetLatestMessagesSent(ctx, channelIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, message := range allMessagesRead {
+		allMessagesReadMap[message.ChannelID] = message.LastReadMessageID.String
+		allMessagesMentionsMap[message.ChannelID] = message.UnreadMentionIds
+	}
+
+	for _, message := range allMessagesSent {
+		allMessagesSentMap[message.ChannelID] = message.ID
 	}
 
 	categoriesByServer := make(map[string][]db.ChannelCategory)
@@ -383,9 +411,14 @@ func (s *userService) processServers(ctx *gin.Context, servers []db.GetServersFr
 	for _, server := range servers {
 		categoryMap := make(map[string]types.CategoryWithChannels)
 		for _, category := range categoriesByServer[server.ID] {
-			channelMap := make(map[string]db.Channel)
+			channelMap := make(map[string]types.ServerChannel)
 			for _, channel := range channelsByCategory[category.ID] {
-				channelMap[channel.ID] = channel
+				channelMap[channel.ID] = types.ServerChannel{
+					channel,
+					allMessagesReadMap[channel.ID],
+					allMessagesSentMap[channel.ID],
+					allMessagesMentionsMap[channel.ID],
+				}
 			}
 
 			categoryMap[category.ID] = types.CategoryWithChannels{
@@ -569,6 +602,29 @@ func (s *userService) DeleteAccount(ctx *gin.Context) *types.APIError {
 	}
 
 	s.actors.NotifyAccountDeletion(userID, servers)
+
+	return nil
+}
+
+func (s *userService) Sync(ctx *gin.Context, body *types.SyncParams) *types.APIError {
+	u, exists := ctx.Get("user")
+	if !exists {
+		return &types.APIError{
+			Status:  http.StatusUnauthorized,
+			Code:    "ERR_UNAUTHORIZED",
+			Message: "Unauthorized.",
+		}
+	}
+	userID := u.(*db.User).ID
+
+	if err := s.db.Sync(ctx, userID, body); err != nil {
+		return &types.APIError{
+			Status:  http.StatusInternalServerError,
+			Code:    "ERR_SYNC",
+			Message: "Failed to sync.",
+			Cause:   err.Error(),
+		}
+	}
 
 	return nil
 }

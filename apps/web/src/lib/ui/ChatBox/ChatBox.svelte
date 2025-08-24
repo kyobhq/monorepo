@@ -9,9 +9,9 @@
 	import { delay } from 'utils/time';
 	import ChatSpacer from './ChatSpacer.svelte';
 	import ChatNoMessages from './ChatNoMessages.svelte';
-	import { fade } from 'svelte/transition';
 	import { messageStore } from 'stores/messageStore.svelte';
 	import { scaleBlur } from 'utils/transition';
+	import { userStore } from 'stores/userStore.svelte';
 
 	interface Props {
 		serverID: string;
@@ -22,6 +22,7 @@
 
 	const currentServer = $derived(serverStore.getServer(serverID));
 	const currentChannel = $derived(channelStore.getChannel(serverID, channelID));
+	const friend = $derived(userStore.getFriendByChannelID(channelID));
 
 	const SCROLL_THRESHOLD = 500;
 	const SCROLL_LIMIT = 3000;
@@ -135,7 +136,7 @@
 				<ChatSpacer {channelID} />
 
 				{#each channelStore.messageCache[channelID].messages as message (message.id)}
-					<Message server={currentServer} channel={currentChannel!} {message} />
+					<Message server={currentServer} channel={currentChannel!} {friend} {message} />
 				{/each}
 			{:else}
 				<ChatNoMessages channelName={currentChannel?.name} />

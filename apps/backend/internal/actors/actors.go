@@ -500,7 +500,7 @@ func (se *service) AcceptFriendRequest(friendshipID, senderID, receiverID, chann
 	senderPID := se.GetUser(senderID)
 	receiverPID := se.GetUser(receiverID)
 
-	message := &message.WSMessage{
+	acceptMessage := &message.WSMessage{
 		Content: &message.WSMessage_AcceptFriendRequest{
 			AcceptFriendRequest: &message.AcceptFriendRequest{
 				FriendshipId: friendshipID,
@@ -511,8 +511,23 @@ func (se *service) AcceptFriendRequest(friendshipID, senderID, receiverID, chann
 
 	se.StartDMChannel(channelID, []string{senderID, receiverID})
 
-	se.cluster.Engine().Send(senderPID, message)
-	se.cluster.Engine().Send(receiverPID, message)
+	se.cluster.Engine().Send(senderPID, acceptMessage)
+	se.cluster.Engine().Send(receiverPID, acceptMessage)
+
+	se.cluster.Engine().Send(senderPID, &message.ChangeStatus{
+		Type: "Ping",
+		User: &message.User{
+			Id: receiverID,
+		},
+		Status: "online",
+	})
+	se.cluster.Engine().Send(receiverPID, &message.ChangeStatus{
+		Type: "Ping",
+		User: &message.User{
+			Id: senderID,
+		},
+		Status: "online",
+	})
 }
 
 func (se *service) RemoveFriend(friendshipID, senderID, receiverID, channelID string) {

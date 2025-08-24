@@ -9,6 +9,7 @@ import (
 	"backend/internal/types"
 	"backend/internal/validation"
 	"backend/proto"
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -131,20 +132,7 @@ func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParam
 		}
 	}
 
-	if body.ServerID != "" {
-		server, err := s.db.GetServer(ctx, body.ServerID)
-		if err != nil {
-			return nil, &types.APIError{
-				Status:  http.StatusInternalServerError,
-				Code:    "ERR_GET_SERVER",
-				Cause:   err.Error(),
-				Message: "Failed to get server.",
-			}
-		}
-		serverID = server.ID
-	}
-
-	server, err := s.db.JoinServer(ctx, serverID, user.ID, body.Position)
+	server, categories, channels, roles, latestMessagesSent, err := s.db.JoinServer(ctx, serverID, user.ID, body.Position)
 	if err != nil {
 		return nil, &types.APIError{
 			Status:  http.StatusInternalServerError,
@@ -154,55 +142,22 @@ func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParam
 		}
 	}
 
-	userPID := s.actors.GetUser(user.ID)
-	changeStatus := &proto.ChangeStatus{
-		Type: "join",
-		User: &proto.User{
-			Id:          user.ID,
-			DisplayName: user.DisplayName,
-			Avatar:      user.Avatar.String,
-		},
-		ServerId: server.ID,
-		Status:   "online",
-	}
-	s.actors.SendUserStatusMessage(userPID, changeStatus)
-
-	categories, err := s.db.GetCategoriesFromServer(ctx, serverID)
-	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_CATEGORIES",
-			Cause:   err.Error(),
-			Message: "Failed to get categories.",
-		}
-	}
-
-	channels, err := s.db.GetChannelsFromServer(ctx, serverID)
-	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_CHANNELS",
-			Cause:   err.Error(),
-			Message: "Failed to get channels.",
-		}
-	}
-
-	roles, err := s.db.GetRolesFromServer(ctx, serverID)
-	if err != nil {
-		return nil, &types.APIError{
-			Status:  http.StatusInternalServerError,
-			Code:    "ERR_GET_ROLES",
-			Cause:   err.Error(),
-			Message: "Failed to get roles.",
-		}
+	allMessagesSentMap := make(map[string]string)
+	for _, message := range latestMessagesSent {
+		allMessagesSentMap[message.ChannelID] = message.ID
 	}
 
 	categoryMap := make(map[string]types.CategoryWithChannels)
 	for _, category := range categories {
-		channelMap := make(map[string]db.Channel)
+		channelMap := make(map[string]types.ServerChannel)
 		for _, channel := range channels {
 			if channel.CategoryID.String == category.ID {
-				channelMap[channel.ID] = channel
+				channelMap[channel.ID] = types.ServerChannel{
+					channel,
+					allMessagesSentMap[channel.ID],
+					allMessagesSentMap[channel.ID],
+					json.RawMessage(`[]`),
+				}
 			}
 		}
 
@@ -217,6 +172,19 @@ func (s *serverService) JoinServer(ctx *gin.Context, body *types.JoinServerParam
 		categoryMap,
 		roles,
 	}
+
+	userPID := s.actors.GetUser(user.ID)
+	changeStatus := &proto.ChangeStatus{
+		Type: "join",
+		User: &proto.User{
+			Id:          user.ID,
+			DisplayName: user.DisplayName,
+			Avatar:      user.Avatar.String,
+		},
+		ServerId: server.ID,
+		Status:   "online",
+	}
+	s.actors.SendUserStatusMessage(userPID, changeStatus)
 
 	return serverWithCategories, nil
 }

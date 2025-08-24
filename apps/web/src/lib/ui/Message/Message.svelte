@@ -45,9 +45,6 @@
 		{#if !messageIsRecent}
 			<MessageAuthor {author} {message} />
 		{/if}
-		{#if messageStore.editMessage?.id === message.id}
-			<MessageEditSentence bind:onClickSave />
-		{/if}
 		<MessageContent
 			{server}
 			{channel}
@@ -57,6 +54,9 @@
 			hoverMessage={hover}
 			bind:onClickSave
 		/>
+		{#if messageStore.editMessage?.id === message.id}
+			<MessageEditSentence bind:onClickSave {messageIsRecent} />
+		{/if}
 	</div>
 
 	<ContextMenuMessage {message} />
