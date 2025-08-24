@@ -22,7 +22,6 @@
 				form.data.user_id = coreStore.modDialog.user_id;
 
 				coreStore.modDialog.open = false;
-
 				const res = await backend.banUser(coreStore.modDialog.server_id, form.data);
 				if (res.isErr()) logErr(res.error);
 				if (res.isOk()) {

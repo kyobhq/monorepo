@@ -192,6 +192,14 @@ class ChannelStore {
     }
   }
 
+  deleteAllMessagesFromAuthor(channelID: string, authorID: string): void {
+    const cache = this.messageCache[channelID]
+    if (cache) {
+      cache.messages = cache.messages.filter(message => message.author.id !== authorID)
+
+    }
+  }
+
   deleteChannel(serverID: string, categoryID: string, channelID: string): void {
     const category = categoryStore.getCategory(serverID, categoryID);
     if (category) {

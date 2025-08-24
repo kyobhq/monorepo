@@ -86,6 +86,14 @@ export class ServerStore {
 
 	deleteMember(serverID: string, userID: string): void {
 		this.servers[serverID].members = this.servers[serverID].members.filter((m) => m.id !== userID);
+    messageStore.removeAuthor(userID)
+
+    const channels = this.getServerChannels(serverID)
+    for (const channel of channels) {
+      if (channelStore.messageCache[channel.id]) {
+        channelStore.deleteAllMessagesFromAuthor(channel.id, userID)
+      }
+    }
 	}
 
 	getMember(serverID: string, userID: string): Member | undefined {

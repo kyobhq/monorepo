@@ -21,10 +21,9 @@
 			if (form.valid) {
 				form.data.user_id = coreStore.modDialog.user_id;
 
+				coreStore.modDialog.open = false;
 				const res = await backend.kickUser(coreStore.modDialog.server_id, form.data);
 				if (res.isErr()) logErr(res.error);
-
-				coreStore.modDialog.open = false;
 			}
 		}
 	});
