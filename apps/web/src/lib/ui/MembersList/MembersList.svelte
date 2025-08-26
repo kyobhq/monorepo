@@ -6,11 +6,12 @@
 	import { backend } from 'stores/backendStore.svelte';
 	import { logErr } from 'utils/print';
 	import { onNavigate } from '$app/navigation';
-	import { onMount } from 'svelte';
 
 	let idx = $state(0);
 	let loadingMembers = $state(false);
-	let canLoadMore = $state(true);
+	let canLoadMore = $state(
+		serverStore.memberCount > serverStore.getMembers(page.params.server_id!).length
+	);
 	const MEMBERS_PER_PAGE = 50;
 	const THRESHOLD = 100;
 

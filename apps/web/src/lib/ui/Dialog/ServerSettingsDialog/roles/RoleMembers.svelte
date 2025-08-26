@@ -64,7 +64,7 @@
 		/>
 		<label
 			for="activate-member-{id}"
-			class="h-5 w-5 bg-main-800 border-[0.5px] border-main-600 hover:cursor-pointer peer-checked:border-accent-lighter peer-checked:bg-accent transition-colors duration-75 flex justify-center items-center text-main-800 peer-checked:text-main-50"
+			class="h-5 w-5 bg-main-800 border-[0.5px] border-main-600 hover:cursor-pointer peer-checked:border-accent-lighter peer-checked:bg-accent transition-colors duration-75 flex justify-center items-center text-main-800 peer-checked:text-main-50 rounded-md"
 		>
 			<Check height={14} width={14} />
 		</label>

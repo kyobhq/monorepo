@@ -10,6 +10,8 @@
 	import SaveBar from 'ui/SaveBar/SaveBar.svelte';
 	import SideBarSettings from 'ui/SideBar/SideBarSettings.svelte';
 	import DefaultSettingsDialog from '../DefaultSettingsDialog/DefaultSettingsDialog.svelte';
+	import Overview from './overview/Overview.svelte';
+	import Permissions from './permissions/Permissions.svelte';
 
 	let currentChannel = $derived(
 		channelStore.getChannel(page.params.server_id || '', coreStore.channelSettingsDialog.channel_id)
@@ -82,29 +84,11 @@
 	/>
 	<div class="flex flex-col w-full h-full px-8 py-6">
 		<h3 class="text-xl font-semibold">{coreStore.channelSettingsDialog.section}</h3>
-		<form method="post" use:enhance class="w-full h-full flex flex-col gap-y-6 relative mt-8">
+		<form method="post" use:enhance class="w-full h-full flex flex-col gap-y-6 relative pt-8">
 			{#if coreStore.channelSettingsDialog.section === 'Overview'}
-				<FormInput
-					title="Channel name"
-					id="channel-name"
-					type="text"
-					placeholder="Channel name"
-					bind:inputValue={$form.name}
-					bind:error={$errors.name}
-					class="w-full"
-				/>
-
-				<FormInput
-					title="Channel description"
-					id="channel-description"
-					type="text"
-					placeholder="Channel description"
-					bind:inputValue={$form.description}
-					bind:error={$errors.description}
-					class="w-full"
-				/>
+				<Overview bind:form={$form} bind:errors={$errors} />
 			{:else if coreStore.channelSettingsDialog.section === 'Permissions'}
-				Permissions
+				<Permissions />
 			{/if}
 
 			{#if changes}

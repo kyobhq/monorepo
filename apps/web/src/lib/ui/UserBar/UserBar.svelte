@@ -41,7 +41,7 @@
 {#if userStore.user}
 	<div
 		bind:this={userBarEl}
-		class="absolute w-full bottom-0 pl-1.5 py-1.5 pr-2.5 left-1/2 -translate-x-1/2 z-[1] border-t-[0.5px] border-main-800"
+		class="absolute w-full bottom-0 pl-1.5 py-1.5 pr-2.5 left-1/2 -translate-x-1/2 z-[1] border-t-[0.5px] border-main-800 bg-main-975"
 	>
 		<div class="flex justify-between p-[2.5px]">
 			<button
