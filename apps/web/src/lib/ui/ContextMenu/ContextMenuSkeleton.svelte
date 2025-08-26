@@ -17,7 +17,7 @@
 	<ContextMenu.Trigger class="absolute inset-0"></ContextMenu.Trigger>
 	<ContextMenu.Portal>
 		<ContextMenu.Content
-			class="bg-main-950 border-[2px] border-main-850 relative flex w-[225px] flex-col gap-y-1 p-1 select-none z-10 rounded-xl shadow-box"
+			class="bg-main-950 border-[2px] border-main-850 relative flex w-[225px] flex-col gap-y-1 p-1 select-none z-10 rounded-xl"
 			onmousedown={contextMenuMouseDown}
 		>
 			{@render contextMenuContent()}

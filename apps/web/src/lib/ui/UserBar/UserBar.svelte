@@ -41,13 +41,13 @@
 {#if userStore.user}
 	<div
 		bind:this={userBarEl}
-		class="absolute w-[calc(100%-1.25rem)] bottom-2.5 pr-2 left-1/2 -translate-x-1/2 box-style rounded-xl z-[1]"
+		class="absolute w-full bottom-0 pl-1.5 py-1.5 pr-2.5 left-1/2 -translate-x-1/2 z-[1] border-t-[0.5px] border-main-800"
 	>
 		<div class="flex justify-between p-[2.5px]">
 			<button
 				bind:this={buttonEl}
 				onclick={() => coreStore.openMyProfile(buttonEl!)}
-				class="flex text-left items-center gap-x-2 active:bg-main-700/85 hover:bg-main-800 pr-2 border-[0.5px] border-transparent hover:border-main-600 transition-colors hover:cursor-pointer duration-150 rounded-lg z-[1]"
+				class="flex text-left items-center gap-x-2 active:bg-main-800/85 hover:bg-main-900 pr-2 border-[0.5px] border-transparent hover:border-main-700 transition-colors hover:cursor-pointer duration-150 rounded-lg z-[1]"
 				onmouseenter={() => (hoverAvatar = true)}
 				onmouseleave={() => (hoverAvatar = false)}
 			>

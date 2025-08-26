@@ -60,19 +60,19 @@
 
 <div class={['flex flex-col gap-y-1.5', messageIsRecent && 'pl-[3.625rem]']}>
 	{#if messageLength > 0}
-		<div
-			bind:this={messageEl}
-			class={[
-				'py-0.5 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-2xl transition-all',
-				!messageIsRecent && ' rounded-bl-sm'
-			]}
-		>
-			{#if messageStore.editMessage?.id === message.id}
-				<RichInputEdit {server} {channel} {friend} bind:onClickSave />
-			{:else}
+		{#if messageStore.editMessage?.id === message.id}
+			<RichInputEdit {server} {channel} {friend} bind:onClickSave />
+		{:else}
+			<div
+				bind:this={messageEl}
+				class={[
+					'py-0.5 w-fit max-w-full [&>*]:break-all relative z-[1] rounded-2xl transition-all',
+					!messageIsRecent && ' rounded-bl-sm'
+				]}
+			>
 				{@html html}
-			{/if}
-		</div>
+			</div>
+		{/if}
 	{/if}
 	{#if message.attachments?.length > 0}
 		<MessageAttachments attachments={message.attachments} hover={hoverMessage} />

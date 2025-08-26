@@ -86,6 +86,7 @@
 				onEnterPress: () => prepareMessage(editor.getJSON()),
 				onKeyupPress: () => {
 					if (!channel) return;
+					if (editorStore.listOpen) return;
 					if (channelStore.messageCache[channel.id].scrollY > 3000) return;
 
 					for (const message of channelStore.messageCache[channel.id].messages) {
@@ -115,7 +116,7 @@
 </script>
 
 <div
-	class="flex w-full flex-col gap-y-1 px-2.5 pb-2.5 relative"
+	class="flex w-full flex-col gap-y-1 px-2.5 pb-3.5 relative"
 	style="width: {coreStore.richInputLength}px;"
 >
 	{#if editorStore.currentInput === 'main' && editorStore.listOpen}
@@ -134,9 +135,7 @@
 			disabled={!(Boolean(friend) || hasPermissions(page.params.server_id!, 'ATTACH_FILES'))}
 		/>
 		<div class="relative flex w-[calc(100%-3.5rem*2)] flex-col transition duration-100">
-			<div class="flex w-full">
-				<div class="max-h-[10rem] w-full" bind:this={element}></div>
-			</div>
+			<div class="max-h-[10rem] w-full" bind:this={element}></div>
 		</div>
 		<button
 			class="h-[3.5rem] px-3 flex justify-center items-center text-main-500 hover:text-main-200 hover:cursor-pointer transition-colors duration-75 z-[1]"

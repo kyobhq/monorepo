@@ -41,7 +41,7 @@
 <button
 	{onclick}
 	class={[
-		'relative flex items-center w-full gap-x-2 hover:cursor-pointer transition duration-150 py-2 px-2.5 rounded-md active-scale-down',
+		'relative flex items-center w-full gap-x-2 hover:cursor-pointer transition duration-150 py-2 px-2.5 rounded-[10px] active-scale-down',
 		active ? 'text-main-50 bg-main-850' : 'hover:bg-main-900 hover:text-main-50 text-main-300',
 		unread && 'text-main-50!'
 	]}

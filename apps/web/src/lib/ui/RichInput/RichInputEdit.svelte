@@ -122,9 +122,11 @@
 	});
 </script>
 
-<div class="flex w-full flex-col gap-y-1">
-	{#if editorStore.currentInput === 'edit' && editorStore.listOpen}
+{#if editorStore.currentInput === 'edit' && editorStore.listOpen}
+	<div class="absolute bottom-full mb-1 z-20 left-0 right-0">
 		<RichInputList />
-	{/if}
+	</div>
+{/if}
+<div class="flex w-full flex-col gap-y-1 z-[1] p-0.5">
 	<div class="max-h-[10rem] w-full" bind:this={element}></div>
 </div>

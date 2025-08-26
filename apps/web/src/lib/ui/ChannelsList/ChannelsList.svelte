@@ -33,7 +33,7 @@
 </script>
 
 <section
-	class="relative flex flex-col gap-y-2 px-2.5 pt-2.5 pb-[9rem] h-full overflow-auto"
+	class="relative flex flex-col gap-y-2 px-1.5 pt-1.5 pb-[9rem] h-full overflow-auto"
 	bind:this={sectionEl}
 >
 	<ContextMenuSideBar />
