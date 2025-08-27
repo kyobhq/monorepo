@@ -165,6 +165,8 @@ export class BackendStore {
 					value.forEach((item) => formData.append(`${key}[]`, item));
 				} else if (typeof value === 'object' && !(value instanceof File)) {
 					formData.append(key, JSON.stringify(value));
+				} else if (value instanceof File) {
+					formData.append(key, value);
 				} else {
 					formData.append(key, String(value));
 				}
@@ -310,6 +312,7 @@ export class BackendStore {
 			crop_avatar: cropAvatarPixels,
 			crop_banner: cropBannerPixels
 		});
+		console.log(formData);
 
 		return this.makeRequest<{ avatar: string; banner: string }>('users/avatar', {
 			method: 'patch',

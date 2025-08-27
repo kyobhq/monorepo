@@ -196,10 +196,14 @@ class ChannelStore {
 	}
 
 	deleteMessage(channelID: string, messageID: string): void {
+    const channel = this.getChannel(page.params.server_id!, channelID)
 		const cache = this.messageCache[channelID];
-		if (cache) {
-			cache.messages = cache.messages.filter((message) => message.id !== messageID);
-		}
+		if (!cache || !channel) return;
+
+    cache.messages = cache.messages.filter((message) => message.id !== messageID);
+
+    if (channel.last_message_sent === messageID) channel.last_message_sent = cache.messages[0].id;
+    if (channel.last_message_read === messageID) channel.last_message_read = cache.messages[0].id;
 	}
 
 	deleteAllMessagesFromAuthor(channelID: string, authorID: string): void {

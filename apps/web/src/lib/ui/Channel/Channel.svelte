@@ -1,9 +1,10 @@
 <script lang="ts">
 	import VolumeIcon from '../icons/VolumeIcon.svelte';
-	import Lock from '../icons/Lock.svelte';
 	import HashChat from '../icons/HashChat.svelte';
 	import type { ChannelTypes } from '$lib/types/types';
 	import ContextMenuChannel from 'ui/ContextMenu/ContextMenuChannel.svelte';
+	import GalleryIcon from 'ui/icons/GalleryIcon.svelte';
+	import CarouselIcon from 'ui/icons/CarouselIcon.svelte';
 
 	interface Props {
 		id: string;
@@ -32,8 +33,8 @@
 	const ICONS = {
 		textual: HashChat,
 		voice: VolumeIcon,
-		'textual-e2ee': Lock,
-		dm: Lock
+		gallery: GalleryIcon,
+		kanban: CarouselIcon
 	};
 	const Icon = ICONS[type];
 </script>

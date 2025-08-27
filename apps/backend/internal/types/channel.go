@@ -9,7 +9,7 @@ type CreateChannelParams struct {
 	Users       []string `json:"users" validate:"omitempty"`
 	Roles       []string `json:"roles" validate:"omitempty"`
 	E2EE        bool     `json:"e2ee"`
-	Type        string   `json:"type" validate:"required,oneof=textual voice"`
+	Type        string   `json:"type" validate:"required,oneof=textual voice gallery kanban"`
 }
 
 type CreateCategoryParams struct {

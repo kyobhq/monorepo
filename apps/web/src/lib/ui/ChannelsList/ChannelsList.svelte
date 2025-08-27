@@ -28,6 +28,13 @@
 
 		for (const category of Object.values(categories)) {
 			const channels = channelStore.getCategoryChannels(server.id, category.id);
+			if (channels.length === 0) {
+				result.push({
+					...category,
+					channels: {}
+				});
+			}
+
 			const accessibleChannels = channels.filter((channel) =>
 				channelStore.hasChannelAccess(channel, userID)
 			);

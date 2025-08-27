@@ -2,9 +2,9 @@ import type { Abilities } from '$lib/constants/permissions';
 
 export const ChannelTypes = {
   Textual: 'textual',
-  TextualE2EE: 'textual-e2ee',
   Voice: 'voice',
-  Dm: 'dm'
+  Gallery: 'gallery',
+  Kanban: 'kanban',
 } as const;
 export type ChannelTypes = (typeof ChannelTypes)[keyof typeof ChannelTypes];
 

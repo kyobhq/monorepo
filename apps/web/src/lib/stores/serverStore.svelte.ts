@@ -1,5 +1,5 @@
 import type { EditServerType } from '$lib/types/schemas';
-import type { Category, Channel, Invite, Member, Role, Server } from '$lib/types/types';
+import type { Channel, Invite, Member, Role, Server } from '$lib/types/types';
 import { createId } from '@paralleldrive/cuid2';
 import { backend } from './backendStore.svelte';
 import { logErr } from 'utils/print';
@@ -8,7 +8,6 @@ import type { Abilities } from '$lib/constants/permissions';
 import { page } from '$app/state';
 import { messageStore } from './messageStore.svelte';
 import { channelStore } from './channelStore.svelte';
-import { categoryStore } from './categoryStore.svelte';
 
 interface CacheEntry {
 	cached: boolean;
@@ -102,7 +101,21 @@ export class ServerStore {
 	}
 
 	getMember(serverID: string, userID: string): Member | undefined {
-		return this.servers[serverID]?.members.find((m) => m.id === userID);
+		return this.servers[serverID]?.members?.find((m) => m.id === userID);
+	}
+
+	editMember(serverID: string, memberID: string, displayName?: string, avatar?: string): void {
+		const member = this.getMember(serverID, memberID);
+		if (member) {
+			if (displayName) member.display_name = displayName;
+			if (avatar) member.avatar = avatar;
+		}
+
+		const author = messageStore.getAuthor(memberID);
+		if (author) {
+			if (displayName) author.display_name = displayName;
+			if (avatar) author.avatar = avatar;
+		}
 	}
 
 	getMemberRoles(serverID: string, userID: string): string[] {

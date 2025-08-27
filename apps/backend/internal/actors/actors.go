@@ -101,6 +101,8 @@ type Service interface {
 	EditChannel(channelID string, body *types.EditChannelParams)
 
 	EditCategory(categoryID string, body *types.EditCategoryParams)
+
+	MemberChange(serverIDs []string, userID string, avatarURL *string, displayName *string)
 }
 
 type service struct {
@@ -223,25 +225,25 @@ func (se *service) StartServerInRegion(serverID, region string) *actor.PID {
 func (se *service) StartCategory(category db.ChannelCategory) {
 	serversPID := se.GetAllServerInstances(category.ServerID)
 
-	for _, serverPID := range serversPID {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_StartCategory{
-				StartCategory: &message.StartCategory{
-					Category: &message.Category{
-						Id:        category.ID,
-						Position:  category.Position,
-						ServerId:  category.ServerID,
-						Name:      category.Name,
-						Users:     category.Users,
-						Roles:     category.Roles,
-						E2Ee:      category.E2ee,
-						CreatedAt: timestamppb.New(category.CreatedAt),
-						UpdatedAt: timestamppb.New(category.UpdatedAt),
-					},
+	message := &message.WSMessage{
+		Content: &message.WSMessage_StartCategory{
+			StartCategory: &message.StartCategory{
+				Category: &message.Category{
+					Id:        category.ID,
+					Position:  category.Position,
+					ServerId:  category.ServerID,
+					Name:      category.Name,
+					Users:     category.Users,
+					Roles:     category.Roles,
+					E2Ee:      category.E2ee,
+					CreatedAt: timestamppb.New(category.CreatedAt),
+					UpdatedAt: timestamppb.New(category.UpdatedAt),
 				},
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serversPID {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -249,23 +251,29 @@ func (se *service) StartCategory(category db.ChannelCategory) {
 func (se *service) StartChannel(channel db.Channel) {
 	serversPID := se.GetAllServerInstances(channel.ServerID)
 
-	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.StartChannel{
-			Channel: &message.Channel{
-				Id:          channel.ID,
-				ServerId:    channel.ServerID,
-				CategoryId:  channel.CategoryID.String,
-				Name:        channel.Name,
-				Description: channel.Description.String,
-				Type:        channel.Type,
-				E2Ee:        channel.E2ee,
-				Users:       channel.Users,
-				Roles:       channel.Roles,
-				Position:    channel.Position,
-				CreatedAt:   timestamppb.New(channel.CreatedAt),
-				UpdatedAt:   timestamppb.New(channel.UpdatedAt),
+	message := &message.WSMessage{
+		Content: &message.WSMessage_StartChannel{
+			StartChannel: &message.StartChannel{
+				Channel: &message.Channel{
+					Id:          channel.ID,
+					ServerId:    channel.ServerID,
+					CategoryId:  channel.CategoryID.String,
+					Name:        channel.Name,
+					Description: channel.Description.String,
+					Type:        channel.Type,
+					E2Ee:        channel.E2ee,
+					Users:       channel.Users,
+					Roles:       channel.Roles,
+					Position:    channel.Position,
+					CreatedAt:   timestamppb.New(channel.CreatedAt),
+					UpdatedAt:   timestamppb.New(channel.UpdatedAt),
+				},
 			},
-		})
+		},
+	}
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
@@ -286,16 +294,16 @@ func (se *service) KillServer(serverID string) {
 	allUsers := se.GetActiveUsers(serverID)
 	serversPID := se.GetAllServerInstances(serverID)
 
+	message := &message.WSMessage{
+		Content: &message.WSMessage_KillServer{
+			KillServer: &message.KillServer{
+				ServerId: serverID,
+			},
+		},
+	}
+
 	for _, userID := range allUsers {
 		userPID := se.GetUser(userID)
-
-		message := &message.WSMessage{
-			Content: &message.WSMessage_KillServer{
-				KillServer: &message.KillServer{
-					ServerId: serverID,
-				},
-			},
-		}
 
 		se.BroadcastMessageToUser(userPID, message)
 	}
@@ -308,12 +316,12 @@ func (se *service) KillServer(serverID string) {
 func (se *service) LeaveServer(serverID, userID string) {
 	serversPID := se.GetAllServerInstances(serverID)
 
-	for _, serverPID := range serversPID {
-		message := &message.LeaveServer{
-			ServerId: serverID,
-			UserId:   userID,
-		}
+	message := &message.LeaveServer{
+		ServerId: serverID,
+		UserId:   userID,
+	}
 
+	for _, serverPID := range serversPID {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -321,26 +329,38 @@ func (se *service) LeaveServer(serverID, userID string) {
 func (se *service) KillCategory(body *types.DeleteCategoryParams, categoryID string) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
+	message := &message.WSMessage{
+		Content: &message.WSMessage_KillCategory{
+			KillCategory: &message.KillCategory{
+				ServerId:    body.ServerID,
+				CategoryId:  categoryID,
+				ChannelsIds: body.ChannelsIDs,
+			},
+		},
+	}
+
 	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.KillCategory{
-			ServerId:    body.ServerID,
-			CategoryId:  categoryID,
-			ChannelsIds: body.ChannelsIDs,
-		})
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
 func (se *service) KillChannel(body *types.DeleteChannelParams, channelID string) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
-	for _, serverPID := range serversPID {
-		se.cluster.Engine().Send(serverPID, &message.KillChannel{
-			Channel: &message.Channel{
-				Id:         channelID,
-				ServerId:   body.ServerID,
-				CategoryId: body.CategoryID,
+	message := &message.WSMessage{
+		Content: &message.WSMessage_KillChannel{
+			KillChannel: &message.KillChannel{
+				Channel: &message.Channel{
+					Id:         channelID,
+					ServerId:   body.ServerID,
+					CategoryId: body.CategoryID,
+				},
 			},
-		})
+		},
+	}
+
+	for _, serverPID := range serversPID {
+		se.cluster.Engine().Send(serverPID, message)
 	}
 }
 
@@ -368,24 +388,24 @@ func (se *service) DeleteMessage(chatMessage *message.DeleteChatMessage) {
 func (se *service) CreateOrEditRole(role db.Role) {
 	serversPID := se.GetAllServerInstances(role.ServerID)
 
-	for _, serverPID := range serversPID {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_CreateOrEditRole{
-				CreateOrEditRole: &message.CreateOrEditRole{
-					Role: &message.Role{
-						Id:        role.ID,
-						ServerId:  role.ServerID,
-						Position:  role.Position,
-						Name:      role.Name,
-						Color:     role.Color,
-						Abilities: role.Abilities,
-						CreatedAt: timestamppb.New(role.CreatedAt),
-						UpdatedAt: timestamppb.New(role.UpdatedAt),
-					},
+	message := &message.WSMessage{
+		Content: &message.WSMessage_CreateOrEditRole{
+			CreateOrEditRole: &message.CreateOrEditRole{
+				Role: &message.Role{
+					Id:        role.ID,
+					ServerId:  role.ServerID,
+					Position:  role.Position,
+					Name:      role.Name,
+					Color:     role.Color,
+					Abilities: role.Abilities,
+					CreatedAt: timestamppb.New(role.CreatedAt),
+					UpdatedAt: timestamppb.New(role.UpdatedAt),
 				},
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serversPID {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -393,18 +413,18 @@ func (se *service) CreateOrEditRole(role db.Role) {
 func (se *service) RemoveRole(body *types.DeleteRoleParams) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
-	for _, serverPID := range serversPID {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_RemoveRole{
-				RemoveRole: &message.RemoveRole{
-					Role: &message.Role{
-						Id:       body.RoleID,
-						ServerId: body.ServerID,
-					},
+	message := &message.WSMessage{
+		Content: &message.WSMessage_RemoveRole{
+			RemoveRole: &message.RemoveRole{
+				Role: &message.Role{
+					Id:       body.RoleID,
+					ServerId: body.ServerID,
 				},
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serversPID {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -412,24 +432,24 @@ func (se *service) RemoveRole(body *types.DeleteRoleParams) {
 func (se *service) MoveRole(body *types.MoveRoleMemberParams) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
-	for _, serverPID := range serversPID {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_MoveRole{
-				MoveRole: &message.MoveRole{
-					MovedRole: &message.Role{
-						Id:       body.MovedRoleID,
-						ServerId: body.ServerID,
-					},
-					TargetRole: &message.Role{
-						Id:       body.TargetRoleID,
-						ServerId: body.ServerID,
-					},
-					From: int32(body.From),
-					To:   int32(body.To),
+	message := &message.WSMessage{
+		Content: &message.WSMessage_MoveRole{
+			MoveRole: &message.MoveRole{
+				MovedRole: &message.Role{
+					Id:       body.MovedRoleID,
+					ServerId: body.ServerID,
 				},
+				TargetRole: &message.Role{
+					Id:       body.TargetRoleID,
+					ServerId: body.ServerID,
+				},
+				From: int32(body.From),
+				To:   int32(body.To),
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serversPID {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -437,19 +457,19 @@ func (se *service) MoveRole(body *types.MoveRoleMemberParams) {
 func (se *service) AddRoleMember(body *types.ChangeRoleMemberParams) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
-	for _, serverPID := range serversPID {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_AddRoleMember{
-				AddRoleMember: &message.AddRoleMember{
-					UserId: body.UserID,
-					Role: &message.Role{
-						Id:       body.RoleID,
-						ServerId: body.ServerID,
-					},
+	message := &message.WSMessage{
+		Content: &message.WSMessage_AddRoleMember{
+			AddRoleMember: &message.AddRoleMember{
+				UserId: body.UserID,
+				Role: &message.Role{
+					Id:       body.RoleID,
+					ServerId: body.ServerID,
 				},
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serversPID {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -457,19 +477,19 @@ func (se *service) AddRoleMember(body *types.ChangeRoleMemberParams) {
 func (se *service) RemoveRoleMember(body *types.ChangeRoleMemberParams) {
 	serversPID := se.GetAllServerInstances(body.ServerID)
 
-	for _, serverPID := range serversPID {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_RemoveRoleMember{
-				RemoveRoleMember: &message.RemoveRoleMember{
-					UserId: body.UserID,
-					Role: &message.Role{
-						Id:       body.RoleID,
-						ServerId: body.ServerID,
-					},
+	message := &message.WSMessage{
+		Content: &message.WSMessage_RemoveRoleMember{
+			RemoveRoleMember: &message.RemoveRoleMember{
+				UserId: body.UserID,
+				Role: &message.Role{
+					Id:       body.RoleID,
+					ServerId: body.ServerID,
 				},
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serversPID {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -611,17 +631,17 @@ func (se *service) GetActiveFriends(userID string) []string {
 func (se *service) AvatarServerChange(serverID string, bannerURL, avatarURL *string) {
 	serverPIDs := se.GetAllServerInstances(serverID)
 
-	for _, serverPID := range serverPIDs {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_AvatarServerChange{
-				AvatarServerChange: &message.AvatarServerChange{
-					ServerId:  serverID,
-					AvatarUrl: avatarURL,
-					BannerUrl: bannerURL,
-				},
+	message := &message.WSMessage{
+		Content: &message.WSMessage_AvatarServerChange{
+			AvatarServerChange: &message.AvatarServerChange{
+				ServerId:  serverID,
+				AvatarUrl: avatarURL,
+				BannerUrl: bannerURL,
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serverPIDs {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -629,18 +649,18 @@ func (se *service) AvatarServerChange(serverID string, bannerURL, avatarURL *str
 func (se *service) ProfileServerChange(serverID string, body *types.UpdateServerProfileParams) {
 	serverPIDs := se.GetAllServerInstances(serverID)
 
-	for _, serverPID := range serverPIDs {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_ProfileServerChange{
-				ProfileServerChange: &message.ProfileServerChange{
-					ServerId:    serverID,
-					Name:        body.Name,
-					Description: body.Description,
-					Public:      body.Public,
-				},
+	message := &message.WSMessage{
+		Content: &message.WSMessage_ProfileServerChange{
+			ProfileServerChange: &message.ProfileServerChange{
+				ServerId:    serverID,
+				Name:        body.Name,
+				Description: body.Description,
+				Public:      body.Public,
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serverPIDs {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -648,18 +668,17 @@ func (se *service) ProfileServerChange(serverID string, body *types.UpdateServer
 func (se *service) EditChannel(channelID string, body *types.EditChannelParams) {
 	serverPIDs := se.GetAllServerInstances(body.ServerID)
 
+	message := &message.EditChannel{
+		Channel: &message.Channel{
+			Id:          channelID,
+			ServerId:    body.ServerID,
+			Name:        body.Name,
+			Description: body.Description,
+			Users:       body.Users,
+			Roles:       body.Roles,
+		},
+	}
 	for _, serverPID := range serverPIDs {
-		message := &message.EditChannel{
-			Channel: &message.Channel{
-				Id:          channelID,
-				ServerId:    body.ServerID,
-				Name:        body.Name,
-				Description: body.Description,
-				Users:       body.Users,
-				Roles:       body.Roles,
-			},
-		}
-
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -667,21 +686,21 @@ func (se *service) EditChannel(channelID string, body *types.EditChannelParams) 
 func (se *service) EditCategory(categoryID string, body *types.EditCategoryParams) {
 	serverPIDs := se.GetAllServerInstances(body.ServerID)
 
-	for _, serverPID := range serverPIDs {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_EditCategory{
-				EditCategory: &message.EditCategory{
-					Category: &message.Category{
-						Id:       categoryID,
-						ServerId: body.ServerID,
-						Name:     body.Name,
-						Users:    body.Users,
-						Roles:    body.Roles,
-					},
+	message := &message.WSMessage{
+		Content: &message.WSMessage_EditCategory{
+			EditCategory: &message.EditCategory{
+				Category: &message.Category{
+					Id:       categoryID,
+					ServerId: body.ServerID,
+					Name:     body.Name,
+					Users:    body.Users,
+					Roles:    body.Roles,
 				},
 			},
-		}
+		},
+	}
 
+	for _, serverPID := range serverPIDs {
 		se.cluster.Engine().Send(serverPID, message)
 	}
 }
@@ -708,5 +727,25 @@ func (se *service) KickUser(serverID string, body *types.KickUserParams) {
 			UserId:   body.UserID,
 			Reason:   body.Reason,
 		})
+	}
+}
+
+func (se *service) MemberChange(serverIDs []string, userID string, avatarURL *string, displayName *string) {
+	for _, serverID := range serverIDs {
+		serverPIDs := se.GetAllServerInstances(serverID)
+		message := &message.WSMessage{
+			Content: &message.WSMessage_MemberChange{
+				MemberChange: &message.MemberChange{
+					ServerId:    serverID,
+					UserId:      userID,
+					AvatarUrl:   avatarURL,
+					DisplayName: displayName,
+				},
+			},
+		}
+
+		for _, serverPID := range serverPIDs {
+			se.cluster.Engine().Send(serverPID, message)
+		}
 	}
 }

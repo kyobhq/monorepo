@@ -138,6 +138,17 @@ func (s *userService) UpdateAvatar(ctx *gin.Context, avatar []*multipart.FileHea
 	}
 	s.broker.RefreshCachedUser(ctx, token, updatedUser)
 
+	if avatarURL != nil && *avatarURL != user.Avatar.String {
+		serverIDs, err := s.db.GetUserServerIDs(ctx, user.ID)
+		if err != nil {
+			fmt.Println("Failed to get user server IDs:", err)
+		}
+
+		if len(serverIDs) > 0 {
+			s.actors.MemberChange(serverIDs, user.ID, avatarURL, nil)
+		}
+	}
+
 	return avatarURL, bannerURL, nil
 }
 
@@ -146,7 +157,7 @@ func (s *userService) UpdateProfile(ctx *gin.Context, body *types.UpdateProfileP
 	if !exists {
 		return types.NewAPIError(http.StatusUnauthorized, "ERR_UNAUTHORIZED", "Unauthorized.", nil)
 	}
-	userID := u.(*db.User).ID
+	user := u.(*db.User)
 
 	var links []types.Link
 	var facts []types.Fact
@@ -159,7 +170,7 @@ func (s *userService) UpdateProfile(ctx *gin.Context, body *types.UpdateProfileP
 		return types.NewAPIError(http.StatusBadRequest, "ERR_INVALID_FACTS", "You can only have 3 facts.", nil)
 	}
 
-	updatedUser, err := s.db.UpdateUserProfile(ctx, userID, body)
+	updatedUser, err := s.db.UpdateUserProfile(ctx, user.ID, body)
 	if err != nil {
 		return types.NewAPIError(http.StatusInternalServerError, "ERR_UPDATE_PROFILE", "Failed to update profile.", err)
 	}
@@ -169,6 +180,17 @@ func (s *userService) UpdateProfile(ctx *gin.Context, body *types.UpdateProfileP
 		return types.NewAPIError(http.StatusUnauthorized, "ERR_MISSING_TOKEN", "Session token not found.", err)
 	}
 	s.broker.RefreshCachedUser(ctx, token, updatedUser)
+
+	if body.DisplayName != user.DisplayName {
+		serverIDs, err := s.db.GetUserServerIDs(ctx, user.ID)
+		if err != nil {
+			fmt.Println("Failed to get user server IDs:", err)
+		}
+
+		if len(serverIDs) > 0 {
+			s.actors.MemberChange(serverIDs, user.ID, nil, &body.DisplayName)
+		}
+	}
 
 	return nil
 }
