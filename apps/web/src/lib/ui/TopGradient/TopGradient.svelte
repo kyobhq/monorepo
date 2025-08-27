@@ -37,12 +37,10 @@
 						return;
 					}
 
-					// Use a smaller canvas for performance
 					const size = Math.min(img.width, img.height, 100);
 					canvas.width = size;
 					canvas.height = size;
 
-					// Draw and scale the image
 					ctx.drawImage(img, 0, 0, size, size);
 
 					// Get image data
@@ -52,7 +50,7 @@
 					let totalLightness = 0;
 					let pixelCount = 0;
 
-					// Sample every 4th pixel for performance
+					// Sample every 4th pixel
 					for (let i = 0; i < data.length; i += 16) {
 						const r = data[i];
 						const g = data[i + 1];
@@ -63,7 +61,7 @@
 						if (a < 128) continue;
 
 						// Calculate perceived lightness using the relative luminance formula
-						// This weighs green more heavily as the human eye is more sensitive to it
+						// This weighs green more heavily as the human eye is more sensitive to it (i think ain't no math/science guy ngl)
 						const lightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 						totalLightness += lightness;
 						pixelCount++;
@@ -132,7 +130,7 @@
 
 {#if currentServer}
 	<figure
-		class="fixed -top-[7.5rem] left-0 w-screen h-[15rem] z-[10] pointer-events-none blur-3xl"
+		class="fixed -top-[7.5rem] left-0 w-screen h-[18rem] z-[10] pointer-events-none blur-3xl"
 		style="opacity: {calculatedOpacity}"
 	>
 		{#key currentServer.avatar}

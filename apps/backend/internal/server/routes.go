@@ -93,6 +93,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	role := handlers.NewRoleHandlers(s.roleSvc)
 	protected.GET("/roles/:server_id", role.GetRoles)
+	protected.GET("/roles/members/:role_id", role.GetRoleMembers)
 	protected.POST("/roles", role.CreateOrEditRole)
 	protected.PATCH("/roles/add_member", role.AddRoleMember)
 	protected.PATCH("/roles/remove_member", role.RemoveRoleMember)

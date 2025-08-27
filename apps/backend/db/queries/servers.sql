@@ -47,6 +47,9 @@ ORDER BY
     u.username
 LIMIT 50 OFFSET $2;
 
+-- name: GetOwnerID :one
+SELECT owner_id FROM servers WHERE id = $1;
+
 -- name: SearchServerMembers :many
 SELECT 
     u.id, 

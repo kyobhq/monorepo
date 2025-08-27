@@ -40,6 +40,8 @@ func (c *channel) Receive(ctx *actor.Context) {
 		c.EditMessage(ctx, c.GetChannelUsers(ctx), msg)
 	case *messages.DeleteChatMessage:
 		c.DeleteMessage(ctx, c.GetChannelUsers(ctx), msg)
+	case *messages.EditChannel:
+		c.EditChannel(ctx, msg)
 	}
 }
 
@@ -92,6 +94,10 @@ func (c *channel) DeleteMessage(ctx *actor.Context, userIDs []string, msg *messa
 		userPID := c.hub.GetUser(userID)
 		c.hub.BroadcastMessageToUser(userPID, messageToBroadcast)
 	}
+}
+
+func (c *channel) EditChannel(ctx *actor.Context, msg *messages.EditChannel) {
+	c.users = msg.Channel.Users
 }
 
 func (c *channel) AccountDeletion(ctx *actor.Context, msg *messages.AccountDeletion) {

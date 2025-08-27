@@ -649,18 +649,14 @@ func (se *service) EditChannel(channelID string, body *types.EditChannelParams) 
 	serverPIDs := se.GetAllServerInstances(body.ServerID)
 
 	for _, serverPID := range serverPIDs {
-		message := &message.WSMessage{
-			Content: &message.WSMessage_EditChannel{
-				EditChannel: &message.EditChannel{
-					Channel: &message.Channel{
-						Id:          channelID,
-						ServerId:    body.ServerID,
-						Name:        body.Name,
-						Description: body.Description,
-						Users:       body.Users,
-						Roles:       body.Roles,
-					},
-				},
+		message := &message.EditChannel{
+			Channel: &message.Channel{
+				Id:          channelID,
+				ServerId:    body.ServerID,
+				Name:        body.Name,
+				Description: body.Description,
+				Users:       body.Users,
+				Roles:       body.Roles,
 			},
 		}
 

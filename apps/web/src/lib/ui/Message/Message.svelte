@@ -32,7 +32,7 @@
 		'flex gap-x-2.5 items-start px-6 transition-colors duration-75 relative first:mb-0',
 		!messageIsRecent && 'mt-4 py-1',
 		mentioned
-			? 'bg-mention/20 mention-bar hover:bg-mention/35 mix-blend-plus-lighter'
+			? 'bg-mention/15 mention-bar hover:bg-mention/20 mix-blend-plus-lighter'
 			: 'hover:bg-main-950/50'
 	]}
 	onmouseenter={() => (hover = true)}

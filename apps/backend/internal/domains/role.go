@@ -17,6 +17,7 @@ type RoleService interface {
 	AddRoleMember(ctx *gin.Context, body *types.ChangeRoleMemberParams) *types.APIError
 	RemoveRoleMember(ctx *gin.Context, body *types.ChangeRoleMemberParams) *types.APIError
 	MoveRole(ctx *gin.Context, body *types.MoveRoleMemberParams) *types.APIError
+	GetRoleMembers(ctx *gin.Context) ([]string, *types.APIError)
 }
 
 type roleService struct {
@@ -102,4 +103,15 @@ func (s *roleService) MoveRole(ctx *gin.Context, body *types.MoveRoleMemberParam
 	s.actors.MoveRole(body)
 
 	return nil
+}
+
+func (s *roleService) GetRoleMembers(ctx *gin.Context) ([]string, *types.APIError) {
+	roleID := ctx.Param("role_id")
+
+	members, err := s.db.GetRoleMembers(ctx, roleID)
+	if err != nil {
+		return nil, types.NewAPIError(http.StatusInternalServerError, "ERR_GET_ROLE_MEMBERS", "Failed to get role members.", err)
+	}
+
+	return members, nil
 }

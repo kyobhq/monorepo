@@ -1,4 +1,4 @@
-import { WSMessageSchema } from '$lib/gen/types_pb';
+import { WSMessageSchema, type WSMessage } from '$lib/gen/types_pb';
 import type {
 	Category,
 	Channel,
@@ -17,6 +17,33 @@ import { userStore } from './userStore.svelte';
 import { categoryStore } from './categoryStore.svelte';
 import { goto } from '$app/navigation';
 import { coreStore } from './coreStore.svelte';
+import type {
+	ChangeStatus,
+	DeleteChatMessage,
+	EditChatMessage,
+	NewChatMessage,
+	StartCategory,
+	StartChannel,
+	KillCategory,
+	KillChannel,
+	CreateOrEditRole,
+	AddRoleMember,
+	RemoveRoleMember,
+	RemoveRole,
+	MoveRole,
+	FriendRequest,
+	AcceptFriendRequest,
+	RemoveFriend,
+	AccountDeletion,
+	AvatarServerChange,
+	ProfileServerChange,
+	EditChannel,
+	EditCategory,
+	KillServer,
+	LeaveServer,
+	BanUser,
+	KickUser
+} from '$lib/gen/types_pb';
 
 export class WebsocketStore {
 	wsConn = $state<WebSocket>();
@@ -46,43 +73,44 @@ export class WebsocketStore {
 		};
 	}
 
-	private async handleMessage(wsMess: any) {
+	private async handleMessage(wsMess: WSMessage) {
 		const { content } = wsMess;
 		if (!content.case || !content.value) return;
 
 		const handlers: Record<string, () => void> = {
-			userChangeStatus: () => this.handleUserStatusChange(content.value),
-			newChatMessage: () => this.handleNewMessage(content.value),
-			deleteChatMessage: () => this.handleDeleteMessage(content.value),
-			editChatMessage: () => this.handleEditMessage(content.value),
-			startCategory: () => this.handleCategoryStart(content.value),
-			startChannel: () => this.handleChannelStart(content.value),
-			killCategory: () => this.handleCategoryDelete(content.value),
-			killChannel: () => this.handleChannelDelete(content.value),
-			createOrEditRole: () => this.handleRoleCreateOrEdit(content.value),
-			addRoleMember: () => this.handleAddRoleMember(content.value),
-			removeRoleMember: () => this.handleRemoveRoleMember(content.value),
-			removeRole: () => this.handleRoleDelete(content.value),
-			moveRole: () => this.handleRoleMove(content.value),
-			friendRequest: () => this.handleFriendRequest(content.value),
-			acceptFriendRequest: () => this.handleAcceptFriend(content.value),
-			removeFriend: () => this.handleRemoveFriend(content.value),
-			accountDeletion: () => this.handleAccountDeletion(content.value),
-			avatarServerChange: () => this.handleServerAvatarChange(content.value),
-			profileServerChange: () => this.handleServerProfileChange(content.value),
-			editChannel: () => this.handleChannelEdit(content.value),
-			editCategory: () => this.handleCategoryEdit(content.value),
-			killServer: () => this.handleServerDelete(content.value),
-			leaveServer: () => this.handleServerLeave(content.value),
-			banUser: () => this.handleUserBan(content.value),
-			kickUser: () => this.handleUserKick(content.value)
+			userChangeStatus: () => this.handleUserStatusChange(content.value as ChangeStatus),
+			newChatMessage: () => this.handleNewMessage(content.value as NewChatMessage),
+			deleteChatMessage: () => this.handleDeleteMessage(content.value as DeleteChatMessage),
+			editChatMessage: () => this.handleEditMessage(content.value as EditChatMessage),
+			startCategory: () => this.handleCategoryStart(content.value as StartCategory),
+			startChannel: () => this.handleChannelStart(content.value as StartChannel),
+			killCategory: () => this.handleCategoryDelete(content.value as KillCategory),
+			killChannel: () => this.handleChannelDelete(content.value as KillChannel),
+			createOrEditRole: () => this.handleRoleCreateOrEdit(content.value as CreateOrEditRole),
+			addRoleMember: () => this.handleAddRoleMember(content.value as AddRoleMember),
+			removeRoleMember: () => this.handleRemoveRoleMember(content.value as RemoveRoleMember),
+			removeRole: () => this.handleRoleDelete(content.value as RemoveRole),
+			moveRole: () => this.handleRoleMove(content.value as MoveRole),
+			friendRequest: () => this.handleFriendRequest(content.value as FriendRequest),
+			acceptFriendRequest: () => this.handleAcceptFriend(content.value as AcceptFriendRequest),
+			removeFriend: () => this.handleRemoveFriend(content.value as RemoveFriend),
+			accountDeletion: () => this.handleAccountDeletion(content.value as AccountDeletion),
+			avatarServerChange: () => this.handleServerAvatarChange(content.value as AvatarServerChange),
+			profileServerChange: () =>
+				this.handleServerProfileChange(content.value as ProfileServerChange),
+			editChannel: () => this.handleChannelEdit(content.value as EditChannel),
+			editCategory: () => this.handleCategoryEdit(content.value as EditCategory),
+			killServer: () => this.handleServerDelete(content.value as KillServer),
+			leaveServer: () => this.handleServerLeave(content.value as LeaveServer),
+			banUser: () => this.handleUserBan(content.value as BanUser),
+			kickUser: () => this.handleUserKick(content.value as KickUser)
 		};
 
 		const handler = handlers[content.case];
 		if (handler) handler();
 	}
 
-	private handleUserStatusChange(value: any) {
+	private handleUserStatusChange(value: ChangeStatus) {
 		if (!value?.user || value.user.id === userStore.user?.id) return;
 
 		if (value.status === 'offline') {
@@ -110,7 +138,7 @@ export class WebsocketStore {
 		}
 	}
 
-	private handleNewMessage(value: any) {
+	private handleNewMessage(value: NewChatMessage) {
 		if (!value.message) return;
 
 		const msg = value.message;
@@ -143,12 +171,12 @@ export class WebsocketStore {
 		}
 	}
 
-	private handleDeleteMessage(value: any) {
+	private handleDeleteMessage(value: DeleteChatMessage) {
 		if (!value.message) return;
 		channelStore.deleteMessage(value.message.channelId, value.message.id);
 	}
 
-	private handleEditMessage(value: any) {
+	private handleEditMessage(value: EditChatMessage) {
 		if (!value.message) return;
 
 		const msg = value.message;
@@ -164,7 +192,7 @@ export class WebsocketStore {
 		channelStore.editMessage(msg.channelId, editMessage);
 	}
 
-	private handleCategoryStart(value: any) {
+	private handleCategoryStart(value: StartCategory) {
 		if (!value.category) return;
 
 		const cat = value.category;
@@ -182,7 +210,7 @@ export class WebsocketStore {
 		categoryStore.addCategory(newCategory);
 	}
 
-	private handleChannelStart(value: any) {
+	private handleChannelStart(value: StartChannel) {
 		if (!value.channel) return;
 
 		const chan = value.channel;
@@ -202,7 +230,7 @@ export class WebsocketStore {
 		channelStore.addChannel(newChannel);
 	}
 
-	private handleCategoryDelete(value: any) {
+	private handleCategoryDelete(value: KillCategory) {
 		const channels = channelStore.getCategoryChannels(value.serverId, value.categoryId);
 
 		if (channels.find((chan) => chan.id === page.params.channel_id)) {
@@ -213,7 +241,7 @@ export class WebsocketStore {
 		categoryStore.deleteCategory(value.serverId, value.categoryId);
 	}
 
-	private handleChannelDelete(value: any) {
+	private handleChannelDelete(value: KillChannel) {
 		if (!value.channel) return;
 
 		const channel = value.channel;
@@ -225,7 +253,7 @@ export class WebsocketStore {
 		channelStore.deleteChannel(channel.serverId, channel.categoryId, channel.id);
 	}
 
-	private handleRoleCreateOrEdit(value: any) {
+	private handleRoleCreateOrEdit(value: CreateOrEditRole) {
 		if (!value.role) return;
 
 		const role = value.role;
@@ -246,7 +274,7 @@ export class WebsocketStore {
 		}
 	}
 
-	private handleAddRoleMember(value: any) {
+	private handleAddRoleMember(value: AddRoleMember) {
 		if (!value.userId || !value.role) return;
 
 		const member = serverStore.getMember(value.role.serverId, value.userId);
@@ -257,7 +285,7 @@ export class WebsocketStore {
 		}
 	}
 
-	private handleRemoveRoleMember(value: any) {
+	private handleRemoveRoleMember(value: RemoveRoleMember) {
 		if (!value.userId || !value.role) return;
 
 		const member = serverStore.getMember(value.role.serverId, value.userId);
@@ -271,12 +299,12 @@ export class WebsocketStore {
 		}
 	}
 
-	private handleRoleDelete(value: any) {
+	private handleRoleDelete(value: RemoveRole) {
 		if (!value.role) return;
 		serverStore.deleteRole(value.role.serverId, value.role.id);
 	}
 
-	private handleRoleMove(value: any) {
+	private handleRoleMove(value: MoveRole) {
 		const { movedRole, targetRole } = value;
 		if (!movedRole?.id || !targetRole?.id || !movedRole?.serverId) return;
 
@@ -291,7 +319,7 @@ export class WebsocketStore {
 		}
 	}
 
-	private handleFriendRequest(value: any) {
+	private handleFriendRequest(value: FriendRequest) {
 		if (!value.sender) return;
 
 		const friend: Friend = {
@@ -309,15 +337,15 @@ export class WebsocketStore {
 		userStore.friends.push(friend);
 	}
 
-	private handleAcceptFriend(value: any) {
+	private handleAcceptFriend(value: AcceptFriendRequest) {
 		userStore.acceptFriend(value.friendshipId, value.channelId);
 	}
 
-	private handleRemoveFriend(value: any) {
+	private handleRemoveFriend(value: RemoveFriend) {
 		userStore.removeFriend({ friendshipID: value.friendshipId });
 	}
 
-	private handleAccountDeletion(value: any) {
+	private handleAccountDeletion(value: AccountDeletion) {
 		if (value.serverId !== '') {
 			serverStore.deleteMember(value.serverId, value.userId);
 		} else {
@@ -325,11 +353,11 @@ export class WebsocketStore {
 		}
 	}
 
-	private handleServerAvatarChange(value: any) {
+	private handleServerAvatarChange(value: AvatarServerChange) {
 		serverStore.updateAvatar(value.serverId, value.avatarUrl, value.bannerUrl);
 	}
 
-	private handleServerProfileChange(value: any) {
+	private handleServerProfileChange(value: ProfileServerChange) {
 		serverStore.updateProfile(value.serverId, {
 			name: value.name,
 			description: JSON.parse(new TextDecoder().decode(value.description)),
@@ -337,7 +365,7 @@ export class WebsocketStore {
 		});
 	}
 
-	private handleChannelEdit(value: any) {
+	private handleChannelEdit(value: EditChannel) {
 		if (!value.channel) return;
 
 		const channel = value.channel;
@@ -348,9 +376,13 @@ export class WebsocketStore {
 			users: channel.users,
 			roles: channel.roles
 		});
+
+		if (channel.users?.length > 0 && !channel.users.includes(userStore.user!.id)) {
+			goto(`/servers/${channel.serverId}`);
+		}
 	}
 
-	private handleCategoryEdit(value: any) {
+	private handleCategoryEdit(value: EditCategory) {
 		if (!value.category) return;
 
 		const category = value.category;
@@ -362,18 +394,18 @@ export class WebsocketStore {
 		});
 	}
 
-	private handleServerDelete(value: any) {
+	private handleServerDelete(value: KillServer) {
 		if (!value.serverId) return;
 
 		if (page.url.pathname.includes(value.serverId)) goto('/servers');
 		serverStore.deleteServer(value.serverId);
 	}
 
-	private handleServerLeave(value: any) {
+	private handleServerLeave(value: LeaveServer) {
 		serverStore.deleteMember(value.serverId, value.userId);
 	}
 
-	private handleUserBan(value: any) {
+	private handleUserBan(value: BanUser) {
 		serverStore.deleteMember(value.serverId, value.userId);
 
 		if (value.userId === userStore.user?.id) {
@@ -381,7 +413,7 @@ export class WebsocketStore {
 		}
 	}
 
-	private handleUserKick(value: any) {
+	private handleUserKick(value: KickUser) {
 		serverStore.deleteMember(value.serverId, value.userId);
 
 		if (value.userId === userStore.user?.id) {

@@ -9,7 +9,7 @@
 
 	let idx = $state(0);
 	let loadingMembers = $state(false);
-	let canLoadMore = $state(
+	let canLoadMore = $derived(
 		serverStore.memberCount > serverStore.getMembers(page.params.server_id!).length
 	);
 	const MEMBERS_PER_PAGE = 50;

@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import type { Server } from '$lib/types/types';
+	import type { Category, Server } from '$lib/types/types';
 	import { coreStore } from 'stores/coreStore.svelte';
 	import Channel from 'ui/Channel/Channel.svelte';
 	import CollapsibleBox from 'ui/CollapsibleBox/CollapsibleBox.svelte';
 	import ContextMenuSideBar from 'ui/ContextMenu/ContextMenuSideBar.svelte';
 	import gsap from 'gsap';
+	import { serverStore } from 'stores/serverStore.svelte';
+	import { userStore } from 'stores/userStore.svelte';
+	import { channelStore } from 'stores/channelStore.svelte';
+	import { keyByProperty } from '$lib/utils/arrays';
 
 	interface Props {
 		server: Server;
@@ -14,6 +18,30 @@
 
 	let { server }: Props = $props();
 	let sectionEl = $state<HTMLElement | undefined>(undefined);
+
+	const accessibleCategories = $derived.by(() => {
+		const userID = userStore.user?.id;
+		if (!userID) return [];
+
+		const categories = serverStore.getServer(server.id).categories;
+		const result: Category[] = [];
+
+		for (const category of Object.values(categories)) {
+			const channels = channelStore.getCategoryChannels(server.id, category.id);
+			const accessibleChannels = channels.filter((channel) =>
+				channelStore.hasChannelAccess(channel, userID)
+			);
+
+			if (accessibleChannels.length > 0) {
+				result.push({
+					...category,
+					channels: keyByProperty(accessibleChannels, 'id')
+				});
+			}
+		}
+
+		return result;
+	});
 
 	$effect(() => {
 		if (!sectionEl || coreStore.firstLoad.sidebar) return;
@@ -37,7 +65,7 @@
 	bind:this={sectionEl}
 >
 	<ContextMenuSideBar />
-	{#each Object.values(server.categories).sort((a, b) => a.position - b.position) as category (category.id)}
+	{#each accessibleCategories.sort((a, b) => a.position - b.position) as category (category.id)}
 		<div class="collapsible-wrapper">
 			<CollapsibleBox header={category.name} categoryId={category.id}>
 				{#if category.channels}

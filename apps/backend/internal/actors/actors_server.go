@@ -51,6 +51,8 @@ func (s *server) Receive(ctx *actor.Context) {
 		s.startChannel(ctx, msg)
 	case *messages.KillChannel:
 		s.killChannel(ctx, msg)
+	case *messages.EditChannel:
+		s.editChannel(ctx, msg)
 	case *messages.LeaveServer:
 		s.LeaveServer(msg)
 	case *messages.KickUser:
@@ -98,6 +100,23 @@ func (s *server) killChannel(ctx *actor.Context, msg *messages.KillChannel) {
 		Content: &messages.WSMessage_KillChannel{
 			KillChannel: msg,
 		},
+	}
+
+	for userID := range s.users {
+		s.hub.BroadcastMessageToUser(s.hub.GetUser(userID), message)
+	}
+}
+
+func (s *server) editChannel(ctx *actor.Context, msg *messages.EditChannel) {
+	message := &messages.WSMessage{
+		Content: &messages.WSMessage_EditChannel{
+			EditChannel: msg,
+		},
+	}
+
+	channelPIDs := s.hub.GetAllChannelInstances(msg.Channel.ServerId, msg.Channel.Id)
+	for _, channelPID := range channelPIDs {
+		ctx.Send(channelPID, msg)
 	}
 
 	for userID := range s.users {

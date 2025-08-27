@@ -11,300 +11,321 @@ const AVG_MESSAGE_HEIGHT = 100;
 const SCROLL_LIMIT = 3000;
 
 class ChannelStore {
-  messageCache = $state<
-    Record<
-      string,
-      {
-        beforeMessageID: string;
-        afterMessageID: string;
-        messages: Message[];
-        hasReachedEnd: boolean;
-        scrollHeight: number;
-        scrollY: number;
-      }
-    >
-  >({});
+	messageCache = $state<
+		Record<
+			string,
+			{
+				beforeMessageID: string;
+				afterMessageID: string;
+				messages: Message[];
+				hasReachedEnd: boolean;
+				scrollHeight: number;
+				scrollY: number;
+			}
+		>
+	>({});
 
-  getFirstChannel(serverID: string) {
-    const server = serverStore.getServer(serverID);
-    const firstCategory = Object.values(server?.categories || {}).find(
-      (category) => category.position === 0
-    );
-    const firstChannel = Object.values(firstCategory?.channels || {}).find(
-      (chan) => chan.position === 0
-    );
-    return firstChannel?.id || null;
-  }
+	getFirstChannel(serverID: string) {
+		const server = serverStore.getServer(serverID);
+		const userID = userStore.user?.id;
+		if (!server || !userID) return null;
 
-  messageIsRecent(channelID: string, messageID: string): boolean {
-    const cache = this.messageCache[channelID];
-    if (!cache) return false;
+		const categories = Object.values(server.categories).toSorted((a, b) => a.position - b.position);
 
-    const messageIdx = cache.messages.findIndex((m) => m.id === messageID);
-    if (messageIdx < 0) return false;
+		for (const category of categories) {
+			const channels = Object.values(category.channels).toSorted((a, b) => a.position - b.position);
 
-    const [message, prevMessage] = [cache.messages[messageIdx], cache.messages[messageIdx + 1]];
-    if (!message || !prevMessage || prevMessage.author.id !== message.author.id) {
-      return false;
-    }
+			for (const channel of channels) {
+				if (this.hasChannelAccess(channel, userID)) {
+					return channel.id;
+				}
+			}
+		}
+	}
 
-    const timeDiff =
-      (new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime()) / 1000;
-    return timeDiff < 30;
-  }
+	messageIsRecent(channelID: string, messageID: string): boolean {
+		const cache = this.messageCache[channelID];
+		if (!cache) return false;
 
-  getCategoryChannels(serverID: string, categoryID: string): Channel[] {
-    const category = categoryStore.getCategory(serverID, categoryID);
-    return Object.values(category?.channels || {});
-  }
+		const messageIdx = cache.messages.findIndex((m) => m.id === messageID);
+		if (messageIdx < 0) return false;
 
-  getChannel(serverID: string, channelID: string) {
-    const server = serverStore.getServer(serverID);
-    if (!server?.categories) return null;
+		const [message, prevMessage] = [cache.messages[messageIdx], cache.messages[messageIdx + 1]];
+		if (!message || !prevMessage || prevMessage.author.id !== message.author.id) {
+			return false;
+		}
 
-    for (const category of Object.values(server.categories)) {
-      const channel = category.channels?.[channelID];
-      if (channel) return channel;
-    }
+		const timeDiff =
+			(new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime()) / 1000;
+		return timeDiff < 30;
+	}
 
-    return null;
-  }
+	getCategoryChannels(serverID: string, categoryID: string): Channel[] {
+		const category = categoryStore.getCategory(serverID, categoryID);
+		return Object.values(category?.channels || {});
+	}
 
-  getChannelsLastPositionInCategory(serverID: string, categoryID: string): number {
-    return this.getCategoryChannels(serverID, categoryID).length;
-  }
+	getChannel(serverID: string, channelID: string) {
+		const server = serverStore.getServer(serverID);
+		if (!server?.categories) return null;
 
-  addChannel(channel: Channel): void {
-    const category = categoryStore.getCategory(channel.server_id, channel.category_id);
-    if (category) {
-      category.channels[channel.id] = channel;
-    }
-  }
+		for (const category of Object.values(server.categories)) {
+			const channel = category.channels?.[channelID];
+			if (channel) return channel;
+		}
 
-  editChannel(channelID: string, channelOpts: Partial<Channel>): void {
-    const channel = this.getChannel(channelOpts.server_id!, channelID);
-    if (!channel) return;
+		return null;
+	}
 
-    if (channelOpts.name) channel.name = channelOpts.name;
-    if (channelOpts.description) channel.description = channelOpts.description;
-    if (channelOpts.users) channel.users = channelOpts.users;
-    if (channelOpts.roles) channel.roles = channelOpts.roles;
-  }
+	getChannelsLastPositionInCategory(serverID: string, categoryID: string): number {
+		return this.getCategoryChannels(serverID, categoryID).length;
+	}
 
-  addMessage(serverID: string, channelID: string, message: Message): void {
-    const channel = this.getChannel(serverID, channelID);
-    if (!channel) return;
+	addChannel(channel: Channel): void {
+		const category = categoryStore.getCategory(channel.server_id, channel.category_id);
+		if (category) {
+			category.channels[channel.id] = channel;
+		}
+	}
 
-    const isCurrentChannel = page.params.channel_id === channelID;
+	editChannel(channelID: string, channelOpts: Partial<Channel>): void {
+		const channel = this.getChannel(channelOpts.server_id!, channelID);
+		if (!channel) return;
 
-    if (isCurrentChannel && !this.messageCache[channelID]) {
-      this.initializeMessageCache(channelID);
-    }
+		if (channelOpts.name) channel.name = channelOpts.name;
+		if (channelOpts.description) channel.description = channelOpts.description;
+		if (channelOpts.users) channel.users = channelOpts.users;
+		if (channelOpts.roles) channel.roles = channelOpts.roles;
+	}
 
-    if (this.messageCache[channelID]) {
-      this.messageCache[channelID].messages.unshift(message);
-      messageStore.cacheAuthor(message.author);
-    }
+	addMessage(serverID: string, channelID: string, message: Message): void {
+		const channel = this.getChannel(serverID, channelID);
+		if (!channel) return;
 
-    channel.last_message_sent = message.id;
+		const isCurrentChannel = page.params.channel_id === channelID;
 
-    if (isCurrentChannel) channel.last_message_read = message.id;
-    if (message.mentions_users.includes(userStore.user!.id)) {
-      channel.last_mentions = channel.last_mentions || [];
-      channel.last_mentions.push(message.id);
-    }
-  }
+		if (isCurrentChannel && !this.messageCache[channelID]) {
+			this.initializeMessageCache(channelID);
+		}
 
-  addMessageDM(channelID: string, message: Message): void {
-    const friend = userStore.getFriendByChannelID(channelID);
-    if (!friend) return;
+		if (this.messageCache[channelID]) {
+			this.messageCache[channelID].messages.unshift(message);
+		}
 
-    const isCurrentChannel = page.params.channel_id === channelID;
+		if (!messageStore.getAuthor(message.author.id!)) {
+			messageStore.cacheAuthor(message.author);
+		}
 
-    if (isCurrentChannel && !this.messageCache[channelID]) {
-      this.initializeMessageCache(channelID);
-    }
+		channel.last_message_sent = message.id;
 
-    if (this.messageCache[channelID]) {
-      this.messageCache[channelID].messages.unshift(message);
-      messageStore.cacheAuthor(message.author);
-    }
+		if (isCurrentChannel) channel.last_message_read = message.id;
+		if (message.mentions_users.includes(userStore.user!.id)) {
+			channel.last_mentions = channel.last_mentions || [];
+			channel.last_mentions.push(message.id);
+		}
+	}
 
-    friend.last_message_sent = message.id;
-    if (isCurrentChannel) friend.last_message_read = message.id;
-  }
+	addMessageDM(channelID: string, message: Message): void {
+		const friend = userStore.getFriendByChannelID(channelID);
+		if (!friend) return;
 
-  setLastMessageRead(serverID: string, channelID: string): void {
-    const cache = this.messageCache[channelID];
-    if (!cache || cache.scrollY > SCROLL_LIMIT) return;
+		const isCurrentChannel = page.params.channel_id === channelID;
 
-    const latestMessageId = cache.messages[0]?.id;
-    if (!latestMessageId) return;
+		if (isCurrentChannel && !this.messageCache[channelID]) {
+			this.initializeMessageCache(channelID);
+		}
 
-    if (serverID === 'global') {
-      const friend = userStore.getFriendByChannelID(channelID);
-      if (friend) {
-        friend.last_message_read = latestMessageId;
-      }
-      return;
-    }
+		if (this.messageCache[channelID]) {
+			this.messageCache[channelID].messages.unshift(message);
+			messageStore.cacheAuthor(message.author);
+		}
 
-    const channel = this.getChannel(serverID, channelID);
-    if (channel) {
-      channel.last_message_read = latestMessageId;
-      channel.last_mentions = [];
-    }
-  }
+		friend.last_message_sent = message.id;
+		if (isCurrentChannel) friend.last_message_read = message.id;
+	}
 
-  setLastMessageSent(serverID: string, channelID: string): void {
-    const cache = this.messageCache[channelID];
-    const latestMessageId = cache?.messages[0]?.id;
-    if (!latestMessageId) return;
+	setLastMessageRead(serverID: string, channelID: string): void {
+		const cache = this.messageCache[channelID];
+		if (!cache || cache.scrollY > SCROLL_LIMIT) return;
 
-    if (serverID === 'global') {
-      const friend = userStore.getFriendByChannelID(channelID);
-      if (friend) {
-        friend.last_message_sent = latestMessageId;
-      }
-      return;
-    }
+		const latestMessageId = cache.messages[0]?.id;
+		if (!latestMessageId) return;
 
-    const channel = this.getChannel(serverID, channelID);
-    if (channel && !channel.last_message_sent) {
-      channel.last_message_sent = latestMessageId;
-    }
-  }
+		if (serverID === 'global') {
+			const friend = userStore.getFriendByChannelID(channelID);
+			if (friend) {
+				friend.last_message_read = latestMessageId;
+			}
+			return;
+		}
 
-  editMessage(channelID: string, message: Partial<Message>): void {
-    const cache = this.messageCache[channelID];
-    if (!cache) return;
+		const channel = this.getChannel(serverID, channelID);
+		if (channel) {
+			channel.last_message_read = latestMessageId;
+			channel.last_mentions = [];
+		}
+	}
 
-    const index = cache.messages.findIndex((m) => m.id === message.id);
-    if (index !== -1) {
-      cache.messages[index] = { ...cache.messages[index], ...message };
-    }
-  }
+	setLastMessageSent(serverID: string, channelID: string): void {
+		const cache = this.messageCache[channelID];
+		const latestMessageId = cache?.messages[0]?.id;
+		if (!latestMessageId) return;
 
-  deleteMessage(channelID: string, messageID: string): void {
-    const cache = this.messageCache[channelID];
-    if (cache) {
-      cache.messages = cache.messages.filter((message) => message.id !== messageID);
-    }
-  }
+		if (serverID === 'global') {
+			const friend = userStore.getFriendByChannelID(channelID);
+			if (friend) {
+				friend.last_message_sent = latestMessageId;
+			}
+			return;
+		}
 
-  deleteAllMessagesFromAuthor(channelID: string, authorID: string): void {
-    const cache = this.messageCache[channelID]
-    if (cache) {
-      cache.messages = cache.messages.filter(message => message.author.id !== authorID)
+		const channel = this.getChannel(serverID, channelID);
+		if (channel && !channel.last_message_sent) {
+			channel.last_message_sent = latestMessageId;
+		}
+	}
 
-    }
-  }
+	editMessage(channelID: string, message: Partial<Message>): void {
+		const cache = this.messageCache[channelID];
+		if (!cache) return;
 
-  deleteChannel(serverID: string, categoryID: string, channelID: string): void {
-    const category = categoryStore.getCategory(serverID, categoryID);
-    if (category) {
-      delete category.channels[channelID];
-    }
-  }
+		const index = cache.messages.findIndex((m) => m.id === message.id);
+		if (index !== -1) {
+			cache.messages[index] = { ...cache.messages[index], ...message };
+		}
+	}
 
-  private initializeMessageCache(channelID: string): void {
-    this.messageCache[channelID] = {
-      messages: [],
-      beforeMessageID: '',
-      afterMessageID: '',
-      hasReachedEnd: false,
-      scrollHeight: 0,
-      scrollY: 0
-    };
-  }
+	deleteMessage(channelID: string, messageID: string): void {
+		const cache = this.messageCache[channelID];
+		if (cache) {
+			cache.messages = cache.messages.filter((message) => message.id !== messageID);
+		}
+	}
 
-  private async fetchMessages(serverID: string, channelID: string, direction: 'before' | 'after') {
-    const cache = this.messageCache[channelID];
-    const messageID = direction === 'before' ? cache.beforeMessageID : cache.afterMessageID;
+	deleteAllMessagesFromAuthor(channelID: string, authorID: string): void {
+		const cache = this.messageCache[channelID];
+		if (cache) {
+			cache.messages = cache.messages.filter((message) => message.author.id !== authorID);
+		}
+	}
 
-    return await backend.getMessages({
-      serverID,
-      channelID,
-      ...(direction === 'before' ? { beforeMessageID: messageID } : { afterMessageID: messageID })
-    });
-  }
+	deleteChannel(serverID: string, categoryID: string, channelID: string): void {
+		const category = categoryStore.getCategory(serverID, categoryID);
+		if (category) {
+			delete category.channels[channelID];
+		}
+	}
 
-  private trimCacheIfNeeded(channelID: string, direction: 'before' | 'after') {
-    const cache = this.messageCache[channelID];
-    const MAX_CACHE_SIZE = 100;
-    const TRIM_AMOUNT = 50;
+	private initializeMessageCache(channelID: string): void {
+		this.messageCache[channelID] = {
+			messages: [],
+			beforeMessageID: '',
+			afterMessageID: '',
+			hasReachedEnd: false,
+			scrollHeight: 0,
+			scrollY: 0
+		};
+	}
 
-    if (cache.messages.length < MAX_CACHE_SIZE) return;
+	private async fetchMessages(serverID: string, channelID: string, direction: 'before' | 'after') {
+		const cache = this.messageCache[channelID];
+		const messageID = direction === 'before' ? cache.beforeMessageID : cache.afterMessageID;
 
-    const removedCount = cache.messages.length - TRIM_AMOUNT;
-    if (direction === 'before') {
-      cache.messages = cache.messages.slice(TRIM_AMOUNT);
-      cache.scrollHeight += removedCount * AVG_MESSAGE_HEIGHT;
-    } else {
-      cache.messages = cache.messages.slice(0, TRIM_AMOUNT);
-      cache.scrollHeight -= removedCount * AVG_MESSAGE_HEIGHT;
-    }
-  }
+		return await backend.getMessages({
+			serverID,
+			channelID,
+			...(direction === 'before' ? { beforeMessageID: messageID } : { afterMessageID: messageID })
+		});
+	}
 
-  private addMessagesToCache(
-    channelID: string,
-    messages: Message[],
-    direction: 'before' | 'after'
-  ) {
-    const cache = this.messageCache[channelID];
-    if (direction === 'before') {
-      cache.messages.push(...messages);
-    } else {
-      cache.messages.unshift(...messages);
-    }
+	private trimCacheIfNeeded(channelID: string, direction: 'before' | 'after') {
+		const cache = this.messageCache[channelID];
+		const MAX_CACHE_SIZE = 100;
+		const TRIM_AMOUNT = 50;
 
-    cache.beforeMessageID = cache.messages[cache.messages.length - 1].id;
-    cache.afterMessageID = cache.messages[0].id;
-  }
+		if (cache.messages.length < MAX_CACHE_SIZE) return;
 
-  private cacheMessageAuthors(messages: Message[]) {
-    messageStore.cacheMessageAuthors(messages);
-  }
+		const removedCount = cache.messages.length - TRIM_AMOUNT;
+		if (direction === 'before') {
+			cache.messages = cache.messages.slice(TRIM_AMOUNT);
+			cache.scrollHeight += removedCount * AVG_MESSAGE_HEIGHT;
+		} else {
+			cache.messages = cache.messages.slice(0, TRIM_AMOUNT);
+			cache.scrollHeight -= removedCount * AVG_MESSAGE_HEIGHT;
+		}
+	}
 
-  async loadMoreMessages(
-    serverID: string,
-    channelID: string,
-    direction: 'before' | 'after'
-  ): Promise<boolean> {
-    if (!this.messageCache[channelID]) this.initializeMessageCache(channelID);
+	private addMessagesToCache(
+		channelID: string,
+		messages: Message[],
+		direction: 'before' | 'after'
+	) {
+		const cache = this.messageCache[channelID];
+		if (direction === 'before') {
+			cache.messages.push(...messages);
+		} else {
+			cache.messages.unshift(...messages);
+		}
 
-    const cache = this.messageCache[channelID];
+		cache.beforeMessageID = cache.messages[cache.messages.length - 1].id;
+		cache.afterMessageID = cache.messages[0].id;
+	}
 
-    if (cache.hasReachedEnd) return false;
+	private cacheMessageAuthors(messages: Message[]) {
+		messageStore.cacheMessageAuthors(messages);
+	}
 
-    const res = await this.fetchMessages(serverID, channelID, direction);
-    if (res.isErr()) {
-      logErr(res.error);
-      return false;
-    }
+	async loadMoreMessages(
+		serverID: string,
+		channelID: string,
+		direction: 'before' | 'after'
+	): Promise<boolean> {
+		if (!this.messageCache[channelID]) this.initializeMessageCache(channelID);
 
-    const messages = res.value;
-    if (!messages?.length) {
-      cache.hasReachedEnd = true;
-      return false;
-    }
+		const cache = this.messageCache[channelID];
 
-    this.trimCacheIfNeeded(channelID, direction);
-    this.addMessagesToCache(channelID, messages, direction);
-    this.cacheMessageAuthors(messages);
+		if (cache.hasReachedEnd) return false;
 
-    return true;
-  }
+		const res = await this.fetchMessages(serverID, channelID, direction);
+		if (res.isErr()) {
+			logErr(res.error);
+			return false;
+		}
 
-  async ensureMessagesLoaded(serverID: string, channelID: string): Promise<void> {
-    if (!this.messageCache[channelID] || this.messageCache[channelID].messages.length === 0) {
-      await this.loadMoreMessages(serverID, channelID, 'before');
-    }
-  }
+		const messages = res.value;
+		if (!messages?.length) {
+			cache.hasReachedEnd = true;
+			return false;
+		}
 
-  clearChannelCache(channelID: string): void {
-    delete this.messageCache[channelID];
-  }
+		this.trimCacheIfNeeded(channelID, direction);
+		this.addMessagesToCache(channelID, messages, direction);
+		this.cacheMessageAuthors(messages);
+
+		return true;
+	}
+
+	async ensureMessagesLoaded(serverID: string, channelID: string): Promise<void> {
+		if (!this.messageCache[channelID] || this.messageCache[channelID].messages.length === 0) {
+			await this.loadMoreMessages(serverID, channelID, 'before');
+		}
+	}
+
+	clearChannelCache(channelID: string): void {
+		delete this.messageCache[channelID];
+	}
+
+	hasChannelAccess(channel: Channel, userID: string): boolean {
+		if (channel.users?.includes(userID)) return true;
+
+		if (
+			(!channel.users || channel.users.length === 0) &&
+			(!channel.roles || channel.roles.length === 0)
+		)
+			return true;
+
+		return false;
+	}
 }
 
 export const channelStore = new ChannelStore();

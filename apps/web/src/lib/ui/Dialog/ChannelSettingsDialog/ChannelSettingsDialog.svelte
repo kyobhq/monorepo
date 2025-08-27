@@ -6,7 +6,6 @@
 	import { coreStore } from 'stores/coreStore.svelte';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import FormInput from 'ui/Form/FormInput.svelte';
 	import SaveBar from 'ui/SaveBar/SaveBar.svelte';
 	import SideBarSettings from 'ui/SideBar/SideBarSettings.svelte';
 	import DefaultSettingsDialog from '../DefaultSettingsDialog/DefaultSettingsDialog.svelte';
@@ -62,16 +61,24 @@
 		return (
 			$form.name !== currentChannel?.name ||
 			$form.description !== currentChannel?.description ||
+			!$form.users?.every((userID) => currentChannel.users?.includes(userID)) ||
+			!$form.roles?.every((roleID) => currentChannel.roles?.includes(roleID)) ||
+			$form.users?.length !== currentChannel.users?.length ||
+			$form.roles?.length !== currentChannel.roles?.length ||
 			!isButtonComplete
 		);
 	});
 
 	$effect(() => {
 		if (currentChannel) {
+			if (!currentChannel.users) currentChannel.users = [];
+			if (!currentChannel.roles) currentChannel.roles = [];
+
 			$form.name = currentChannel.name;
 			$form.description = currentChannel.description;
 			$form.users = currentChannel.users || [];
 			$form.roles = currentChannel.roles || [];
+			$form.private = currentChannel.users.length > 0 || currentChannel.roles.length > 0;
 		}
 	});
 </script>
@@ -88,7 +95,7 @@
 			{#if coreStore.channelSettingsDialog.section === 'Overview'}
 				<Overview bind:form={$form} bind:errors={$errors} />
 			{:else if coreStore.channelSettingsDialog.section === 'Permissions'}
-				<Permissions />
+				<Permissions bind:form={$form} />
 			{/if}
 
 			{#if changes}

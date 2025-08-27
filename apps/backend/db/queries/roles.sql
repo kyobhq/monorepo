@@ -78,3 +78,6 @@ UPDATE roles SET position = $1 WHERE id = $2;
 
 -- name: UpdateRolePositions :exec
 UPDATE roles SET position = position + 1 WHERE position >= $1 AND position < $2;
+
+-- name: GetRoleMembers :many
+SELECT sm.user_id FROM server_members sm WHERE $1::text = ANY(sm.roles);

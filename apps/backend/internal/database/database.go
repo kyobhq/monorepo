@@ -102,6 +102,7 @@ type Service interface {
 	Sync(ctx context.Context, userID string, body *types.SyncParams) error
 	GetLatestMessagesRead(ctx context.Context, userID string) ([]db.GetLatestMessagesReadRow, error)
 	GetLatestMessagesSent(ctx context.Context, channelIDs []string) ([]db.GetLatestMessagesSentRow, error)
+	GetRoleMembers(ctx context.Context, roleID string) ([]string, error)
 }
 
 type service struct {
@@ -860,6 +861,10 @@ func (s *service) GetLatestMessagesRead(ctx context.Context, userID string) ([]d
 
 func (s *service) GetLatestMessagesSent(ctx context.Context, channelIDs []string) ([]db.GetLatestMessagesSentRow, error) {
 	return s.queries.GetLatestMessagesSent(ctx, channelIDs)
+}
+
+func (s *service) GetRoleMembers(ctx context.Context, roleID string) ([]string, error) {
+	return s.queries.GetRoleMembers(ctx, roleID)
 }
 
 // Health checks the health of the database connection by pinging the database.

@@ -27,6 +27,7 @@ type EditChannelParams struct {
 	Description string   `json:"description" validate:"omitempty"`
 	Users       []string `json:"users" validate:"omitempty"`
 	Roles       []string `json:"roles" validate:"omitempty"`
+	Private     bool     `json:"private" validate:"omitempty"`
 }
 
 type EditCategoryParams struct {

@@ -102,3 +102,13 @@ func (h *roleHandler) RemoveRoleMember(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
+
+func (h *roleHandler) GetRoleMembers(c *gin.Context) {
+	members, err := h.domain.GetRoleMembers(c)
+	if err != nil {
+		err.Respond(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, members)
+}

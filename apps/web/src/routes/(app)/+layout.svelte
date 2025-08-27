@@ -18,6 +18,7 @@
 	import KickDialog from 'ui/Dialog/ModDialog/KickDialog.svelte';
 	import UserRestrictionDialog from 'ui/Dialog/ModDialog/UserRestrictionDialog.svelte';
 	import { userStore } from 'stores/userStore.svelte';
+	import ServerBar from 'ui/ServerBar/ServerBar.svelte';
 
 	let { children } = $props();
 
@@ -50,11 +51,12 @@
 		bind:this={mainEl}
 		class={[
 			'flex flex-col h-screen relative',
-			page.url.pathname.includes('servers') ? 'w-[calc(100%-19.5rem)]' : 'w-full'
+			page.url.pathname.includes('servers') ? 'w-[calc(100%-19.5rem-16rem)]' : 'w-full'
 		]}
 	>
 		{@render children()}
 	</main>
+	<ServerBar />
 </div>
 
 <FriendsDialog />

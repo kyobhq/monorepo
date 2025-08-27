@@ -468,6 +468,10 @@ export class BackendStore {
 		});
 		return this.makeRequest<Member[]>(`servers/${serverID}/search?${params}`);
 	}
+
+	getRoleMembers(roleID: string): ResultAsync<string[], APIError> {
+		return this.makeRequest<string[]>(`roles/members/${roleID}`);
+	}
 }
 
 export const backend = new BackendStore();

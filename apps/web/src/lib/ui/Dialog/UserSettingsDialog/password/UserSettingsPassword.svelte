@@ -31,7 +31,6 @@
 						form.data.confirm = '';
 					},
 					(err) => {
-						console.log(err);
 						console.error(`${err.code}: ${err.message}`);
 						globalError = err.message;
 
